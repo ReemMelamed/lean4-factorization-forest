@@ -219,6 +219,14 @@ lemma h_valid_of_mem_partitionIndices {A : Type*} {n h : ℕ} [Nonempty (Fin h)]
     contradiction
   exact ⟨h_lt, h_le, h_w_ne⟩
 
+/-- A helper to construct the n-ary node, abstracting the pattern match on children -/
+def list_to_nary {A} (children : List (FactorizationTree A)) (u : List A) (h : ℕ) (def_leaf : FactorizationTree A) : FactorizationTree A :=
+  match children with
+  | [] => def_leaf.binary def_leaf u 0
+  | [c] => c.binary c u h
+  | [c1, c2] => c1.binary c2 u h
+  | _::_::_::_ => FactorizationTree.nary children u h
+
 /-- Recursively builds a factorization tree from a word and a split function. -/
 def buildFactorizationTree {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin h)]
     (eval : List A → S) (u : List A) (hu : u ≠ [])
@@ -505,41 +513,23 @@ def buildFactorizationTree {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin 
                 pre_w (max t_pre_rest.height 1 + 1)
         if h_k_full : k = u.length then
           if h_k_zero : k_pre = 0 then
-            match children with
-            | [] => FactorizationTree.binary (FactorizationTree.leaf (u.head hu))
-                      (FactorizationTree.leaf (u.head hu)) u 0
-            | [c] => FactorizationTree.binary c c u (max_h_children + 1)
-            | [c1, c2] => FactorizationTree.binary c1 c2 u (max_h_children + 1)
-            | c1::c2::c3::rest => FactorizationTree.nary children u (max_h_children + 1)
+            list_to_nary children u (max_h_children + 1) (FactorizationTree.leaf (u.head hu))
           else
             if h_k_eq_pre : k_pre = k then
               t_pre
             else
-              match children with
-              | [] => FactorizationTree.binary (FactorizationTree.leaf (u.head hu))
-                        (FactorizationTree.leaf (u.head hu)) u 0
-              | [c] => FactorizationTree.binary t_pre c u (max t_pre.height c.height + 1)
-              | c1::c2::rest =>
-                FactorizationTree.nary (t_pre :: children) u
-                  (max t_pre.height max_h_children + 1)
+              list_to_nary (t_pre :: children) u (max t_pre.height max_h_children + 1) (FactorizationTree.leaf (u.head hu))
         else
           if h_k_zero : k_pre = 0 then
             if h_k_eq_pre : k_pre = k then
               t_suf
             else
-              match children with
-              | [] => FactorizationTree.binary (FactorizationTree.leaf (u.head hu))
-                        (FactorizationTree.leaf (u.head hu)) u 0
-              | [c] => FactorizationTree.binary c t_suf u (max c.height t_suf.height + 1)
-              | c1::c2::rest =>
-                FactorizationTree.nary (children ++ [t_suf]) u
-                  (max max_h_children t_suf.height + 1)
+                list_to_nary (children ++ [t_suf]) u (max max_h_children t_suf.height + 1) (FactorizationTree.leaf (u.head hu))
           else
             if h_k_eq_pre : k_pre = k then
               FactorizationTree.binary t_pre t_suf u (max t_pre.height t_suf.height + 1)
             else
-              FactorizationTree.nary (t_pre :: children ++ [t_suf]) u
-                (max t_pre.height (max max_h_children t_suf.height) + 1)
+              list_to_nary (t_pre :: children ++ [t_suf]) u (max t_pre.height (max max_h_children t_suf.height) + 1) (FactorizationTree.leaf (u.head hu))
 termination_by (h, u.length)
 decreasing_by
   all_goals
@@ -588,42 +578,14 @@ lemma word_dite {A} (c : Prop) [Decidable c] (t : c → FactorizationTree A)
   (dite c t f).word = dite c (fun h => (t h).word) (fun h => (f h).word) := by
   split <;> rfl
 
-lemma match_children_word_eq1 {A : Type*} (children : List (FactorizationTree A)) (u : List A)
-    (hu : u ≠ []) (max_h_children : ℕ) :
-  (match children with
-  | [] => (FactorizationTree.leaf (u.head hu)).binary (FactorizationTree.leaf (u.head hu)) u 0
-  | [c] => c.binary c u (max_h_children + 1)
-  | [c1, c2] => c1.binary c2 u (max_h_children + 1)
-  | _ :: _ :: _ :: _ => FactorizationTree.nary children u (max_h_children + 1)).word = u := by
+@[simp] lemma list_to_nary_word_eq {A : Type*} (children : List (FactorizationTree A)) (u : List A)
+    (h : ℕ) (def_leaf : FactorizationTree A) :
+  (list_to_nary children u h def_leaf).word = u := by
   match children with
   | [] => rfl
   | [_] => rfl
   | [_, _] => rfl
   | _ :: _ :: _ :: _ => rfl
-
-lemma match_children_word_eq2 {A : Type*} (children : List (FactorizationTree A)) (u : List A)
-    (hu : u ≠ []) (max_h_children : ℕ) (t_pre : FactorizationTree A) :
-  (match children with
-  | [] => (FactorizationTree.leaf (u.head hu)).binary (FactorizationTree.leaf (u.head hu)) u 0
-  | [c] => t_pre.binary c u (max t_pre.height c.height + 1)
-  | _ :: _ :: _ => FactorizationTree.nary
-    (t_pre :: children) u (max t_pre.height max_h_children + 1)).word = u := by
-  match children with
-  | [] => rfl
-  | [_] => rfl
-  | _ :: _ :: _ => rfl
-
-lemma match_children_word_eq3 {A : Type*} (children : List (FactorizationTree A)) (u : List A)
-    (hu : u ≠ []) (max_h_children : ℕ) (t_suf : FactorizationTree A) :
-  (match children with
-  | [] => (FactorizationTree.leaf (u.head hu)).binary (FactorizationTree.leaf (u.head hu)) u 0
-  | [c] => c.binary t_suf u (max c.height t_suf.height + 1)
-  | _ :: _ :: _ => FactorizationTree.nary
-    (children ++ [t_suf]) u (max max_h_children t_suf.height + 1)).word = u := by
-  match children with
-  | [] => rfl
-  | [_] => rfl
-  | _ :: _ :: _ => rfl
 
 /-- The tree built by `buildFactorizationTree` has the original word as its word. -/
 theorem buildTree_word_eq {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin h)]
@@ -644,8 +606,7 @@ theorem buildTree_word_eq {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin h
     · split
       · exact word_leaf_eq u hu ‹u.length = 1›
       · rfl
-    · simp only [word_ite, word_dite, match_children_word_eq1,
-        match_children_word_eq2, match_children_word_eq3, dite_eq_ite, ite_self]
+    · simp only [word_ite, word_dite, list_to_nary_word_eq, dite_eq_ite, ite_self]
       by_cases h_idxs : (splitIndices s').map (fun x : Fin (u.length + 1) => (x:ℕ)) = [0, u.length]
       · simp only [h_idxs, if_true]
       · simp only [h_idxs, if_false]
@@ -671,9 +632,8 @@ theorem buildTree_word_eq {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin h
               exact ⟨⟨0, by omega⟩⟩
           exact ih (h' - 1) (by omega) u hu _
         · simp only [h_empty, dite_false]
-          split_ifs
-          all_goals
-            simp_all [FactorizationTree.word]
+          unfold list_to_nary
+          split_ifs <;> simp_all [FactorizationTree.word]
   exact H_P u hu s
 
 /-- Auxiliary lemma to add 1 to both sides of an inequality with subtraction. -/
@@ -1022,6 +982,54 @@ lemma word_decomp {A} (u : List A) (hu : u ≠ []) (h_len : 2 < u.length) :
       rw [List.append_assoc]
     _ = [u.head hu] ++ (u.drop 1).take (u.length - 2) ++ [u.getLast hu] := by rw [h4]
 
+def nary_tree_structure {A : Type*} (u : List A) (hu : u ≠ [])
+    (k k_pre : ℕ)
+    (t_pre t_suf : FactorizationTree A)
+    (children : List (FactorizationTree A)) : FactorizationTree A :=
+  let max_h_children := (children.map FactorizationTree.height).foldl max 0
+  if _ : k = u.length then
+    if _ : k_pre = 0 then
+      list_to_nary children u (max_h_children + 1) (FactorizationTree.leaf (u.head hu))
+    else
+      if _ : k_pre = k then
+        t_pre
+      else
+        list_to_nary (t_pre :: children) u
+        (max t_pre.height max_h_children + 1) (FactorizationTree.leaf (u.head hu))
+  else
+    if _ : k_pre = 0 then
+      if _ : k_pre = k then
+        t_suf
+      else
+        list_to_nary (children ++ [t_suf]) u
+        (max max_h_children t_suf.height + 1) (FactorizationTree.leaf (u.head hu))
+    else
+      if _ : k_pre = k then
+        FactorizationTree.binary t_pre t_suf u (max t_pre.height t_suf.height + 1)
+      else
+        list_to_nary (t_pre :: children ++ [t_suf]) u
+        (max t_pre.height (max max_h_children t_suf.height) + 1)
+        (FactorizationTree.leaf (u.head hu))
+
+lemma nary_control_flow_ramsey {A S : Type*} [Semigroup S] (eval : List A → S)
+    (u : List A) (hu : u ≠ [])
+    (k k_pre : ℕ)
+    (t_pre t_suf : FactorizationTree A)
+    (children : List (FactorizationTree A)) :
+    k ≤ u.length →
+    k_pre ≤ k →
+    IsRamseyTree eval t_pre →
+    IsRamseyTree eval t_suf →
+    (∀ c ∈ children, IsRamseyTree eval c) →
+    (∃ e, e * e = e ∧ ∀ c ∈ children, eval c.word = e) →
+    t_pre.word = u.take k_pre →
+    t_suf.word = (u.drop k).take (u.length - k) →
+    List.flatten (children.map FactorizationTree.word) = (u.drop k_pre).take (k - k_pre) →
+    children.length ≥ 3 →
+    IsRamseyTree eval (nary_tree_structure u hu k k_pre t_pre t_suf children) := by
+
+  sorry
+
 /-- The tree built by `buildFactorizationTree` satisfies the Ramsey property. -/
 theorem buildTree_isRamsey {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin h)]
     (eval : List A → S)
@@ -1203,8 +1211,18 @@ theorem buildTree_isRamsey {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin 
             lowerSplitInterior_ramsey eval hmul u s' hs_ramsey' h_1 h_interior
           exact ih (h' - 1) (by omega) u hu (lowerSplitInterior s' h_interior) h_ramsey_lower
         · -- Sub-case: n-ary split (splitIndices s' ≠ [0, u.length] and ≠ [])
-          -- This branch involves destructing the output of buildFactorizationTree
-          exact sorry
+          rw [dif_neg h_empty]
+          apply nary_control_flow_ramsey
+          · sorry -- k_le
+          · sorry -- pre_le
+          · sorry -- pre_ramsey
+          · sorry -- suf_ramsey
+          · sorry -- children_ramsey
+          · sorry -- e
+          · sorry -- pre_word
+          · sorry -- suf_word
+          · sorry -- children_word
+          · sorry -- children_len
   exact H_P u hu s hs_ramsey
 
 /-- Given a Ramsey split, one can construct a factorization tree with bounded height. -/
