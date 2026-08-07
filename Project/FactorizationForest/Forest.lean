@@ -988,6 +988,40 @@ lemma nary_children_ramsey {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin 
             omega⟩
         nomatch h_valid_false h_valid_true
 
+lemma list_drop_length_sub_one {A} (u : List A) (hu : u ≠ []) :
+  u.drop (u.length - 1) = [u.getLast hu] := by
+  induction u with
+  | nil => contradiction
+  | cons head tail ih =>
+    match tail with
+    | [] => rfl
+    | head2 :: tail2 =>
+      have h_tail_ne : head2 :: tail2 ≠ [] := by simp
+      exact ih h_tail_ne
+
+lemma word_decomp {A} (u : List A) (hu : u ≠ []) (h_len : 2 < u.length) :
+  u = [u.head hu] ++ (u.drop 1).take (u.length - 2) ++ [u.getLast hu] := by
+  have h3 : u.drop 1 = (u.drop 1).take (u.length - 2) ++ (u.drop 1).drop (u.length - 2) :=
+    (List.take_append_drop (u.length - 2) (u.drop 1)).symm
+  have h4 : (u.drop 1).drop (u.length - 2) = [u.getLast hu] := by
+    rw [List.drop_drop]
+    have hd2 : 1 + (u.length - 2) = u.length - 1 := by omega
+    rw [hd2]
+    exact list_drop_length_sub_one u hu
+  calc u
+    _ = u.take 1 ++ u.drop 1 := (List.take_append_drop 1 u).symm
+    _ = [u.head hu] ++ u.drop 1 := by
+      have h2 : u.take 1 = [u.head hu] := by
+        match u with
+        | [] => contradiction
+        | a :: tl => rfl
+      rw [h2]
+    _ = [u.head hu] ++ ((u.drop 1).take (u.length - 2) ++ (u.drop 1).drop (u.length - 2)) := by
+      exact congrArg (fun x => [u.head hu] ++ x) h3
+    _ = [u.head hu] ++ (u.drop 1).take (u.length - 2) ++ (u.drop 1).drop (u.length - 2) := by
+      rw [List.append_assoc]
+    _ = [u.head hu] ++ (u.drop 1).take (u.length - 2) ++ [u.getLast hu] := by rw [h4]
+
 /-- The tree built by `buildFactorizationTree` satisfies the Ramsey property. -/
 theorem buildTree_isRamsey {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin h)]
     (eval : List A → S)
@@ -1000,12 +1034,177 @@ theorem buildTree_isRamsey {A S : Type*} [Semigroup S] {h : ℕ} [Nonempty (Fin 
     IsRamsey (wordLabeling eval hmul u) s' →
     IsRamseyTree eval (buildFactorizationTree eval u hu s')
   have H_P : P h := by
+    clear u hu s hs_ramsey
     induction h using Nat.strong_induction_on with | h h' ih =>
     intro h_nonempty u hu s' hs_ramsey'
-    have h_pos : 0 < h' := by
-      have ⟨⟨_, hlt⟩⟩ := h_nonempty
-      omega
-    sorry
+    rw [buildFactorizationTree]
+    split
+    · -- u.length <= 2
+      split
+      · -- length = 1
+        exact IsRamseyTree.leaf _
+      · -- length = 2
+        rename_i h_len _h_len2
+        have h_len2 : u.length = 2 := by have h_pos := List.length_pos_of_ne_nil hu; omega
+        apply IsRamseyTree.binary
+        · exact IsRamseyTree.leaf _
+        · exact IsRamseyTree.leaf _
+        · -- word equality: u = [u.head hu] ++ [u.getLast (by omega)]
+          have h_word : u = [u.head hu] ++ [u.getLast (by omega)] := by
+            rcases u with _ | ⟨a, _ | ⟨b, _ | _⟩⟩
+            · contradiction
+            · contradiction
+            · rfl
+            · simp at h_len2
+          exact h_word
+        · exact Nat.le_refl 1
+        · exact Nat.le_refl 1
+    · -- u.length > 2
+      rename_i h_len
+      by_cases h_idxs : (splitIndices s').map (fun x : Fin (u.length + 1) => (x:ℕ)) = [0, u.length]
+      · simp only [h_idxs, dite_true]
+        split_ifs with hh
+        · -- Sub-case: 1 < h' → binary of head and (binary t_w (leaf last))
+          have h_nonempty_1 : Nonempty (Fin (h' - 1)) := ⟨⟨0, by omega⟩⟩
+          set w := (u.drop 1).take (u.length - 2) with h_w_def
+          have h_len_w : w.length = u.length - 2 := by
+            rw [List.length_take, List.length_drop]; omega
+          have hw : w ≠ [] := by
+            intro heq
+            have hlen : w.length = 0 := by rw [heq, List.length_nil]
+            omega
+          have h_bound : 1 + w.length ≤ u.length := by omega
+          set s_w := restrictSplit s' 1 w.length h_bound
+          have h_interior : ∀ i : Fin (w.length + 1), (s_w i).val < h' - 1 := by
+            intro i
+            let j_val := 1 + i.val
+            have h_max_val :
+              (Finset.max' Finset.univ Finset.univ_nonempty : Fin h').val = h' - 1 := by
+              have h_eq :
+                (Finset.max' Finset.univ Finset.univ_nonempty : Fin h') = ⟨h' - 1, by grind⟩ := by
+                rw [Finset.max'_eq_iff]
+                exact ⟨Finset.mem_univ _, fun y _ => Fin.le_iff_val_le_val.mpr (by grind)⟩
+              exact congrArg Fin.val h_eq
+            have h_not_max : (s_w i).val ≠ h' - 1 := by
+              intro h_eq
+              have h_s_eq :
+                s' ⟨j_val, by omega⟩ = Finset.max' Finset.univ Finset.univ_nonempty := by
+                apply Fin.ext; exact h_max_val ▸ h_eq
+              have h_in_idxs : ⟨j_val, by omega⟩ ∈ splitIndices s' := by
+                simp [splitIndices, h_s_eq]
+              have h_map : j_val ∈ (splitIndices s').map (·.val) :=
+                List.mem_map_of_mem h_in_idxs
+              rw [h_idxs] at h_map; simp at h_map; omega
+            have h_lt := (s_w i).isLt; omega
+          -- t_w is the recursive subtree
+          set t_w := buildFactorizationTree eval w hw (lowerSplitInterior s_w h_interior)
+          set last_val := u.getLast (by omega : u ≠ [])
+          -- Prove IsRamseyTree for t_w by induction hypothesis
+          have h_ramsey_w : IsRamsey (wordLabeling eval hmul w)
+            (lowerSplitInterior s_w h_interior) :=
+            lowerSplitInterior_ramsey eval hmul w s_w
+              (restrictSplit_ramsey eval hmul u s' hs_ramsey' 1 w h_bound) hh h_interior
+          have ih_t_w : IsRamseyTree eval t_w :=
+            ih (h' - 1) (by omega) w hw (lowerSplitInterior s_w h_interior) h_ramsey_w
+          -- Apply binary constructor for the outer node
+          apply IsRamseyTree.binary
+          · exact IsRamseyTree.leaf _
+          · -- Apply binary constructor for the inner node (t_w, leaf last_val)
+            apply IsRamseyTree.binary
+            · exact ih_t_w
+            · exact IsRamseyTree.leaf _
+            · -- word: w ++ [last_val] = t_w.word ++ (leaf last_val).word
+              change w ++ [last_val] = t_w.word ++ [last_val]
+              have h_w_eq : t_w.word = w :=
+                buildTree_word_eq eval w hw (lowerSplitInterior s_w h_interior)
+              rw [h_w_eq]
+            · -- t_w.height + 1 ≤ t_w.height + 1
+              exact Nat.le_refl _
+            · -- 0 + 1 ≤ t_w.height + 1
+              exact Nat.one_le_iff_ne_zero.mpr (by simp)
+          · -- word: u = [u.head hu] ++ (w ++ [last_val])
+            have h_outer_word : u = [u.head hu] ++ (w ++ [last_val]) := by
+              have hw_def' : w = (u.drop 1).take (u.length - 2) := h_w_def
+              have hu_decomp := word_decomp u hu (by omega)
+              rw [hw_def']
+              exact hu_decomp
+            exact h_outer_word
+          · -- (leaf (u.head hu)).height + 1 = 0 + 1 ≤ t_w.height + 2
+            have : (FactorizationTree.leaf (u.head hu)).height = 0 := rfl
+            omega
+          · -- (binary t_w (leaf last_val) ...).height + 1 = t_w.height + 2
+            have : (FactorizationTree.binary t_w (FactorizationTree.leaf last_val)
+              (w ++ [last_val]) (t_w.height + 1)).height = t_w.height + 1 := rfl
+            grind
+        · exfalso
+          have h_h1 : h' = 1 := by grind
+          have h_all_max : ∀ x :
+            Fin (u.length + 1), s' x = Finset.max' Finset.univ Finset.univ_nonempty := by
+            intro x
+            have hs := (s' x).isLt
+            apply Fin.ext
+            omega
+          have h_all_in : ∀ i : Fin (u.length + 1), i ∈ splitIndices s' := by
+            intro i
+            simp [splitIndices, h_all_max i]
+          have h_map_len : ((splitIndices s').map (·.val)).length = u.length + 1 := by
+            simp only [splitIndices, List.length_map]
+            have h_filter : (List.finRange (u.length + 1)).filter
+              (fun i => decide
+              (s' i = Finset.max' Finset.univ Finset.univ_nonempty)) = List.finRange
+              (u.length + 1) := by
+              apply List.filter_eq_self.mpr
+              intro a _
+              simp [h_all_max a]
+            rw [h_filter, List.length_finRange]
+          have h_len_eq : ((splitIndices s').map (·.val)).length = [0, u.length].length := by
+            rw [h_idxs]
+          rw [h_map_len] at h_len_eq
+          simp at h_len_eq
+          omega
+      · simp only [h_idxs, dite_false]
+        by_cases h_empty : splitIndices s' = []
+        · simp only [h_empty, dite_true]
+          haveI inst : Nonempty (Fin (h' - 1)) := by
+            by_contra h_not_ne
+            simp only [not_nonempty_iff] at h_not_ne
+            have h_h1 : h' = 1 := by
+              have : ¬ (h' - 1 > 0) := by
+                intro h_gt
+                have h_fin : Fin (h' - 1) := ⟨0, h_gt⟩
+                exact IsEmpty.false h_fin
+              grind
+            have h_all_max : ∀ x :
+              Fin (u.length + 1), s' x = Finset.max' Finset.univ Finset.univ_nonempty := by
+              intro x; apply Fin.ext
+              have := (s' x).isLt; omega
+            have h_first_in : (⟨0, by omega⟩ : Fin (u.length + 1)) ∈ splitIndices s' := by
+              simp [splitIndices, h_all_max _]
+            rw [h_empty] at h_first_in
+            contradiction
+          have h_interior : ∀ i : Fin (u.length + 1), (s' i).val < h' - 1 := by
+            intro i
+            have h_max_val :
+              (Finset.max' Finset.univ Finset.univ_nonempty : Fin h').val = h' - 1 := by
+              have h_eq :
+                (Finset.max' Finset.univ Finset.univ_nonempty : Fin h') = ⟨h' - 1, by grind⟩ := by
+                rw [Finset.max'_eq_iff]
+                exact ⟨Finset.mem_univ _, fun y _ => Fin.le_iff_val_le_val.mpr (by grind)⟩
+              exact congrArg Fin.val h_eq
+            have h_not_max : s' i ≠ Finset.max' Finset.univ Finset.univ_nonempty := by
+              intro heq
+              have h_in : i ∈ splitIndices s' := by simp [splitIndices, heq]
+              rw [h_empty] at h_in; contradiction
+            have h_lt := (s' i).isLt; omega
+          have h_1 : 1 < h' := by
+            rcases inst with ⟨⟨_, hlt⟩⟩; omega
+          have h_ramsey_lower :
+            IsRamsey (wordLabeling eval hmul u) (lowerSplitInterior s' h_interior) :=
+            lowerSplitInterior_ramsey eval hmul u s' hs_ramsey' h_1 h_interior
+          exact ih (h' - 1) (by omega) u hu (lowerSplitInterior s' h_interior) h_ramsey_lower
+        · -- Sub-case: n-ary split (splitIndices s' ≠ [0, u.length] and ≠ [])
+          -- This branch involves destructing the output of buildFactorizationTree
+          exact sorry
   exact H_P u hu s hs_ramsey
 
 /-- Given a Ramsey split, one can construct a factorization tree with bounded height. -/
