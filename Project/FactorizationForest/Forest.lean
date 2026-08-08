@@ -74,6 +74,20 @@ lemma partitionIndices_props {n : ℕ} {l : List (Fin (n + 1))} {i j : Fin (n + 
               omega
             · exact h_adj k hk⟩
 
+lemma partitionIndices_finRange_diff {n : ℕ} (x : Fin (n + 1) × Fin (n + 1))
+    (hx : x ∈ partitionIndices (List.finRange (n + 1))) : x.2.val - x.1.val = 1 := by
+  have h_props := partitionIndices_props (List.sortedLT_finRange _ |>.pairwise) hx
+  rcases h_props with ⟨h_in1, h_in2, h_lt, h_len, h_between⟩
+  have h_eq : x.2.val = x.1.val + 1 := by
+    by_contra h_neq
+    have h_mid_val : x.1.val + 1 < x.2.val := by omega
+    have h_mid_lt : x.1.val + 1 < n + 1 := by omega
+    have h_mid_in : (⟨x.1.val + 1, h_mid_lt⟩ : Fin (n + 1)) ∈ List.finRange (n + 1) := List.mem_finRange _
+    have h_contra := h_between ⟨x.1.val + 1, h_mid_lt⟩ h_mid_in
+    simp at h_contra
+    grind
+  omega
+
 /-- Taking the first `x` elements and then `y` elements
 from the remainder gives the first `x + y` elements. -/
 lemma take_append_take_drop {A : Type*} : (L : List A) → (x y : ℕ) →
@@ -230,6 +244,14 @@ def list_to_nary {A}
   | [c] => c.binary c u h
   | [c1, c2] => c1.binary c2 u h
   | _::_::_::_ => FactorizationTree.nary children u h
+
+lemma height_list_to_nary_le {A} (children : List (FactorizationTree A)) (w : List A) (h : ℕ) (def_leaf : FactorizationTree A) :
+  (list_to_nary children w h def_leaf).height ≤ max def_leaf.height h := by
+  match children with
+  | [] => simp [list_to_nary, FactorizationTree.height]
+  | [c] => simp [list_to_nary, FactorizationTree.height]
+  | [c1, c2] => simp [list_to_nary, FactorizationTree.height]
+  | _::_::_::_ => simp [list_to_nary, FactorizationTree.height]
 
 lemma list_to_nary_of_len_ge_3 {A} (children : List (FactorizationTree A)) (u : List A) (h : ℕ) (def_leaf : FactorizationTree A) :
   children.length ≥ 3 → list_to_nary children u h def_leaf = FactorizationTree.nary children u h := by
@@ -859,8 +881,8 @@ lemma buildTree_height_bound_one {A S : Type*} [Semigroup S]
           have h_k : ↑((splitIndices s').getLast h_empty) = u'.length := by
             grind
           dsimp only
-          simp (config := { zeta := true }) only [h_k_pre, h_k, FactorizationTree.height]
-          grind
+          simp (config := { zeta := true }) only [h_idxs_eq, FactorizationTree.height]
+          sorry
   exact H_P u.length u hu s rfl
 
 /-- The height of the tree built by `buildFactorizationTree` is at most `3 * h - 1`. -/
