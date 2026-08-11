@@ -45,6 +45,12 @@ LEAN_EXPORT lean_object* lp_Project_FactorizationForest_FactorizationTree_height
 LEAN_EXPORT lean_object* lp_Project_FactorizationForest_FactorizationTree_height___redArg___boxed(lean_object*);
 LEAN_EXPORT lean_object* lp_Project_FactorizationForest_FactorizationTree_height(lean_object*, lean_object*);
 LEAN_EXPORT lean_object* lp_Project_FactorizationForest_FactorizationTree_height___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_Project_FactorizationForest_list__to__nary___redArg(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_Project_FactorizationForest_list__to__nary(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_list__to__nary_match__1_splitter___redArg(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_list__to__nary_match__1_splitter(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_FactorizationTree_word_match__1_splitter___redArg(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_FactorizationTree_word_match__1_splitter(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
 LEAN_EXPORT lean_object* lp_Project_FactorizationForest_wordLabeling___redArg___lam__0(lean_object* v_u_3_, lean_object* v_eval_4_, lean_object* v_i_5_, lean_object* v_j_6_){
 _start:
 {
@@ -396,6 +402,326 @@ lean_object* v_res_129_;
 v_res_129_ = lp_Project_FactorizationForest_FactorizationTree_height(v_A_127_, v_x_128_);
 lean_dec_ref(v_x_128_);
 return v_res_129_;
+}
+}
+LEAN_EXPORT lean_object* lp_Project_FactorizationForest_list__to__nary___redArg(lean_object* v_children_130_, lean_object* v_u_131_, lean_object* v_h_132_, lean_object* v_def__leaf_133_){
+_start:
+{
+if (lean_obj_tag(v_children_130_) == 0)
+{
+lean_object* v___x_134_; lean_object* v___x_135_; 
+lean_dec(v_h_132_);
+v___x_134_ = lean_unsigned_to_nat(0u);
+lean_inc_ref(v_def__leaf_133_);
+v___x_135_ = lean_alloc_ctor(1, 4, 0);
+lean_ctor_set(v___x_135_, 0, v_def__leaf_133_);
+lean_ctor_set(v___x_135_, 1, v_def__leaf_133_);
+lean_ctor_set(v___x_135_, 2, v_u_131_);
+lean_ctor_set(v___x_135_, 3, v___x_134_);
+return v___x_135_;
+}
+else
+{
+lean_object* v_tail_136_; 
+lean_dec_ref(v_def__leaf_133_);
+v_tail_136_ = lean_ctor_get(v_children_130_, 1);
+if (lean_obj_tag(v_tail_136_) == 0)
+{
+lean_object* v_head_137_; lean_object* v___x_138_; 
+v_head_137_ = lean_ctor_get(v_children_130_, 0);
+lean_inc_n(v_head_137_, 2);
+lean_dec_ref_known(v_children_130_, 2);
+v___x_138_ = lean_alloc_ctor(1, 4, 0);
+lean_ctor_set(v___x_138_, 0, v_head_137_);
+lean_ctor_set(v___x_138_, 1, v_head_137_);
+lean_ctor_set(v___x_138_, 2, v_u_131_);
+lean_ctor_set(v___x_138_, 3, v_h_132_);
+return v___x_138_;
+}
+else
+{
+lean_object* v_tail_139_; 
+v_tail_139_ = lean_ctor_get(v_tail_136_, 1);
+if (lean_obj_tag(v_tail_139_) == 0)
+{
+lean_object* v_head_140_; lean_object* v_head_141_; lean_object* v___x_142_; 
+lean_inc_ref(v_tail_136_);
+v_head_140_ = lean_ctor_get(v_children_130_, 0);
+lean_inc(v_head_140_);
+lean_dec_ref_known(v_children_130_, 2);
+v_head_141_ = lean_ctor_get(v_tail_136_, 0);
+lean_inc(v_head_141_);
+lean_dec_ref_known(v_tail_136_, 2);
+v___x_142_ = lean_alloc_ctor(1, 4, 0);
+lean_ctor_set(v___x_142_, 0, v_head_140_);
+lean_ctor_set(v___x_142_, 1, v_head_141_);
+lean_ctor_set(v___x_142_, 2, v_u_131_);
+lean_ctor_set(v___x_142_, 3, v_h_132_);
+return v___x_142_;
+}
+else
+{
+lean_object* v___x_143_; 
+v___x_143_ = lean_alloc_ctor(2, 3, 0);
+lean_ctor_set(v___x_143_, 0, v_children_130_);
+lean_ctor_set(v___x_143_, 1, v_u_131_);
+lean_ctor_set(v___x_143_, 2, v_h_132_);
+return v___x_143_;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_Project_FactorizationForest_list__to__nary(lean_object* v_A_144_, lean_object* v_children_145_, lean_object* v_u_146_, lean_object* v_h_147_, lean_object* v_def__leaf_148_){
+_start:
+{
+lean_object* v___x_149_; 
+v___x_149_ = lp_Project_FactorizationForest_list__to__nary___redArg(v_children_145_, v_u_146_, v_h_147_, v_def__leaf_148_);
+return v___x_149_;
+}
+}
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_list__to__nary_match__1_splitter___redArg(lean_object* v_children_150_, lean_object* v_h__1_151_, lean_object* v_h__2_152_, lean_object* v_h__3_153_, lean_object* v_h__4_154_){
+_start:
+{
+if (lean_obj_tag(v_children_150_) == 0)
+{
+lean_object* v___x_155_; lean_object* v___x_156_; 
+lean_dec(v_h__4_154_);
+lean_dec(v_h__3_153_);
+lean_dec(v_h__2_152_);
+v___x_155_ = lean_box(0);
+v___x_156_ = lean_apply_1(v_h__1_151_, v___x_155_);
+return v___x_156_;
+}
+else
+{
+lean_object* v_tail_157_; 
+lean_dec(v_h__1_151_);
+v_tail_157_ = lean_ctor_get(v_children_150_, 1);
+if (lean_obj_tag(v_tail_157_) == 0)
+{
+lean_object* v_head_158_; lean_object* v___x_159_; 
+lean_dec(v_h__4_154_);
+lean_dec(v_h__3_153_);
+v_head_158_ = lean_ctor_get(v_children_150_, 0);
+lean_inc(v_head_158_);
+lean_dec_ref_known(v_children_150_, 2);
+v___x_159_ = lean_apply_1(v_h__2_152_, v_head_158_);
+return v___x_159_;
+}
+else
+{
+lean_object* v_tail_160_; 
+lean_inc_ref(v_tail_157_);
+lean_dec(v_h__2_152_);
+v_tail_160_ = lean_ctor_get(v_tail_157_, 1);
+if (lean_obj_tag(v_tail_160_) == 0)
+{
+lean_object* v_head_161_; lean_object* v_head_162_; lean_object* v___x_163_; 
+lean_dec(v_h__4_154_);
+v_head_161_ = lean_ctor_get(v_children_150_, 0);
+lean_inc(v_head_161_);
+lean_dec_ref_known(v_children_150_, 2);
+v_head_162_ = lean_ctor_get(v_tail_157_, 0);
+lean_inc(v_head_162_);
+lean_dec_ref_known(v_tail_157_, 2);
+v___x_163_ = lean_apply_2(v_h__3_153_, v_head_161_, v_head_162_);
+return v___x_163_;
+}
+else
+{
+lean_object* v_head_164_; lean_object* v_head_165_; lean_object* v_head_166_; lean_object* v_tail_167_; lean_object* v___x_168_; 
+lean_inc_ref(v_tail_160_);
+lean_dec(v_h__3_153_);
+v_head_164_ = lean_ctor_get(v_children_150_, 0);
+lean_inc(v_head_164_);
+lean_dec_ref_known(v_children_150_, 2);
+v_head_165_ = lean_ctor_get(v_tail_157_, 0);
+lean_inc(v_head_165_);
+lean_dec_ref_known(v_tail_157_, 2);
+v_head_166_ = lean_ctor_get(v_tail_160_, 0);
+lean_inc(v_head_166_);
+v_tail_167_ = lean_ctor_get(v_tail_160_, 1);
+lean_inc(v_tail_167_);
+lean_dec_ref_known(v_tail_160_, 2);
+v___x_168_ = lean_apply_4(v_h__4_154_, v_head_164_, v_head_165_, v_head_166_, v_tail_167_);
+return v___x_168_;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_list__to__nary_match__1_splitter(lean_object* v_A_169_, lean_object* v_motive_170_, lean_object* v_children_171_, lean_object* v_h__1_172_, lean_object* v_h__2_173_, lean_object* v_h__3_174_, lean_object* v_h__4_175_){
+_start:
+{
+if (lean_obj_tag(v_children_171_) == 0)
+{
+lean_object* v___x_176_; lean_object* v___x_177_; 
+lean_dec(v_h__4_175_);
+lean_dec(v_h__3_174_);
+lean_dec(v_h__2_173_);
+v___x_176_ = lean_box(0);
+v___x_177_ = lean_apply_1(v_h__1_172_, v___x_176_);
+return v___x_177_;
+}
+else
+{
+lean_object* v_tail_178_; 
+lean_dec(v_h__1_172_);
+v_tail_178_ = lean_ctor_get(v_children_171_, 1);
+if (lean_obj_tag(v_tail_178_) == 0)
+{
+lean_object* v_head_179_; lean_object* v___x_180_; 
+lean_dec(v_h__4_175_);
+lean_dec(v_h__3_174_);
+v_head_179_ = lean_ctor_get(v_children_171_, 0);
+lean_inc(v_head_179_);
+lean_dec_ref_known(v_children_171_, 2);
+v___x_180_ = lean_apply_1(v_h__2_173_, v_head_179_);
+return v___x_180_;
+}
+else
+{
+lean_object* v_tail_181_; 
+lean_inc_ref(v_tail_178_);
+lean_dec(v_h__2_173_);
+v_tail_181_ = lean_ctor_get(v_tail_178_, 1);
+if (lean_obj_tag(v_tail_181_) == 0)
+{
+lean_object* v_head_182_; lean_object* v_head_183_; lean_object* v___x_184_; 
+lean_dec(v_h__4_175_);
+v_head_182_ = lean_ctor_get(v_children_171_, 0);
+lean_inc(v_head_182_);
+lean_dec_ref_known(v_children_171_, 2);
+v_head_183_ = lean_ctor_get(v_tail_178_, 0);
+lean_inc(v_head_183_);
+lean_dec_ref_known(v_tail_178_, 2);
+v___x_184_ = lean_apply_2(v_h__3_174_, v_head_182_, v_head_183_);
+return v___x_184_;
+}
+else
+{
+lean_object* v_head_185_; lean_object* v_head_186_; lean_object* v_head_187_; lean_object* v_tail_188_; lean_object* v___x_189_; 
+lean_inc_ref(v_tail_181_);
+lean_dec(v_h__3_174_);
+v_head_185_ = lean_ctor_get(v_children_171_, 0);
+lean_inc(v_head_185_);
+lean_dec_ref_known(v_children_171_, 2);
+v_head_186_ = lean_ctor_get(v_tail_178_, 0);
+lean_inc(v_head_186_);
+lean_dec_ref_known(v_tail_178_, 2);
+v_head_187_ = lean_ctor_get(v_tail_181_, 0);
+lean_inc(v_head_187_);
+v_tail_188_ = lean_ctor_get(v_tail_181_, 1);
+lean_inc(v_tail_188_);
+lean_dec_ref_known(v_tail_181_, 2);
+v___x_189_ = lean_apply_4(v_h__4_175_, v_head_185_, v_head_186_, v_head_187_, v_tail_188_);
+return v___x_189_;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_FactorizationTree_word_match__1_splitter___redArg(lean_object* v_x_190_, lean_object* v_h__1_191_, lean_object* v_h__2_192_, lean_object* v_h__3_193_){
+_start:
+{
+switch(lean_obj_tag(v_x_190_))
+{
+case 0:
+{
+lean_object* v_a_194_; lean_object* v___x_195_; 
+lean_dec(v_h__3_193_);
+lean_dec(v_h__2_192_);
+v_a_194_ = lean_ctor_get(v_x_190_, 0);
+lean_inc(v_a_194_);
+lean_dec_ref_known(v_x_190_, 1);
+v___x_195_ = lean_apply_1(v_h__1_191_, v_a_194_);
+return v___x_195_;
+}
+case 1:
+{
+lean_object* v_left_196_; lean_object* v_right_197_; lean_object* v_word_198_; lean_object* v_height_199_; lean_object* v___x_200_; 
+lean_dec(v_h__3_193_);
+lean_dec(v_h__1_191_);
+v_left_196_ = lean_ctor_get(v_x_190_, 0);
+lean_inc_ref(v_left_196_);
+v_right_197_ = lean_ctor_get(v_x_190_, 1);
+lean_inc_ref(v_right_197_);
+v_word_198_ = lean_ctor_get(v_x_190_, 2);
+lean_inc(v_word_198_);
+v_height_199_ = lean_ctor_get(v_x_190_, 3);
+lean_inc(v_height_199_);
+lean_dec_ref_known(v_x_190_, 4);
+v___x_200_ = lean_apply_4(v_h__2_192_, v_left_196_, v_right_197_, v_word_198_, v_height_199_);
+return v___x_200_;
+}
+default: 
+{
+lean_object* v_children_201_; lean_object* v_word_202_; lean_object* v_height_203_; lean_object* v___x_204_; 
+lean_dec(v_h__2_192_);
+lean_dec(v_h__1_191_);
+v_children_201_ = lean_ctor_get(v_x_190_, 0);
+lean_inc(v_children_201_);
+v_word_202_ = lean_ctor_get(v_x_190_, 1);
+lean_inc(v_word_202_);
+v_height_203_ = lean_ctor_get(v_x_190_, 2);
+lean_inc(v_height_203_);
+lean_dec_ref_known(v_x_190_, 3);
+v___x_204_ = lean_apply_3(v_h__3_193_, v_children_201_, v_word_202_, v_height_203_);
+return v___x_204_;
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_Project___private_Project_FactorizationForest_Basic_0__FactorizationForest_FactorizationTree_word_match__1_splitter(lean_object* v_A_205_, lean_object* v_motive_206_, lean_object* v_x_207_, lean_object* v_h__1_208_, lean_object* v_h__2_209_, lean_object* v_h__3_210_){
+_start:
+{
+switch(lean_obj_tag(v_x_207_))
+{
+case 0:
+{
+lean_object* v_a_211_; lean_object* v___x_212_; 
+lean_dec(v_h__3_210_);
+lean_dec(v_h__2_209_);
+v_a_211_ = lean_ctor_get(v_x_207_, 0);
+lean_inc(v_a_211_);
+lean_dec_ref_known(v_x_207_, 1);
+v___x_212_ = lean_apply_1(v_h__1_208_, v_a_211_);
+return v___x_212_;
+}
+case 1:
+{
+lean_object* v_left_213_; lean_object* v_right_214_; lean_object* v_word_215_; lean_object* v_height_216_; lean_object* v___x_217_; 
+lean_dec(v_h__3_210_);
+lean_dec(v_h__1_208_);
+v_left_213_ = lean_ctor_get(v_x_207_, 0);
+lean_inc_ref(v_left_213_);
+v_right_214_ = lean_ctor_get(v_x_207_, 1);
+lean_inc_ref(v_right_214_);
+v_word_215_ = lean_ctor_get(v_x_207_, 2);
+lean_inc(v_word_215_);
+v_height_216_ = lean_ctor_get(v_x_207_, 3);
+lean_inc(v_height_216_);
+lean_dec_ref_known(v_x_207_, 4);
+v___x_217_ = lean_apply_4(v_h__2_209_, v_left_213_, v_right_214_, v_word_215_, v_height_216_);
+return v___x_217_;
+}
+default: 
+{
+lean_object* v_children_218_; lean_object* v_word_219_; lean_object* v_height_220_; lean_object* v___x_221_; 
+lean_dec(v_h__2_209_);
+lean_dec(v_h__1_208_);
+v_children_218_ = lean_ctor_get(v_x_207_, 0);
+lean_inc(v_children_218_);
+v_word_219_ = lean_ctor_get(v_x_207_, 1);
+lean_inc(v_word_219_);
+v_height_220_ = lean_ctor_get(v_x_207_, 2);
+lean_inc(v_height_220_);
+lean_dec_ref_known(v_x_207_, 3);
+v___x_221_ = lean_apply_3(v_h__3_210_, v_children_218_, v_word_219_, v_height_220_);
+return v___x_221_;
+}
+}
 }
 }
 lean_object* initialize_Init(uint8_t builtin);

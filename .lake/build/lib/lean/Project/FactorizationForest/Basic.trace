@@ -1,10 +1,10 @@
 {"synthetic": false,
  "schemaVersion": "2025-09-10",
  "outputs":
- {"o": ["f1687442796afd85.olean"],
+ {"o": ["82cf53e9fe04f54c.olean"],
   "m": false,
-  "i": "fb14535a52666be1.ilean",
-  "c": "2f6dc9eef78dbbf7.c"},
+  "i": "f6871abf3b4ed7a5.ilean",
+  "c": "6d6d87f2a8241c05.c"},
  "log":
  [{"message":
    ".> LEAN_PATH=C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\build\\lib\\lean c:\\Users\\reems\\.elan\\toolchains\\leanprover--lean4---v4.33.0-rc1\\bin\\lean.exe C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\Project\\FactorizationForest\\Basic.lean -o C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\build\\lib\\lean\\Project\\FactorizationForest\\Basic.olean -i C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\build\\lib\\lean\\Project\\FactorizationForest\\Basic.ilean -c C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\build\\ir\\Project\\FactorizationForest\\Basic.c --setup C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\.lake\\build\\ir\\Project\\FactorizationForest\\Basic.setup.json --json",
@@ -30,7 +30,7 @@
   ["Lean 4.33.0, commit 62eed1db4d67327ec8120be05f1a1b0847d74561",
    "8fa8fbe052c71a8e"],
   ["C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\Project\\FactorizationForest\\Basic.lean",
-   "f39ed683a83bd87a"],
+   "58e9ced267773a0f"],
   ["options",
    [["-DmaxSynthPendingDepth=3", "c78e353d34de85d4"],
     ["-Dweak.linter.mathlibStandardSet=true", "8a155799906f2b42"],
@@ -40,4 +40,4 @@
   ["Module.name: Project.FactorizationForest.Basic", "ab7edd159860f66c"],
   ["Package.id?: (some Project)", "264312e6c45eec93"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "85426234d376262a"}
+ "depHash": "0e39587d30aa6c18"}

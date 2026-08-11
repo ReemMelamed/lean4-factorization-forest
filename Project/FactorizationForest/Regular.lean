@@ -6,11 +6,20 @@ Authors: Re'em Melamed-Katz
 import Project.FactorizationForest.Combine
 
 /-!
-# The Factorization Forest Theorem
+# The Factorization Forest Theorem — Regular D-Class Case
 
-This file proves the regular case of the Factorization Forest Theorem.
+This file constructs the Simon split for the case where the relevant Green's
+D-class is **regular**. The main result is `simon_split_regular_case`.
+
+The construction proceeds in several steps:
+1. Assign target H-classes to each element via `lOf`, `rOf`, `hOf`.
+2. Choose canonical idempotents `eId` within each H-class.
+3. Define the coloring function `fColoring` that assigns each element a
+   canonical value in its D-class.
+4. Use the coloring to construct a split with the required Ramsey property.
 
 ## References
+
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
@@ -20,8 +29,13 @@ section RegularDClassCase
 
 variable {S α : Type*} [Semigroup S] [LinearOrder α]
 
-/-- Context bundling the conditions required to construct a Simon split for a regular D-class. -/
-structure SimonContext (S α : Type*) [Semigroup S] [Fintype S] [LinearOrder α] where
+-- ---------------------------------------------------------------------------
+-- Section 1: H-Class Assignment
+-- ---------------------------------------------------------------------------
+
+/-- A context bundle packaging the common parameters for the Simon split construction
+over a regular D-class. -/
+structure SimonContext (S α : Type*) [Semigroup S] [LinearOrder α] where
   σ : MultiplicativeLabeling S α
   D : Set S
   x₀ : S
@@ -29,11 +43,10 @@ structure SimonContext (S α : Type*) [Semigroup S] [Fintype S] [LinearOrder α]
   hReg : IsRegularDClass D
   h_range : ∀ x y, x < y → σ.σ x y ∈ D
 
-section WithFintypeS
-variable [Fintype S]
-
 open Classical in
-/-- Computes the target Green's L-class for the element `x` based on the Simon context. -/
+/-- Computes the target Green's L-class for the element `x` based on the Simon
+context `ctx`. This is the L-class of the product `σ(y, x)` for any `y < x`,
+or a canonical class derived from an idempotent if `x` is minimal. -/
 noncomputable abbrev lOf (ctx : SimonContext S α) (x : α) : Set S :=
   if h_min : IsMin x then
     if h_max : IsMax x then
@@ -41,33 +54,45 @@ noncomputable abbrev lOf (ctx : SimonContext S α) (x : α) : Set S :=
     else
       have ha_D : ctx.σ.σ x (choose (not_isMax_iff.mp h_max)) ∈ ctx.D :=
         ctx.h_range x _ (choose_spec (not_isMax_iff.mp h_max))
-      IsGreenL.eqvClass (choose (MulSeq.exists_idempotent_in_greenR_of_regular (ctx.hReg _ ha_D)))
+      IsGreenL.eqvClass
+        (choose (MulSeq.exists_idempotent_in_greenR_of_regular (ctx.hReg _ ha_D)))
   else
     IsGreenL.eqvClass (ctx.σ.σ (choose (not_isMin_iff.mp h_min)) x)
 
 open Classical in
-/-- Computes the target Green's R-class for the element `x` based on the Simon context. -/
+/-- Computes the target Green's R-class for the element `x` based on the Simon
+context `ctx`. This is the R-class of the product `σ(x, y)` for any `y > x`,
+or a canonical class derived from an idempotent if `x` is maximal. -/
 noncomputable abbrev rOf (ctx : SimonContext S α) (x : α) : Set S :=
   if h_max : IsMax x then
     if h_min : IsMin x then
       have ha_D : ctx.x₀ ∈ ctx.D := by
-        rw [ctx.hx₀]
-        exact IsGreenD.refl ctx.x₀
-      IsGreenR.eqvClass (choose (MulSeq.exists_idempotent_in_greenL_of_regular (ctx.hReg _ ha_D)))
+        rw [ctx.hx₀]; exact IsGreenD.refl ctx.x₀
+      IsGreenR.eqvClass
+        (choose (MulSeq.exists_idempotent_in_greenL_of_regular (ctx.hReg _ ha_D)))
     else
       have ha_D : ctx.σ.σ (choose (not_isMin_iff.mp h_min)) x ∈ ctx.D :=
         ctx.h_range _ x (choose_spec (not_isMin_iff.mp h_min))
-      IsGreenR.eqvClass (choose (MulSeq.exists_idempotent_in_greenL_of_regular (ctx.hReg _ ha_D)))
+      IsGreenR.eqvClass
+        (choose (MulSeq.exists_idempotent_in_greenL_of_regular (ctx.hReg _ ha_D)))
   else
     IsGreenR.eqvClass (ctx.σ.σ x (choose (not_isMax_iff.mp h_max)))
 
-/-- Computes the target Green's H-class for the element `x`, defined as the intersection
-of its assigned L-class and R-class. -/
+/-- Computes the target Green's H-class for the element `x`, defined as the
+intersection of its assigned L-class and R-class. -/
 noncomputable abbrev hOf (ctx : SimonContext S α) (x : α) : Set S :=
   lOf ctx x ∩ rOf ctx x
 
-/-- The chosen L-class is well-defined and depends only on
-  the elements strictly smaller than `x`. -/
+-- ---------------------------------------------------------------------------
+-- Section 2: Well-Definedness of the H-Class Assignment
+-- ---------------------------------------------------------------------------
+
+section WithFiniteS
+
+variable [Finite S]
+
+/-- The assigned L-class depends only on elements strictly smaller than `x`
+(it does not depend on which particular element `y < x` we choose). -/
 lemma lOf_well_defined (ctx : SimonContext S α) (x y1 y2 : α)
     (h_y1_lt_x : y1 < x) (h_y2_lt_x : y2 < x) :
     IsGreenL.eqvClass (ctx.σ.σ y1 x) = IsGreenL.eqvClass (ctx.σ.σ y2 x) := by
@@ -82,8 +107,8 @@ lemma lOf_well_defined (ctx : SimonContext S α) (x y1 y2 : α)
         (hp ▸ ctx.h_range y1 x h_y1_lt_x)).1.2
       exact Set.ext fun _ ↦ ⟨fun hz ↦ hz.trans hL.symm, fun hz ↦ hz.trans hL⟩
 
-/-- The chosen R-class is well-defined and depends only on
-  the elements strictly greater than `x`. -/
+/-- The assigned R-class depends only on elements strictly greater than `x`
+(it does not depend on which particular element `y > x` we choose). -/
 lemma rOf_well_defined (ctx : SimonContext S α) (x y1 y2 : α)
     (h_x_lt_y1 : x < y1) (h_x_lt_y2 : x < y2) :
     IsGreenR.eqvClass (ctx.σ.σ x y1) = IsGreenR.eqvClass (ctx.σ.σ x y2) := by
@@ -147,8 +172,14 @@ lemma hOf_eq_class (ctx : SimonContext S α) (z : α) :
     fun ⟨hwL, hwR⟩ ↦ ⟨IsGreenL.trans hwL he.1, IsGreenR.trans hwR he.2⟩
   ⟩
 
+-- ---------------------------------------------------------------------------
+-- Section 3: Sigma Props and the fColoring Function
+-- ---------------------------------------------------------------------------
+
 open Classical in
-/-- Under certain conditions, `σ mz z` behaves multiplicatively with idempotents. -/
+/-- Under the hypothesis that `mz < z` and `hOf ctx mz = hOf ctx z`, the
+product `σ(mz, z)` interacts with the chosen idempotent in a specific way:
+`eId ctx z * σ(mz, z) * eId ctx z = σ(mz, z)` and `σ(mz, z)` is H-related to `eId ctx z`. -/
 lemma sigma_props (ctx : SimonContext S α) (z mz : α) (h_mz : mz < z)
     (hm_H : hOf ctx mz = hOf ctx z) :
     eId ctx z * ctx.σ.σ mz z * eId ctx z = ctx.σ.σ mz z ∧
@@ -201,7 +232,7 @@ variable [Fintype α]
 
 open Classical in
 /-- The coloring function mapping an element `x` to a subtype representing
-  its value and properties in the D-class. -/
+its value and properties in the D-class. -/
 noncomputable abbrev fColoring (ctx : SimonContext S α) (x : α) :
     { y : S // y ∈ ctx.D ∧ ∃ e ∈ ctx.D, e * e = e ∧ IsGreenH y e } :=
   let mClass := Finset.univ.filter (fun y ↦ hOf ctx y = hOf ctx x)
@@ -231,10 +262,20 @@ lemma fColoring_isGreenH (ctx : SimonContext S α) (z : α) :
     grind
   · exact IsGreenH.refl (eId ctx z)
 
-section WithNonemptyAlpha
-variable [Nonempty α]
+-- ---------------------------------------------------------------------------
+-- Section 4: The Regular D-Class Simon Split
+-- ---------------------------------------------------------------------------
 
-/-- The Factorization Forest Theorem applied to a regular D-class. -/
+section WithFintypeSNonemptyAlpha
+
+variable [Fintype S] [Nonempty α]
+
+/-- Constructs a normalized Ramsey split for the case where all values of the
+labeling `σ` lie in a single regular D-class `D`.
+The split is constructed by composing `fColoring` with a finite equivalence
+that normalizes the rank. The Ramsey property follows from the fact that
+split-related pairs share the same H-class value, and the uniformity condition
+follows from the well-definedness of `fColoring`. -/
 lemma simon_regular_d_case
     (σ : MultiplicativeLabeling S α)
     (D : Set S)
@@ -318,15 +359,21 @@ lemma simon_regular_d_case
         (eId_idem ctx x) (eId_idem ctx u)
       rw [h_sig_eq_eId x y hlt_xy hsr_xy, h_sig_eq_eId u v hlt_uv hsr_uv, he_eq_xu]⟩
 
-end WithNonemptyAlpha
+end WithFintypeSNonemptyAlpha
 end WithFintypeAlpha
-end WithFintypeS
+end WithFiniteS
 end RegularDClassCase
+
+-- ---------------------------------------------------------------------------
+-- Section 5: The regularSplits Construction
+-- ---------------------------------------------------------------------------
 
 section SplitConstruction
 
-/-- Specialized version of `combineSplits` for regular D-classes,
-shifting the interval splits up to prevent overlap. -/
+/-- A specialized version of `combineSplits` for regular D-classes.
+The ranks of sequence-point elements are shifted upward by
+`nSElement a - nD (IsGreenD.eqvClass a)` to avoid overlap with the
+interval ranks. -/
 noncomputable abbrev regularSplits {α S : Type*}
     [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S]
     (a : S) (xs : List α) [Nonempty {x // x ∈ xs}]
@@ -342,7 +389,9 @@ noncomputable abbrev regularSplits {α S : Type*}
       omega⟩)
     sY
 
-/-- Proves the normalization and Ramsey properties specifically for `regularSplits`. -/
+/-- Proves the normalization and Ramsey properties for a `regularSplits`
+combined split. This is the main interface lemma that assembles the
+regular case from its components. -/
 lemma regularSplits_props {α S : Type*}
     [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S]
     (a : S) (xs : List α) [Nonempty {x // x ∈ xs}]
@@ -500,7 +549,18 @@ lemma regularSplits_props {α S : Type*}
   · grind
   · exact h_max_val
 
-/-- Constructs the Simon split for the case where the D-class is regular. -/
+-- ---------------------------------------------------------------------------
+-- Section 6: simon_split_regular_case
+-- ---------------------------------------------------------------------------
+
+/-- Constructs a normalized Ramsey split for a labeling `σ` whose image lies
+in `jUp a`, when the D-class of `a` is **regular**.
+
+The construction:
+1. Builds the sequence `xs = buildXSeq a σ x₀`.
+2. Applies `simon_regular_d_case` on the sequence points.
+3. Applies `build_interval_splits_of_ih` on each open interval.
+4. Assembles the global split using `regularSplits`. -/
 lemma simon_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
     (a : S) {α : Type*} [LinearOrder α] [Fintype α] [Nonempty α]
     (σ : MultiplicativeLabeling S α) (_h_img : labelingIn σ (jUp a))
@@ -513,7 +573,9 @@ lemma simon_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
   let x₀ := Finset.min' (Finset.univ : Finset α) Finset.univ_nonempty
   let xs := buildXSeq a σ x₀
   have h_x0_in : x₀ ∈ xs := by
-    change x₀ ∈ buildXSeq a σ x₀; rw [buildXSeq]; split_ifs <;> exact List.Mem.head _
+    change x₀ ∈ buildXSeq a σ x₀
+    rw [buildXSeq]
+    split_ifs <;> exact List.Mem.head _
   haveI : Nonempty {x // x ∈ xs} := ⟨⟨x₀, h_x0_in⟩⟩
   have h_pos := nD_pos (IsGreenD.eqvClass a) ⟨a, rfl⟩
   haveI : Nonempty (Fin (nD (IsGreenD.eqvClass a))) := Fin.pos_iff_nonempty.mp h_pos
@@ -554,7 +616,6 @@ lemma simon_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
       exact congrArg Fin.val hm)
     (h_N_pos := h_pos)
     (h_N_le_M := by unfold nSElement; simp)⟩
-
 
 end SplitConstruction
 

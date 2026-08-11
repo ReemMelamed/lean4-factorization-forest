@@ -1,9 +1,9 @@
 {"synthetic": false,
  "schemaVersion": "2025-09-10",
  "outputs":
- {"o": ["26657104be4245b3.olean"],
+ {"o": ["7e064b42e0c2b79f.olean"],
   "m": false,
-  "i": "6880574272df1193.ilean",
+  "i": "408f8b80d9e8cba9.ilean",
   "c": "e13e1e0bc11702c0.c"},
  "log":
  [{"message":
@@ -14,9 +14,9 @@
    [["Project/Project:extraDep", [["@Project:extraDep", "00000000000006bb"]]],
     ["imports",
      [["Project.FactorizationForest.Combine transitive imports (legacy)",
-       "0e491ab96c3d46ad"],
+       "c26af740e7db9076"],
       ["Project.FactorizationForest.Combine:importAllArts",
-       "67b550c5dccf152a"]]]]],
+       "c691f45d09557b62"]]]]],
   ["libs",
    [["import dynlibs", "00000000000006bb"],
     ["package external libraries", "00000000000006bb"],
@@ -25,7 +25,7 @@
   ["Lean 4.33.0, commit 62eed1db4d67327ec8120be05f1a1b0847d74561",
    "8fa8fbe052c71a8e"],
   ["C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\Project\\FactorizationForest\\Irregular.lean",
-   "d06ad5b1c7636e30"],
+   "202195bb72c99515"],
   ["options",
    [["-DmaxSynthPendingDepth=3", "c78e353d34de85d4"],
     ["-Dweak.linter.mathlibStandardSet=true", "8a155799906f2b42"],
@@ -35,4 +35,4 @@
   ["Module.name: Project.FactorizationForest.Irregular", "ba6d36d8e9ad7e45"],
   ["Package.id?: (some Project)", "264312e6c45eec93"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "bee203dab5dcda35"}
+ "depHash": "468601c90ae3e65d"}
