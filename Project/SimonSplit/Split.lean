@@ -3,11 +3,11 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.FactorizationForest.Regular
-import Project.FactorizationForest.Irregular
+import Project.SimonSplit.Regular
+import Project.SimonSplit.Irregular
 
 /-!
-# The Factorization Forest Theorem — Simon's Split Theorem
+# Simon's Split Theorem
 
 This file assembles the two cases (regular and irregular D-class) into the
 main Simon split theorem `simon_split`, and applies it to word labelings in
@@ -28,11 +28,7 @@ main Simon split theorem `simon_split`, and applies it to word labelings in
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace FactorizationForest
-
--- ---------------------------------------------------------------------------
--- Section 1: Simon's Split Induction
--- ---------------------------------------------------------------------------
+namespace SimonSplit
 
 section SimonSplit
 
@@ -143,16 +139,12 @@ theorem simon_split {S α : Type*} [Semigroup S] [Fintype S]
 
 end SimonSplit
 
--- ---------------------------------------------------------------------------
--- Section 2: Application to Word Labelings
--- ---------------------------------------------------------------------------
-
 section SimonWord
 
 /-- **Simon's split theorem for words**: for any word `u` over an alphabet
 `A` and any homomorphism `eval` from `A*` to a finite semigroup `S`, there
 exists a normalized Ramsey split of `Fin (u.length + 1)` of size `nS S`.
-This is the form of Simon's theorem used to construct factorization trees. -/
+This is the main result of Simon's split theorem applied to words. -/
 theorem simon_word {A S : Type*} [Semigroup S] [Fintype S]
     [Nonempty (Fin (nS S))]
     (eval : List A → S)
@@ -164,4 +156,4 @@ theorem simon_word {A S : Type*} [Semigroup S] [Fintype S]
 
 end SimonWord
 
-end FactorizationForest
+end SimonSplit

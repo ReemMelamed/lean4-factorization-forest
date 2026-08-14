@@ -8,10 +8,9 @@ import Mathlib.Data.Finset.Max
 import Project.GreensRelations.Order
 
 /-!
-# The Factorization Forest Theorem — Basic Definitions
+# Simon's Split Theorem — Basic Definitions
 
-This file defines the core structures needed to state and prove the
-Factorization Forest Theorem (also known as Simon's Theorem).
+This file defines the core structures needed to state and prove Simon's Split Theorem.
 
 ## Main Definitions
 
@@ -26,12 +25,6 @@ Factorization Forest Theorem (also known as Simon's Theorem).
   classes of size ≥ 3 evaluate to the same idempotent.
 * `wordLabeling eval hmul u` — the multiplicative labeling induced by a word
   `u` and an evaluation function `eval`.
-* `FactorizationTree A` — an inductive type for factorization trees (leaves,
-  binary nodes, and n-ary nodes).
-* `FactorizationTree.word` / `FactorizationTree.height` — accessors.
-* `IsRamseyTree eval t` — a predicate stating that a factorization tree is
-  well-formed and all n-ary nodes evaluate to the same idempotent.
-* `list_to_nary` — converts a list of children into the right tree node.
 * `OpenIntervalType xs i` — elements of `α` strictly between `xs[i]`
   and `xs[i+1]`.
 * `nD D` — the number of H-class elements in a D-class that are related to
@@ -48,11 +41,7 @@ Factorization Forest Theorem (also known as Simon's Theorem).
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace FactorizationForest
-
--- ---------------------------------------------------------------------------
--- Section 1: Split Definitions
--- ---------------------------------------------------------------------------
+namespace SimonSplit
 
 section SplitDefinitions
 
@@ -109,10 +98,6 @@ abbrev IsRamsey (L : MultiplicativeLabeling S α) (s : Split α h) : Prop :=
 
 end SplitDefinitions
 
--- ---------------------------------------------------------------------------
--- Section 2: Word Labeling
--- ---------------------------------------------------------------------------
-
 section WordDefinitions
 
 /-- The multiplicative labeling induced by a word `u` and an evaluation function
@@ -146,123 +131,6 @@ abbrev wordLabeling {A S : Type*} [Semigroup S]
 
 end WordDefinitions
 
--- ---------------------------------------------------------------------------
--- Section 3: Factorization Tree Definitions
--- ---------------------------------------------------------------------------
-
-section TreeDefinitions
-
-/-- A factorization tree over an alphabet `A`. Trees can be:
-- A **leaf** labeled by a single element of `A`.
-- A **binary** node with two subtrees, a word label, and a height.
-- An **n-ary** node with a list of children, a word label, and a height.
-
-The word and height are stored explicitly to avoid recomputing them. -/
-inductive FactorizationTree (A : Type*)
-| leaf (a : A)
-| binary (left right : FactorizationTree A) (word : List A) (height : ℕ)
-| nary (children : List (FactorizationTree A)) (word : List A) (height : ℕ)
-
-/-- The word (leaf sequence) stored in a factorization tree. For a leaf, this
-is the singleton list containing its label. For binary and n-ary nodes, this
-is the word stored at construction time. -/
-abbrev FactorizationTree.word {A : Type*} :
-    FactorizationTree A → List A
-| leaf a => [a]
-| binary _ _ w _ => w
-| nary _ w _ => w
-
-/-- The height of a factorization tree. Leaves have height 0. Binary and n-ary
-nodes store their height explicitly at construction time. -/
-def FactorizationTree.height {A : Type*} :
-    FactorizationTree A → ℕ
-| leaf _ => 0
-| binary _ _ _ h => h
-| nary _ _ h => h
-
-/-- The word of a leaf node is the singleton list containing its label. -/
-@[simp] lemma word_leaf {A} (a : A) :
-    (FactorizationTree.leaf a).word = [a] := rfl
-
-/-- The word of a binary node is the word provided at construction time. -/
-@[simp] lemma word_binary {A} (l r : FactorizationTree A)
-    (w : List A) (h : ℕ) :
-    (FactorizationTree.binary l r w h).word = w := rfl
-
-/-- The word of an n-ary node is the word provided at construction time. -/
-@[simp] lemma word_nary {A} (cs : List (FactorizationTree A))
-    (w : List A) (h : ℕ) :
-    (FactorizationTree.nary cs w h).word = w := rfl
-
-/-- The height of a leaf node is 0. -/
-@[simp] lemma height_leaf {A} (a : A) :
-    (FactorizationTree.leaf a).height = 0 := rfl
-
-/-- The height of a binary node is the height stored at construction time. -/
-@[simp] lemma height_binary {A} (l r : FactorizationTree A)
-    (w : List A) (h : ℕ) :
-    (FactorizationTree.binary l r w h).height = h := rfl
-
-/-- The height of an n-ary node is the height stored at construction time. -/
-@[simp] lemma height_nary {A} (cs : List (FactorizationTree A))
-    (w : List A) (h : ℕ) :
-    (FactorizationTree.nary cs w h).height = h := rfl
-
-/-- A word of length 1 is equal to the singleton list containing its head. -/
-@[simp] lemma word_leaf_eq {A} (u : List A) (hu : u ≠ [])
-    (h : u.length = 1) : [u.head hu] = u := by
-  cases u with
-  | nil => contradiction
-  | cons hd tl =>
-    cases tl with
-    | nil => rfl
-    | cons _ _ => simp at h
-
-/-- The word of an `if-then-else` tree is the `if-then-else` of the words. -/
-lemma word_ite {A} (c : Prop) [Decidable c]
-    (t f : FactorizationTree A) :
-    (if c then t else f).word = if c then t.word else f.word := by
-  split <;> rfl
-
-/-- The word of a `dite` tree is the `dite` of the words. -/
-lemma word_dite {A} (c : Prop) [Decidable c]
-    (t : c → FactorizationTree A)
-    (f : ¬c → FactorizationTree A) :
-    (dite c t f).word =
-    dite c (fun h => (t h).word) (fun h => (f h).word) := by
-  split <;> rfl
-
-/-- A factorization tree is a **Ramsey tree** with respect to an evaluation
-function `eval` if:
-- Every leaf is trivially a Ramsey tree.
-- A binary node is a Ramsey tree if both children are, the word equals the
-  concatenation of the children's words, and each child's height is strictly
-  less than the node's height.
-- An n-ary node is a Ramsey tree if it has at least 3 children, all children
-  are Ramsey trees, there exists a common idempotent value `e` to which all
-  children's words evaluate, the word is the concatenation of children's words,
-  and each child's height is strictly less than the node's height. -/
-inductive IsRamseyTree {A S : Type*} [Semigroup S]
-    (eval : List A → S) :
-    FactorizationTree A → Prop
-| leaf (a : A) : IsRamseyTree eval (FactorizationTree.leaf a)
-| binary (l r : FactorizationTree A) (w : List A) (h : ℕ) :
-    IsRamseyTree eval l → IsRamseyTree eval r →
-    w = l.word ++ r.word →
-    l.height + 1 ≤ h → r.height + 1 ≤ h →
-    IsRamseyTree eval (FactorizationTree.binary l r w h)
-| nary (cs : List (FactorizationTree A)) (w : List A) (h : ℕ) :
-    cs.length ≥ 3 → (∀ c ∈ cs, IsRamseyTree eval c) →
-    (∃ (e : S), e * e = e ∧ ∀ c ∈ cs, eval (FactorizationTree.word c) = e) →
-    w = List.flatten (cs.map FactorizationTree.word) →
-    (∀ c ∈ cs, c.height + 1 ≤ h) →
-    IsRamseyTree eval (FactorizationTree.nary cs w h)
-
-end TreeDefinitions
-
--- ---------------------------------------------------------------------------
--- Section 4: The nD Invariant
--- ---------------------------------------------------------------------------
 
 section nD
 
@@ -294,10 +162,6 @@ theorem nD_pos (D : Set S) (hD : ∃ x, D = IsGreenD.eqvClass x) : 0 < nD D := b
   · decide
 
 end nD
-
--- ---------------------------------------------------------------------------
--- Section 5: Labeling Properties
--- ---------------------------------------------------------------------------
 
 section LabelingProperties
 
@@ -355,10 +219,6 @@ lemma isGreenD_of_prefix (a : S) {α : Type*} [LinearOrder α]
       (h_img u w (huv.trans hvw_lt))))
 
 end LabelingProperties
-
--- ---------------------------------------------------------------------------
--- Section 6: General Utility Lemmas
--- ---------------------------------------------------------------------------
 
 section GeneralUtility
 
@@ -512,101 +372,6 @@ lemma foldl_max_mem (l : List ℕ) (x : ℕ) (hx : x ∈ l) :
 lemma plus_one_le {a b : ℕ} (h : a ≤ b - 1) (hb : 0 < b) : a + 1 ≤ b :=
   by omega
 
-/-- Converts a list of children into the appropriate tree node type:
-- `[]` or `[c]` → degenerate (wraps in a binary with `def_leaf`).
-- `[c1, c2]` → binary node.
-- Three or more → n-ary node. -/
-def list_to_nary {A : Type*}
-    (children : List (FactorizationTree A)) (u : List A) (h : ℕ)
-    (def_leaf : FactorizationTree A) :
-    FactorizationTree A :=
-  match children with
-  | [] => def_leaf.binary def_leaf u 0
-  | [c] => c.binary c u h
-  | [c1, c2] => c1.binary c2 u h
-  | _::_::_::_ => FactorizationTree.nary children u h
-
-/-- The height of `list_to_nary children w h def_leaf` is at most
-`max def_leaf.height h`. -/
-lemma height_list_to_nary_le {A : Type*} (children : List (FactorizationTree A))
-    (w : List A) (h : ℕ) (def_leaf : FactorizationTree A) :
-    (list_to_nary children w h def_leaf).height ≤
-    max def_leaf.height h := by
-  match children with
-  | [] => simp [list_to_nary, FactorizationTree.height]
-  | [c] => simp [list_to_nary, FactorizationTree.height]
-  | [c1, c2] => simp [list_to_nary, FactorizationTree.height]
-  | _::_::_::_ => simp [list_to_nary, FactorizationTree.height]
-
-/-- When `children.length ≥ 3`, `list_to_nary` produces an n-ary node. -/
-lemma list_to_nary_of_len_ge_3 {A : Type*} (children : List (FactorizationTree A))
-    (u : List A) (h : ℕ) (def_leaf : FactorizationTree A) :
-    children.length ≥ 3 →
-    list_to_nary children u h def_leaf =
-    FactorizationTree.nary children u h := by
-  intro h_len
-  match children with
-  | [] => contradiction
-  | [_] => contradiction
-  | [_, _] => contradiction
-  | _::_::_::_ => rfl
-
-/-- The height of `list_to_nary children w h def_leaf` is at most `h`. -/
-lemma list_to_nary_height_le {A : Type*}
-    (children : List (FactorizationTree A))
-    (w : List A) (h : ℕ) (def_leaf : FactorizationTree A) :
-    (list_to_nary children w h def_leaf).height ≤ h := by
-  simp only [list_to_nary]
-  split <;> simp
-
-/-- If every tree in `l` has height ≤ k, then
-`foldl max 0 (l.map (·.height)) ≤ k`. -/
-lemma max_h_children_le {A : Type*}
-    (l : List (FactorizationTree A)) (k : ℕ)
-    (h_le : ∀ t ∈ l, t.height ≤ k) :
-    List.foldl max 0 (l.map (·.height)) ≤ k := by
-  apply foldl_max_le
-  · omega
-  · intro x hx
-    rw [List.mem_map] at hx
-    rcases hx with ⟨t, ht_mem, ht_eq⟩
-    rw [← ht_eq]
-    exact h_le t ht_mem
-
-/-- `foldl max` over a list of tree heights is bounded by any uniform bound. -/
-lemma foldl_max_bound {A : Type*}
-    (children : List (FactorizationTree A))
-    (bound : ℕ)
-    (h_bound : ∀ c ∈ children, c.height ≤ bound) :
-    (children.map FactorizationTree.height).foldl max 0 ≤ bound := by
-  have h_fold : ∀ (l : List (FactorizationTree A)) (init : ℕ),
-      init ≤ bound →
-      (∀ c ∈ l, c.height ≤ bound) →
-      (l.map FactorizationTree.height).foldl max init ≤ bound := by
-    intro l
-    induction l with
-    | nil =>
-      intro init h_init _
-      exact h_init
-    | cons hd tl ih =>
-      intro init h_init h_all
-      apply ih
-      · have h_hd : hd.height ≤ bound := h_all hd (by simp)
-        omega
-      · intro c hc
-        exact h_all c (by simp [hc])
-  exact h_fold children 0 (by omega) h_bound
-
-/-- The word of `list_to_nary children u h def_leaf` is always `u`. -/
-@[simp] lemma list_to_nary_word_eq {A : Type*}
-    (children : List (FactorizationTree A)) (u : List A)
-    (h : ℕ) (def_leaf : FactorizationTree A) :
-    (list_to_nary children u h def_leaf).word = u := by
-  match children with
-  | [] => rfl
-  | [_] => rfl
-  | [_, _] => rfl
-  | _ :: _ :: _ :: _ => rfl
 
 /-- A subtype of `α` representing elements strictly between `xs[i]` and
 `xs[i+1]` (or between `xs[i]` and +∞ if `i` is the last index).
@@ -667,4 +432,4 @@ lemma openInterval_unique {α : Type*} [LinearOrder α] (xs : List α)
 
 end GeneralUtility
 
-end FactorizationForest
+end SimonSplit

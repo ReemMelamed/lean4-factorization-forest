@@ -3,10 +3,10 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.FactorizationForest.Combine
+import Project.SimonSplit.Combine
 
 /-!
-# The Factorization Forest Theorem — Irregular D-Class Case
+# Simon's Split Theorem — Irregular D-Class Case
 
 This file proves the irregular case of Simon's split theorem. The main result
 is `simon_split_irregular_case`.
@@ -21,11 +21,7 @@ bounds the length of the jump sequence `buildXSeq` to at most 2.
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace FactorizationForest
-
--- ---------------------------------------------------------------------------
--- Section 1: Labeling Properties for Irregular D-Classes
--- ---------------------------------------------------------------------------
+namespace SimonSplit
 
 section LabelingProperties
 
@@ -54,10 +50,6 @@ lemma irregular_d_class_no_three_seq [Finite S] (a : S) {α : Type*} [LinearOrde
   )
 
 end LabelingProperties
-
--- ---------------------------------------------------------------------------
--- Section 2: Split Construction for Irregular D-Classes
--- ---------------------------------------------------------------------------
 
 section SplitConstruction
 
@@ -155,10 +147,6 @@ lemma irregularSplits_props {α S : Type*}
       grind)
     (h_max_val := h_max_val)
 
--- ---------------------------------------------------------------------------
--- Section 3: simon_split_irregular_case
--- ---------------------------------------------------------------------------
-
 /-- Constructs a normalized Ramsey split for a labeling `σ` whose image lies
 in `jUp a`, when the D-class of `a` is **not regular** (irregular case).
 
@@ -246,4 +234,4 @@ lemma simon_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
 
 end SplitConstruction
 
-end FactorizationForest
+end SimonSplit

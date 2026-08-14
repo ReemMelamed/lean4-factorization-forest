@@ -3,10 +3,10 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.FactorizationForest.Combine
+import Project.SimonSplit.Combine
 
 /-!
-# The Factorization Forest Theorem — Regular D-Class Case
+# Simon's Split Theorem — Regular D-Class Case
 
 This file constructs the Simon split for the case where the relevant Green's
 D-class is **regular**. The main result is `simon_split_regular_case`.
@@ -23,15 +23,13 @@ The construction proceeds in several steps:
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace FactorizationForest
+namespace SimonSplit
 
 section RegularDClassCase
 
 variable {S α : Type*} [Semigroup S] [LinearOrder α]
 
--- ---------------------------------------------------------------------------
--- Section 1: H-Class Assignment
--- ---------------------------------------------------------------------------
+
 
 /-- A context bundle packaging the common parameters for the Simon split construction
 over a regular D-class. -/
@@ -83,9 +81,7 @@ intersection of its assigned L-class and R-class. -/
 noncomputable abbrev hOf (ctx : SimonContext S α) (x : α) : Set S :=
   lOf ctx x ∩ rOf ctx x
 
--- ---------------------------------------------------------------------------
--- Section 2: Well-Definedness of the H-Class Assignment
--- ---------------------------------------------------------------------------
+
 
 section WithFiniteS
 
@@ -172,9 +168,7 @@ lemma hOf_eq_class (ctx : SimonContext S α) (z : α) :
     fun ⟨hwL, hwR⟩ ↦ ⟨IsGreenL.trans hwL he.1, IsGreenR.trans hwR he.2⟩
   ⟩
 
--- ---------------------------------------------------------------------------
--- Section 3: Sigma Props and the fColoring Function
--- ---------------------------------------------------------------------------
+
 
 open Classical in
 /-- Under the hypothesis that `mz < z` and `hOf ctx mz = hOf ctx z`, the
@@ -262,9 +256,7 @@ lemma fColoring_isGreenH (ctx : SimonContext S α) (z : α) :
     grind
   · exact IsGreenH.refl (eId ctx z)
 
--- ---------------------------------------------------------------------------
--- Section 4: The Regular D-Class Simon Split
--- ---------------------------------------------------------------------------
+
 
 section WithFintypeSNonemptyAlpha
 
@@ -364,9 +356,7 @@ end WithFintypeAlpha
 end WithFiniteS
 end RegularDClassCase
 
--- ---------------------------------------------------------------------------
--- Section 5: The regularSplits Construction
--- ---------------------------------------------------------------------------
+
 
 section SplitConstruction
 
@@ -549,9 +539,7 @@ lemma regularSplits_props {α S : Type*}
   · grind
   · exact h_max_val
 
--- ---------------------------------------------------------------------------
--- Section 6: simon_split_regular_case
--- ---------------------------------------------------------------------------
+
 
 /-- Constructs a normalized Ramsey split for a labeling `σ` whose image lies
 in `jUp a`, when the D-class of `a` is **regular**.
@@ -619,4 +607,4 @@ lemma simon_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
 
 end SplitConstruction
 
-end FactorizationForest
+end SimonSplit

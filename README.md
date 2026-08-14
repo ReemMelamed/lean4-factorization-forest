@@ -1,6 +1,6 @@
-# Simon's Factorization Forest Theorem and Green's Relations (Lean 4)
+# Simon's Split Theorem and Green's Relations (Lean 4)
 
-Formalization in Lean 4 of the algebraic components behind Simon's Factorization Forest Theorem,
+Formalization in Lean 4 of the algebraic components behind Simon's Split Theorem,
 with a focus on Green's relations.
 
 ## Reference Article
@@ -14,8 +14,8 @@ with a focus on Green's relations.
 - Equivalence classes and quotient constructions for Green's relations
 - Finite-semigroup structure results (regular D-classes, idempotents, D = J)
 - Multiplicative labelings and Ramsey splits
-- Special cases of Simon's theorem: group case, H-class case, and regular D-class case
-- The full Factorization Forest construction bounded by Simon's complexity ($3h - 1$)
+- Special cases of Simon's split theorem: group case, H-class case, and regular D-class case
+- The full split theorem construction bounded by ($3*N(S) - 1$)
 
 ## Overview
 
@@ -40,25 +40,20 @@ Contains the foundational semigroup theory and Green's relations.
 * `Order.lean`
   - Defines the natural partial order structures on the quotient types (`GreenLClass`, `GreenRClass`, `GreenJClass`, and `GreenDClass`).
 
-### `Project/FactorizationForest/`
-Contains the definitions, lemmas, and constructions for Simon's Factorization Forest Theorem.
+### `Project/SimonSplit/`
+Contains the definitions, lemmas, and constructions for Simon's Split Theorem.
 
 * `Basic.lean`
   - Core structures: `MultiplicativeLabeling`, `Split` (normalized and Ramsey).
 
 * `Combine.lean`
-  - Lemmas for combining splits and merging colored trees.
+  - Lemmas for combining splits.
 
 * `Irregular.lean`
-  - Proofs for the irregular cases of the Factorization Forest Theorem (the irregular D-class case).
+  - Proofs for the irregular cases of the Split Theorem (the irregular D-class case).
 
 * `Regular.lean`
   - Proofs for the regular cases, dealing with group/H-class cases and regular D-class cases using custom colorings.
 
 * `Split.lean`
-  - The induction steps for Simon's split theorem, proving that any multiplicative labeling over a finite linear order admits a bounded normalized Ramsey split.
-
-* `Forest.lean`
-  - The algorithmic construction of the factorization tree from a given split.
-  - Proofs bounding the height of the generated tree.
-  - The final culmination of the formalization: `factorization_forest`, proving the existence of a Ramsey factorization tree of bounded height for any finite semigroup.
+  - The induction steps for Simon's split theorem, proving that any multiplicative labeling over a finite linear order admits a bounded normalized Ramsey split. Culminates in `simon_word`, which applies this to words.

@@ -1,12 +1,10 @@
 import Project.GreensRelations.Basic
-import Project.FactorizationForest.Basic
-import Project.FactorizationForest.Combine
-import Project.FactorizationForest.Irregular
-import Project.FactorizationForest.Regular
-import Project.FactorizationForest.Split
-import Project.FactorizationForest.Forest
+import Project.SimonSplit.Basic
+import Project.SimonSplit.Combine
+import Project.SimonSplit.Irregular
+import Project.SimonSplit.Regular
+import Project.SimonSplit.Split
 import Project.GreensRelations.MulSeq
 import Project.GreensRelations.Order
 import Project.GreensRelations.Green
 import Project.GreensRelations.Finite
-import Project.BrownLemma

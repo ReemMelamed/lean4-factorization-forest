@@ -6,7 +6,7 @@ Authors: Re'em Melamed-Katz
 import Mathlib.Data.Fintype.Card
 import Mathlib.Data.Finset.Max
 import Project.GreensRelations.Order
-import Project.FactorizationForest.Basic
+import Project.SimonSplit.Basic
 
 /-!
 # Combine Splits Construction
@@ -30,13 +30,11 @@ global Ramsey split from local splits over open intervals.
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace FactorizationForest
+namespace SimonSplit
 
 variable {S : Type*} [Semigroup S] [Fintype S]
 
--- ---------------------------------------------------------------------------
--- Section 1: Simon Complexity
--- ---------------------------------------------------------------------------
+
 
 open Classical in
 /-- The Simon complexity associated with an element `x ∈ S`. This is defined
@@ -88,9 +86,7 @@ instance instNonemptyFin_nSElement (x : S) :
     Nonempty (Fin (nSElement x)) :=
   Fin.pos_iff_nonempty.mp (nSElement_pos x)
 
--- ---------------------------------------------------------------------------
--- Section 2: The buildXSeq Construction
--- ---------------------------------------------------------------------------
+
 
 open Classical in
 /-- Constructs the sequence of "jump points" `x₀, x₁, …` used to partition
@@ -310,9 +306,7 @@ decreasing_by
         ⟨Finset.mem_univ _, hw_lt⟩ : (Finset.min' _ h) ∈ _)).2
   exact Finset.card_lt_card (lt_of_le_of_ne h_le h_ne)
 
--- ---------------------------------------------------------------------------
--- Section 3: Auxiliary Lemmas for OpenIntervalType
--- ---------------------------------------------------------------------------
+
 
 
 
@@ -373,9 +367,7 @@ lemma buildXSeq_same_interval_of_splitRelation {α : Type*} [LinearOrder α]
     have h_le_val := Fin.le_iff_val_le_val.mp hb
     omega
 
--- ---------------------------------------------------------------------------
--- Section 4: Interval Splits from the Inductive Hypothesis
--- ---------------------------------------------------------------------------
+
 
 /-- Applies the inductive hypothesis to each open interval defined by `xs`
 to obtain local Ramsey splits. Returns, for each interval `i`, a split `s`
@@ -520,9 +512,7 @@ lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
     exact ⟨fun _ => ⟨0, nSElement_pos a⟩,
       And.intro h_ramsey_vacuous (fun _ => h_Delta_pos)⟩
 
--- ---------------------------------------------------------------------------
--- Section 5: The combineSplits Construction
--- ---------------------------------------------------------------------------
+
 
 /-- Combines a split on the sequence points `xs` with splits on the open
 intervals between consecutive sequence points into a single split on the
@@ -685,9 +675,7 @@ lemma combineSplits_interval_ramsey {α S : Type*}
       )⟩
   ⟩
 
--- ---------------------------------------------------------------------------
--- Section 6: combineSplits_props
--- ---------------------------------------------------------------------------
+
 
 /-- Proves that a combined split (assembled from local splits on sequence points
 and open intervals) satisfies the normalization and Ramsey properties.
@@ -914,4 +902,4 @@ lemma combineSplits_props {α S : Type*}
         exact hx_eq ▸ hy_eq ▸ hu_eq ▸ hv_eq ▸
           (h_σ_Y i x_oi y_oi) ▸ (h_σ_Y i u_oi v_oi) ▸ h_ramsey
 
-end FactorizationForest
+end SimonSplit
