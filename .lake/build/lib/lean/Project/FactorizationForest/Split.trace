@@ -1,9 +1,9 @@
 {"synthetic": false,
  "schemaVersion": "2025-09-10",
  "outputs":
- {"o": ["4b1582a801d88a81.olean"],
+ {"o": ["efeba61cca9a7b9d.olean"],
   "m": false,
-  "i": "e13d8464bd7c5905.ilean",
+  "i": "e71ab528e8873459.ilean",
   "c": "5e472c38f1dd0943.c"},
  "log":
  [{"message":
@@ -14,12 +14,12 @@
    [["Project/Project:extraDep", [["@Project:extraDep", "00000000000006bb"]]],
     ["imports",
      [["Project.FactorizationForest.Regular transitive imports (legacy)",
-       "7b297f729c22bb94"],
-      ["Project.FactorizationForest.Regular:importAllArts", "5bc64aca211b5977"],
+       "f522d4f21cba76f4"],
+      ["Project.FactorizationForest.Regular:importAllArts", "df9661e502b1f511"],
       ["Project.FactorizationForest.Irregular transitive imports (legacy)",
-       "7b297f729c22bb94"],
+       "f522d4f21cba76f4"],
       ["Project.FactorizationForest.Irregular:importAllArts",
-       "8ea28254f3efca44"]]]]],
+       "c1ae6677de0095cc"]]]]],
   ["libs",
    [["import dynlibs", "00000000000006bb"],
     ["package external libraries", "00000000000006bb"],
@@ -28,7 +28,7 @@
   ["Lean 4.33.0, commit 62eed1db4d67327ec8120be05f1a1b0847d74561",
    "8fa8fbe052c71a8e"],
   ["C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\Project\\FactorizationForest\\Split.lean",
-   "c83a9fedf1e48bcb"],
+   "40cae95eb64796e3"],
   ["options",
    [["-DmaxSynthPendingDepth=3", "c78e353d34de85d4"],
     ["-Dweak.linter.mathlibStandardSet=true", "8a155799906f2b42"],
@@ -38,4 +38,4 @@
   ["Module.name: Project.FactorizationForest.Split", "7277e07e12714bd4"],
   ["Package.id?: (some Project)", "264312e6c45eec93"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "5eb9cf7dd963f153"}
+ "depHash": "faa0d51426a8ed82"}

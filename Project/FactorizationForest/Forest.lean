@@ -296,6 +296,27 @@ def lowerInnerSplit {w : List A} {h h' : ℕ} (s : InnerSplit w h)
 -- Section 4: buildInnerFactorizationTree
 -- ---------------------------------------------------------------------------
 
+lemma max_pos_of_not_mem {n h : ℕ} (s : Split (Fin n) h) (max_val : Fin h)
+    (h_max : ∀ i, s i ≤ max_val)
+    (i : Fin n)
+    (h_neq : s i ≠ max_val) :
+    0 < max_val.val := by
+  have : s i < max_val := lt_of_le_of_ne (h_max i) h_neq
+  omega
+
+lemma exists_not_of_filter_length_lt {α} (l : List α) (p : α → Bool)
+    (h_lt : (l.filter p).length < l.length) :
+    ∃ x ∈ l, p x = false := by
+  by_contra h_contra
+  push Not at h_contra
+  have h_eq : l.filter p = l := List.filter_eq_self.mpr fun x hx => by
+    have h_not_false := h_contra x hx
+    cases h_px : p x
+    · exact False.elim (h_not_false h_px)
+    · rfl
+  rw [h_eq] at h_lt
+  omega
+
 /-- Builds a factorization tree for the word `u` using the inner split `s`.
 
 The construction works by induction on `(h, u.length)`:
@@ -328,6 +349,8 @@ def buildInnerFactorizationTree {A S : Type*} [Semigroup S] {h : ℕ}
     let idxs := inner_idxs.map mapInnerCut
     if h_idxs : idxs = [] then
       FactorizationTree.leaf (u.head hu)
+    else if h_const : inner_idxs.length = u.length - 1 then
+      FactorizationTree.nary (u.map FactorizationTree.leaf) u 1
     else
       let children := (partitionIndices idxs).map fun ⟨i, j⟩ =>
         let w := (u.drop i.val).take (j.val - i.val)
@@ -345,24 +368,23 @@ def buildInnerFactorizationTree {A S : Type*} [Semigroup S] {h : ℕ}
         else
           have h_w_len_ge_3 : 3 ≤ w.length := by omega
           have hw_ne : w ≠ [] := fun h => by simp_all
-          if h_max_pos : max_val.val = 0 then
-            FactorizationTree.leaf (u.head hu)
-          else
-            have h_max_pos_strict : 0 < max_val.val := by omega
-            have h_ne : Nonempty (Fin max_val.val) :=
-              ⟨⟨0, h_max_pos_strict⟩⟩
-            if h_start : i.val ≤ u.length ∧ i.val + w.length ≤ u.length
-            then
-              let s_w := restrictInnerSplit s (i.val - 1) (by omega)
-                (by omega)
-              if h_interior : ∀ idx : Fin (w.length - 1),
-                  (s_w idx).val < max_val.val then
-                buildInnerFactorizationTree eval w hw_ne
-                  (lowerInnerSplit s_w h_interior)
-              else
-                FactorizationTree.leaf (u.head hu)
+          if h_start : i.val ≤ u.length ∧ i.val + w.length ≤ u.length
+          then
+            let s_w := restrictInnerSplit s (i.val - 1) (by omega)
+              (by omega)
+            if h_interior : ∀ idx : Fin (w.length - 1),
+                (s_w idx).val < max_val.val then
+              have h_max_pos_strict : 0 < max_val.val := by
+                have h_idx : 0 < w.length - 1 := by omega
+                have h_lt := h_interior ⟨0, h_idx⟩
+                omega
+              have h_ne : Nonempty (Fin max_val.val) := ⟨⟨0, h_max_pos_strict⟩⟩
+              buildInnerFactorizationTree eval w hw_ne
+                (lowerInnerSplit s_w h_interior)
             else
               FactorizationTree.leaf (u.head hu)
+          else
+            FactorizationTree.leaf (u.head hu)
       let k_pre := (idxs.head h_idxs).val
       let k := (idxs.getLast h_idxs).val
       let max_h_children :=
@@ -387,22 +409,21 @@ def buildInnerFactorizationTree {A S : Type*} [Semigroup S] {h : ℕ}
             FactorizationTree.leaf (u.head hu)
         else
           have hw_ne : w_pre ≠ [] := fun h => by simp_all
-          if h_max_pos : max_val.val = 0 then
-            FactorizationTree.leaf (u.head hu)
-          else
-            have h_max_pos_strict : 0 < max_val.val := by omega
-            have h_ne : Nonempty (Fin max_val.val) :=
-              ⟨⟨0, h_max_pos_strict⟩⟩
-            if h_start : 0 + w_pre.length ≤ u.length then
-              let s_pre := restrictInnerSplit s 0 (by omega) (by omega)
-              if h_interior : ∀ idx : Fin (w_pre.length - 1),
-                  (s_pre idx).val < max_val.val then
-                buildInnerFactorizationTree eval w_pre hw_ne
-                  (lowerInnerSplit s_pre h_interior)
-              else
-                FactorizationTree.leaf (u.head hu)
+          if h_start : 0 + w_pre.length ≤ u.length then
+            let s_pre := restrictInnerSplit s 0 (by omega) (by omega)
+            if h_interior : ∀ idx : Fin (w_pre.length - 1),
+                (s_pre idx).val < max_val.val then
+              have h_max_pos_strict : 0 < max_val.val := by
+                have h_idx : 0 < w_pre.length - 1 := by omega
+                have h_lt := h_interior ⟨0, h_idx⟩
+                omega
+              have h_ne : Nonempty (Fin max_val.val) := ⟨⟨0, h_max_pos_strict⟩⟩
+              buildInnerFactorizationTree eval w_pre hw_ne
+                (lowerInnerSplit s_pre h_interior)
             else
               FactorizationTree.leaf (u.head hu)
+          else
+            FactorizationTree.leaf (u.head hu)
       let t_suf : FactorizationTree A :=
         let w_suf := (u.drop k).take (u.length - k)
         if h_suf_len : w_suf.length ≤ 2 then
@@ -419,22 +440,21 @@ def buildInnerFactorizationTree {A S : Type*} [Semigroup S] {h : ℕ}
             FactorizationTree.leaf (u.head hu)
         else
           have hw_ne : w_suf ≠ [] := fun h => by simp_all
-          if h_max_pos : max_val.val = 0 then
-            FactorizationTree.leaf (u.head hu)
-          else
-            have h_max_pos_strict : 0 < max_val.val := by omega
-            have h_ne : Nonempty (Fin max_val.val) :=
-              ⟨⟨0, h_max_pos_strict⟩⟩
-            if h_start : k + w_suf.length ≤ u.length then
-              let s_suf := restrictInnerSplit s k (by omega) (by omega)
-              if h_interior : ∀ idx : Fin (w_suf.length - 1),
-                  (s_suf idx).val < max_val.val then
-                buildInnerFactorizationTree eval w_suf hw_ne
-                  (lowerInnerSplit s_suf h_interior)
-              else
-                FactorizationTree.leaf (u.head hu)
+          if h_start : k + w_suf.length ≤ u.length then
+            let s_suf := restrictInnerSplit s k (by omega) (by omega)
+            if h_interior : ∀ idx : Fin (w_suf.length - 1),
+                (s_suf idx).val < max_val.val then
+              have h_max_pos_strict : 0 < max_val.val := by
+                have h_idx : 0 < w_suf.length - 1 := by omega
+                have h_lt := h_interior ⟨0, h_idx⟩
+                omega
+              have h_ne : Nonempty (Fin max_val.val) := ⟨⟨0, h_max_pos_strict⟩⟩
+              buildInnerFactorizationTree eval w_suf hw_ne
+                (lowerInnerSplit s_suf h_interior)
             else
               FactorizationTree.leaf (u.head hu)
+          else
+            FactorizationTree.leaf (u.head hu)
       let t_pre_mid := FactorizationTree.binary t_pre t_mid
         (u.take k) (max t_pre.height t_mid.height + 1)
       FactorizationTree.binary t_pre_mid t_suf u
@@ -446,6 +466,165 @@ termination_by (h, u.length)
 -- ---------------------------------------------------------------------------
 
 
+
+lemma pairwise_lt_finRange (n : ℕ) : (List.finRange n).Pairwise (· < ·) := by
+  rw [List.pairwise_iff_get]
+  intro i j hij
+  simp only [List.get_finRange]
+  exact hij
+
+lemma head_le_of_pairwise_lt_mem {n : ℕ} (l : List (Fin n))
+    (h_sorted : l.Pairwise (· < ·)) (hne : l ≠ []) (x : Fin n) (hx : x ∈ l) :
+    (l.head hne).val ≤ x.val := by
+  cases l with
+  | nil => contradiction
+  | cons a as =>
+    cases hx with
+    | head _ => exact le_refl _
+    | tail _ hx_tail =>
+      have h_rel : ∀ y ∈ as, a < y := (List.pairwise_cons.1 h_sorted).1
+      exact le_of_lt (h_rel x hx_tail)
+
+lemma mem_le_getLast_of_pairwise_lt {n : ℕ} (l : List (Fin n))
+    (h_sorted : l.Pairwise (· < ·)) (hne : l ≠ []) (x : Fin n) (hx : x ∈ l) :
+    x.val ≤ (l.getLast hne).val := by
+  induction l generalizing x with
+  | nil =>
+    contradiction
+  | cons a as ih =>
+    cases as with
+    | nil =>
+      cases hx with
+      | head _ => exact le_refl _
+      | tail _ h => contradiction
+    | cons b bs =>
+      cases hx with
+      | head _ =>
+        have h_rel : ∀ y ∈ b :: bs, a < y := (List.pairwise_cons.1 h_sorted).1
+        have h_getLast_mem : (b :: bs).getLast (by simp) ∈ b :: bs := List.getLast_mem (by simp)
+        have h_lt := h_rel ((b :: bs).getLast (by simp)) h_getLast_mem
+        have h_eq : (b :: bs).getLast (by simp) = (a :: b :: bs).getLast hne := by rfl
+        rw [←h_eq]
+        exact le_of_lt h_lt
+      | tail _ hx_tail =>
+        have h_sorted_tail : (b :: bs).Pairwise (· < ·) := (List.pairwise_cons.1 h_sorted).2
+        have h_ih := ih h_sorted_tail (by simp) x hx_tail
+        have h_eq : (b :: bs).getLast (by simp) = (a :: b :: bs).getLast hne := by rfl
+        rw [←h_eq]
+        exact h_ih
+
+lemma h_interior_pre_aux {n h : ℕ} (s : Split (Fin n) h)
+    (max_val : Fin h)
+    (h_max : ∀ i, s i ≤ max_val)
+    (inner_idxs : List (Fin n))
+    (h_inner_idxs : inner_idxs = (List.finRange n).filter (fun i => decide (s i = max_val)))
+    (h_ne : inner_idxs ≠ [])
+    (idx : ℕ)
+    (h_idx : idx < (inner_idxs.head h_ne).val) :
+    (s ⟨idx, by omega⟩).val < max_val.val := by
+  have h_le := h_max ⟨idx, by omega⟩
+  have h_eq_or_lt := eq_or_lt_of_le h_le
+  rcases h_eq_or_lt with h_eq | h_lt
+  · have h_mem : ⟨idx, by omega⟩ ∈ inner_idxs := by
+      subst h_inner_idxs
+      rw [List.mem_filter]
+      exact ⟨List.mem_finRange _, by simp [h_eq]⟩
+    have h_sorted : inner_idxs.Pairwise (· < ·) := by
+      subst h_inner_idxs
+      exact List.Pairwise.filter _ (pairwise_lt_finRange _)
+    have h_contra : (inner_idxs.head h_ne).val ≤ idx :=
+      head_le_of_pairwise_lt_mem inner_idxs h_sorted h_ne ⟨idx, _⟩ h_mem
+    omega
+  · exact h_lt
+
+lemma h_interior_suf_aux {n h : ℕ} (s : Split (Fin n) h)
+    (max_val : Fin h)
+    (h_max : ∀ i, s i ≤ max_val)
+    (inner_idxs : List (Fin n))
+    (h_inner_idxs : inner_idxs = (List.finRange n).filter (fun i => decide (s i = max_val)))
+    (h_ne : inner_idxs ≠ [])
+    (idx : ℕ)
+    (h_idx : (inner_idxs.getLast h_ne).val < idx)
+    (h_idx_lt : idx < n) :
+    (s ⟨idx, h_idx_lt⟩).val < max_val.val := by
+  have h_le := h_max ⟨idx, h_idx_lt⟩
+  have h_eq_or_lt := eq_or_lt_of_le h_le
+  rcases h_eq_or_lt with h_eq | h_lt
+  · have h_mem : ⟨idx, h_idx_lt⟩ ∈ inner_idxs := by
+      subst h_inner_idxs
+      rw [List.mem_filter]
+      exact ⟨List.mem_finRange _, by simp [h_eq]⟩
+    have h_sorted : inner_idxs.Pairwise (· < ·) := by
+      subst h_inner_idxs
+      exact List.Pairwise.filter _ (pairwise_lt_finRange _)
+    have h_contra : idx ≤ (inner_idxs.getLast h_ne).val :=
+      mem_le_getLast_of_pairwise_lt inner_idxs h_sorted h_ne ⟨idx, h_idx_lt⟩ h_mem
+    omega
+  · exact h_lt
+
+lemma h_interior_mid_aux {A : Type*} {u : List A} {h : ℕ} (s : Split (Fin (u.length - 1)) h)
+    (max_val : Fin h)
+    (h_max : ∀ i, s i ≤ max_val)
+    (inner_idxs : List (Fin (u.length - 1)))
+    (h_inner_idxs : inner_idxs = (List.finRange (u.length - 1)).filter
+    (fun i => decide (s i = max_val)))
+    (idxs : List (Fin (u.length + 1)))
+    (h_idxs : idxs = inner_idxs.map mapInnerCut)
+    (i j : Fin (u.length + 1))
+    (h_part : (i, j) ∈ partitionIndices idxs)
+    (idx : ℕ)
+    (h_idx_gt : i.val ≤ idx)
+    (h_idx_lt : idx < j.val - 1) :
+    (s ⟨idx, by omega⟩).val < max_val.val := by
+  have h_le := h_max ⟨idx, by omega⟩
+  have h_eq_or_lt := eq_or_lt_of_le h_le
+  rcases h_eq_or_lt with h_eq | h_lt
+  · have h_mem_inner : ⟨idx, by omega⟩ ∈ inner_idxs := by
+      subst h_inner_idxs
+      rw [List.mem_filter]
+      exact ⟨List.mem_finRange _, by simp [h_eq]⟩
+    have h_mem_idxs : (⟨idx + 1, by omega⟩ : Fin (u.length + 1)) ∈ idxs := by
+      subst h_idxs
+      rw [List.mem_map]
+      exact ⟨⟨idx, by omega⟩, h_mem_inner, rfl⟩
+    have h_sorted_idxs : idxs.Pairwise (· < ·) := by
+      subst h_idxs
+      have h_sorted_inner : inner_idxs.Pairwise (· < ·) := by
+        subst h_inner_idxs
+        exact List.Pairwise.filter _ (pairwise_lt_finRange _)
+      exact List.Pairwise.map _ (fun _ _ h => by simp [mapInnerCut]; omega) h_sorted_inner
+    have h_props := partitionIndices_props h_sorted_idxs h_part
+    have h_contra := h_props.2.2.2.2 ⟨idx + 1, by omega⟩ h_mem_idxs
+    have h_i_lt : i < ⟨idx + 1, by omega⟩ := by grind
+    have h_lt_j : (⟨idx + 1, by omega⟩ : Fin (u.length + 1)) < j := by grind
+    exact nomatch (h_contra ⟨h_i_lt, h_lt_j⟩)
+  · exact h_lt
+
+lemma my_bound_helper {hp hm hs h h_height : ℕ}
+  (h_pre : hp ≤ 3 * h - 1)
+  (h_mid : hm ≤ 3 * h)
+  (h_suf : hs ≤ 3 * h - 1)
+  (h_bound : h ≤ h_height - 1)
+  (h_pos : 0 < h) :
+  max (max hp hm + 1) hs + 1 ≤ 3 * h_height - 1 := by omega
+
+lemma my_foldl_max_le {α : Type*} (l : List α) (f : α → ℕ) (bound : ℕ)
+    (h_zero : 0 ≤ bound)
+    (h_all : ∀ x ∈ l, f x ≤ bound) :
+    (l.map f).foldl max 0 ≤ bound := by
+  revert h_zero
+  generalize 0 = acc
+  intro h_acc
+  induction l generalizing acc with
+  | nil => exact h_acc
+  | cons a as ih =>
+    simp only [List.map_cons, List.foldl_cons]
+    apply ih
+    · intro x hx
+      exact h_all x (List.mem_cons_of_mem _ hx)
+    · have h_a := h_all a (by simp)
+      simp only [max_le_iff]
+      omega
 
 /-- The height bound `3 * h - 1` holds for `buildInnerFactorizationTree`. -/
 lemma buildInnerTree_height_bound {A S : Type*} [Semigroup S] {h : ℕ}
@@ -459,28 +638,87 @@ lemma buildInnerTree_height_bound {A S : Type*} [Semigroup S] {h : ℕ}
     unfold buildInnerFactorizationTree
     dsimp only
     rw [dif_pos h_len, dif_pos h_len1]
-    simp only [FactorizationTree.height]
+    simp only [height_leaf]
     omega
   case case2 h_height inst u hu s h_len h_not_len1 h_len2 u1 u2 h_head_last =>
     unfold buildInnerFactorizationTree
     dsimp only
     rw [dif_pos h_len, dif_neg h_not_len1]
-    simp only [FactorizationTree.height]
     have : 1 ≤ h_height := by rcases inst with ⟨⟨_, _⟩⟩; omega
+    simp only [height_binary]
     omega
   case case3 h_height inst =>
     unfold buildInnerFactorizationTree
     dsimp only
     split_ifs
-    all_goals simp_all [FactorizationTree.height]
-  case case4 =>
-    rename_i h_height inst u hu s h_not_len h_nonempty max_val
-      inner_idxs idxs h_idxs_ne k_pre k ih3 ih2 ih1
+    all_goals simp_all [height_leaf]
+  case case4 h_height inst u hu s h_not_len h_nonempty max_val inner_idxs idxs h_idxs_ne h_const =>
     unfold buildInnerFactorizationTree
     dsimp only
-    rw [dif_neg h_not_len, dif_neg h_idxs_ne]
-    simp only [FactorizationTree.height]
-    sorry
+    rw [dif_neg h_not_len, dif_neg h_idxs_ne, dif_pos h_const]
+    simp only [height_nary]
+    have : 1 ≤ h_height := by rcases inst with ⟨⟨_, _⟩⟩; omega
+    omega
+  case case5 =>
+    rename_i h_height inst u hu s h_not_len h_nonempty max_val
+      inner_idxs idxs h_idxs_ne h_const k_pre k ih3 ih2 ih1
+    have h_max_pos_strict : 0 < max_val.val := by
+      have h_len_le : inner_idxs.length ≤ u.length - 1 := by
+        have h1 :=
+          List.length_filter_le (fun i => decide (s i = max_val)) (List.finRange (u.length - 1))
+        rw [List.length_finRange] at h1
+        exact h1
+      have h_lt : inner_idxs.length < u.length - 1 := lt_of_le_of_ne h_len_le h_const
+      have h_lt' : ((List.finRange (u.length - 1)).filter
+        (fun i => decide (s i = max_val))).length < (List.finRange (u.length - 1)).length := by
+        have h_len : (List.finRange (u.length - 1)).length = u.length - 1 := List.length_finRange
+        rw [h_len]
+        exact h_lt
+      have h_ex := exists_not_of_filter_length_lt _ _ h_lt'
+      rcases h_ex with ⟨i, _, h_false⟩
+      have h_neq : s i ≠ max_val := by
+        intro h_eq
+        have : decide (s i = max_val) = true := decide_eq_true h_eq
+        rw [this] at h_false
+        contradiction
+      have h_max : ∀ i, s i ≤ max_val :=
+        fun j => Finset.le_max' _ _ (Finset.mem_image.mpr ⟨j, Finset.mem_univ _, rfl⟩)
+      exact max_pos_of_not_mem s max_val h_max i h_neq
+    unfold buildInnerFactorizationTree
+    dsimp only
+    rw [dif_neg h_not_len, dif_neg h_idxs_ne, dif_neg h_const]
+    simp only [height_binary]
+    apply my_bound_helper (h := max_val.val) (h_pos := h_max_pos_strict)
+    · split_ifs
+      all_goals {
+        try apply ih2 <;> assumption
+        try simp only [height_leaf, height_binary]
+        try omega
+        try grind
+      }
+    · apply le_trans (list_to_nary_height_le _ _ _ _)
+      apply le_trans (b := 3 * max_val.val - 1 + 1)
+      · apply Nat.add_le_add_right
+        apply my_foldl_max_le
+        · omega
+        · intro x hx
+          rw [List.mem_map] at hx
+          rcases hx with ⟨⟨i, j⟩, h_part, rfl⟩
+          split_ifs
+          all_goals {
+            try apply ih3 i j <;> assumption
+            try simp only [height_leaf, height_binary]
+            try omega
+          }
+      · omega
+    · split_ifs
+      all_goals {
+        try apply ih1 <;> assumption
+        try simp only [height_leaf, height_binary]
+        try omega
+      }
+    · have : max_val.val < h_height := max_val.isLt
+      omega
 
 -- ---------------------------------------------------------------------------
 -- Section 6: buildFactorizationTree
@@ -527,13 +765,18 @@ lemma buildInnerTree_word_eq {A S : Type*} [Semigroup S] {h : ℕ}
         List.map_eq_nil_iff.mp h_idxs_eq
       rw [h_inner_nil] at hi_inner
       cases hi_inner
-    exact False.elim h_impossible
+    exact nomatch h_impossible
   case case4 =>
-    rename_i h_height inst u hu s h_not_len h_nonempty max_val
-      inner_idxs idxs h_idxs_ne k_pre k ih3 ih2 ih1
+    rename_i h_height inst u hu s h_not_len h_nonempty max_val inner_idxs idxs h_idxs_ne h_const
     unfold buildInnerFactorizationTree
     dsimp only
-    rw [dif_neg h_not_len, dif_neg h_idxs_ne]
+    rw [dif_neg h_not_len, dif_neg h_idxs_ne, dif_pos h_const]
+  case case5 =>
+    rename_i h_height inst u hu s h_not_len h_nonempty max_val
+      inner_idxs idxs h_idxs_ne h_const k_pre k ih3 ih2 ih1
+    unfold buildInnerFactorizationTree
+    dsimp only
+    rw [dif_neg h_not_len, dif_neg h_idxs_ne, dif_neg h_const]
 
 /-- **The constructed tree spans the input word**: the word of
 `buildFactorizationTree eval u hu s` is `u`. -/
@@ -637,19 +880,24 @@ lemma buildInnerTree_invariant {A S : Type*} [Semigroup S]
     (h_eq : ∀ i, s2 i = f (s1 i)) :
     buildInnerFactorizationTree eval u hu s1 =
     buildInnerFactorizationTree eval u hu s2 := by
+  revert h_eq hf_mono f s2
+  revert h2
   induction h1, ‹Nonempty (Fin h1)›, u, hu, s1
       using buildInnerFactorizationTree.induct eval
   case case1 =>
+    intro h2 inst2 s2 f hf_mono h_eq
     unfold buildInnerFactorizationTree
     dsimp only
     split_ifs; rfl
   case case2 =>
+    intro h2 inst2 s2 f hf_mono h_eq
     unfold buildInnerFactorizationTree
     dsimp only
     split_ifs; rfl
   case case3 =>
     rename_i h_height inst u' hu' s1' h_not_len h_nonempty max_val1
       inner_idxs1 idxs1 h_idxs_eq
+    intro h2 inst2 s2 f hf_mono h_eq
     have h_impossible : False := by
       have h_max_mem : max_val1 ∈ Finset.image s1' Finset.univ :=
         Finset.max'_mem _ _
@@ -659,12 +907,53 @@ lemma buildInnerTree_invariant {A S : Type*} [Semigroup S]
         List.map_eq_nil_iff.mp h_idxs_eq
       rw [h_inner_nil] at hi_inner
       cases hi_inner
-    exact False.elim h_impossible
+    exact nomatch h_impossible
   case case4 =>
+    rename_i h_height inst u' hu' s1' h_not_len h_nonempty max_val1 inner_idxs1 idxs1 h_idxs_ne
+      h_const
+    intro h2 inst2 s2 f hf_mono h_eq
+    unfold buildInnerFactorizationTree
+    dsimp only
+    have h_nonempty_s1 : (Finset.image s1' Finset.univ).Nonempty := Finset.univ_nonempty.image s1'
+    have h_nonempty_s2 : (Finset.image s2 Finset.univ).Nonempty := Finset.univ_nonempty.image s2
+    have h_max_val : ∀ h_proof, (Finset.image s2 Finset.univ).max' h_proof = f max_val1 := by
+      intro h_proof
+      rw [Finset.max'_eq_iff]
+      constructor
+      · have h_m1 := Finset.max'_mem (Finset.image s1' Finset.univ) (by simp)
+        rcases Finset.mem_image.mp h_m1 with ⟨i, _, hi⟩
+        apply Finset.mem_image.mpr
+        use i, Finset.mem_univ _
+        rw [h_eq, hi]
+      · intro y hy
+        rcases Finset.mem_image.mp hy with ⟨i, _, hi⟩
+        rw [← hi, h_eq]
+        have h_le := Finset.le_max' (Finset.image s1' Finset.univ) (s1' i)
+          (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩)
+        exact hf_mono.monotone h_le
+    have h_inner_idxs : List.filter
+        (fun i => decide (s2 i = (Finset.image s2 Finset.univ).max' h_nonempty_s2)) (List.finRange (u'.length - 1)) = inner_idxs1 := by
+      change _ = List.filter (fun i => decide (s1' i = max_val1)) (List.finRange (u'.length - 1))
+      congr 1
+      funext i
+      rw [h_max_val h_nonempty_s2, h_eq]
+      simp only [hf_mono.injective.eq_iff]
+    have h_inner1_eq : List.filter
+        (fun i => decide (s1' i = (Finset.image s1' Finset.univ).max' h_nonempty_s1)) (List.finRange (u'.length - 1)) = inner_idxs1 := rfl
+    have h_idxs_ne2 : (List.map mapInnerCut inner_idxs1) ≠ [] := h_idxs_ne
+    have h_const2 : inner_idxs1.length = u'.length - 1 := h_const
+    simp only [h_inner_idxs, h_inner1_eq, dif_neg h_not_len, dif_neg h_idxs_ne2, dif_pos h_const2]
+  case case5 =>
     rename_i h_height inst u' hu' s1' h_not_len h_nonempty max_val1
-      inner_idxs1 idxs1 h_idxs_ne k_pre1 k1 ih3 ih2 ih1
-    have h_max_val : (Finset.image s2 Finset.univ).max' (by simp) =
+      inner_idxs1 idxs1 h_idxs_ne h_const k_pre1 k1 ih3 ih2 ih1
+    intro h2 inst2 s2 f hf_mono h_eq
+    unfold buildInnerFactorizationTree
+    dsimp only
+    have h_nonempty_s1 : (Finset.image s1' Finset.univ).Nonempty := Finset.univ_nonempty.image s1'
+    have h_nonempty_s2 : (Finset.image s2 Finset.univ).Nonempty := Finset.univ_nonempty.image s2
+    have h_max_val : ∀ h_proof, (Finset.image s2 Finset.univ).max' h_proof =
         f max_val1 := by
+      intro h_proof
       rw [Finset.max'_eq_iff]
       constructor
       · have h_m1 := Finset.max'_mem (Finset.image s1' Finset.univ)
@@ -680,16 +969,166 @@ lemma buildInnerTree_invariant {A S : Type*} [Semigroup S]
           (Finset.image s1' Finset.univ) (s1' i)
           (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩)
         exact hf_mono.monotone h_le
-    have h_inner_idxs :
-        inner_idxs1 = (List.finRange (u'.length - 1)).filter
-          (fun i => decide
-            (s2 i = (Finset.image s2 Finset.univ).max' (by simp))) := by
-      unfold inner_idxs1
+    have h_inner_idxs : ∀ h_proof, List.filter
+        (fun i => decide (s2 i = (Finset.image s2 Finset.univ).max' h_proof)) (List.finRange (u'.length - 1)) = inner_idxs1 := by
+      intro h_proof
+      change _ = List.filter (fun i => decide (s1' i = max_val1)) (List.finRange (u'.length - 1))
       congr 1
       funext i
-      rw [h_max_val, h_eq]
+      rw [h_max_val h_proof, h_eq]
       simp only [hf_mono.injective.eq_iff]
-    sorry
+    have h_inner1_eq : ∀ h_proof, List.filter
+        (fun i => decide (s1' i = (Finset.image s1' Finset.univ).max' h_proof)) (List.finRange (u'.length - 1)) = inner_idxs1 := fun _ => rfl
+    have h_idxs_ne2 : (List.map mapInnerCut inner_idxs1) ≠ [] := h_idxs_ne
+    have h_const2 : ¬ (inner_idxs1.length = u'.length - 1) := h_const
+
+    simp only [h_inner_idxs, h_inner1_eq, dif_neg h_not_len, dif_neg h_idxs_ne2, dif_neg h_const2]
+
+    let max_val2 := (Finset.image s2 Finset.univ).max' h_nonempty_s2
+    have h_max_eq : max_val2 = f max_val1 := h_max_val h_nonempty_s2
+    -- Define the restricted strictly monotone function for the recursive calls
+    let f' : Fin max_val1.val → Fin max_val2.val := fun x => ⟨(f ⟨x.val, by omega⟩).val, by
+      have h2 : (f ⟨x.val, by omega⟩).val < (f max_val1).val := hf_mono (by exact x.isLt)
+      rw [← h_max_eq] at h2
+      exact h2
+    ⟩
+    have hf'_mono : StrictMono f' := by
+      intro x y hxy
+      exact hf_mono hxy
+
+    have h_int_eq : ∀ offset (w : List A) h_len h_start h_proof,
+        (∀ idx : Fin (w.length - 1), (restrictInnerSplit s2 offset h_len h_start idx).val <
+          ((Finset.image s2 Finset.univ).max' h_proof).val) =
+        (∀ idx : Fin (w.length - 1), (restrictInnerSplit s1' offset h_len h_start idx).val < max_val1.val) := by
+      intro offset w h_len h_start h_proof
+      apply propext
+      constructor
+      · intro h_int idx
+        have h1 := h_int idx
+        rw [restrictInnerSplit] at h1
+        have h_s2 : s2 ⟨offset + idx.val, by omega⟩ = f (s1' ⟨offset + idx.val, by omega⟩) := h_eq _
+        have h_mv : (Finset.image s2 Finset.univ).max' h_proof = f max_val1 := h_max_val _
+        rw [h_s2, h_mv] at h1
+        exact hf_mono.lt_iff_lt.mp h1
+      · intro h_int idx
+        have h1 := h_int idx
+        rw [restrictInnerSplit]
+        have h_s2 : s2 ⟨offset + idx.val, by omega⟩ = f (s1' ⟨offset + idx.val, by omega⟩) := h_eq _
+        have h_mv : (Finset.image s2 Finset.univ).max' h_proof = f max_val1 := h_max_val _
+        rw [h_s2, h_mv]
+        exact hf_mono h1
+
+    have h_pre_eq := fun h_pre_len h_start h_interior =>
+      have h_idx_lt : 0 < (u'.take k_pre1).length - 1 := by omega
+      have h_lt := h_interior ⟨0, h_idx_lt⟩
+      have h_max1_pos : 0 < max_val1.val := by omega
+      have : Nonempty (Fin max_val2.val) := ⟨f' ⟨0, h_max1_pos⟩⟩
+      ih2 h_pre_len h_start h_interior
+        (lowerInnerSplit (restrictInnerSplit s2 0 (by omega) (by omega)) ((h_int_eq 0 (u'.take k_pre1) (by omega) (by omega) h_nonempty_s2).mpr h_interior))
+        f' hf'_mono (fun idx => by
+          apply Fin.ext
+          dsimp [restrictInnerSplit, f', lowerInnerSplit]
+          exact congr_arg Fin.val (h_eq ⟨0 + idx.val, by
+            have := idx.isLt
+            omega
+          ⟩)
+        )
+
+    have h_suf_eq := fun h_suf_len h_start h_interior =>
+      have h_idx_lt : 0 < ((u'.drop k1).take (u'.length - k1)).length - 1 := by omega
+      have h_lt := h_interior ⟨0, h_idx_lt⟩
+      have h_max1_pos : 0 < max_val1.val := by omega
+      have : Nonempty (Fin max_val2.val) := ⟨f' ⟨0, h_max1_pos⟩⟩
+      ih1 h_suf_len h_start h_interior
+        (lowerInnerSplit (restrictInnerSplit s2 k1 (by omega) (by omega)) ((h_int_eq k1 ((u'.drop k1).take (u'.length - k1)) (by omega) (by omega) h_nonempty_s2).mpr h_interior))
+        f' hf'_mono (fun idx => by
+          apply Fin.ext
+          dsimp [restrictInnerSplit, f', lowerInnerSplit]
+          exact congr_arg Fin.val (h_eq ⟨k1 + idx.val, by
+            have := idx.isLt
+            omega
+          ⟩)
+        )
+
+    have h_mid_eq := fun (i j : Fin (u'.length + 1)) (h_part : (i, j) ∈ partitionIndices idxs1) h_len h_start h_interior =>
+      have h_idx_lt : 0 < ((u'.drop i.val).take (j.val - i.val)).length - 1 := by omega
+      have h_lt := h_interior ⟨0, h_idx_lt⟩
+      have h_max1_pos : 0 < max_val1.val := by omega
+      have : Nonempty (Fin max_val2.val) := ⟨f' ⟨0, h_max1_pos⟩⟩
+      ih3 i j h_len h_start h_interior
+        (lowerInnerSplit (restrictInnerSplit s2 (i.val - 1) (by omega) (by omega)) ((h_int_eq (i.val - 1) ((u'.drop i.val).take (j.val - i.val)) (by omega) (by omega) h_nonempty_s2).mpr h_interior))
+        f' hf'_mono (fun idx => by
+          apply Fin.ext
+          dsimp [restrictInnerSplit, f', lowerInnerSplit]
+          exact congr_arg Fin.val (h_eq ⟨(i.val - 1) + idx.val, by
+            have := idx.isLt
+            omega
+          ⟩)
+        )
+
+    have binary_eq_height : ∀ {t1 t1' t2 t2' : FactorizationTree A} {w w' : List A},
+      t1 = t1' → t2 = t2' → w = w' →
+      FactorizationTree.binary t1 t2 w (max t1.height t2.height + 1) =
+      FactorizationTree.binary t1' t2' w' (max t1'.height t2'.height + 1) := by
+      intro _ _ _ _ _ _ ht1 ht2 hw; rw [ht1, ht2, hw]
+
+    have list_to_nary_eq_height : ∀ {l1 l2 : List (FactorizationTree A)} {w w' : List A} {dl dl' : FactorizationTree A},
+      l1 = l2 → w = w' → dl = dl' →
+      list_to_nary l1 w (List.foldl max 0 (List.map FactorizationTree.height l1) + 1) dl =
+      list_to_nary l2 w' (List.foldl max 0 (List.map FactorizationTree.height l2) + 1) dl' := by
+      intro _ _ _ _ _ _ hl hw hdl; rw [hl, hw, hdl]
+
+    have map_eq : ∀ {α β} {f g : α → β} {l : List α},
+      (∀ x ∈ l, f x = g x) → List.map f l = List.map g l := by
+      intro _ _ _ _ _ h; apply List.map_congr_left h
+
+    have h_rw_pre1 : ∀ h_proof h_ne, ((List.map mapInnerCut (List.filter (fun i => decide (s1' i = (Finset.image s1' Finset.univ).max' h_proof)) (List.finRange (u'.length - 1)))).head h_ne) = idxs1.head h_idxs_ne := by
+      intro h_proof h_ne; congr 1
+    have h_rw_pre2 : ∀ h_proof h_ne, ((List.map mapInnerCut (List.filter (fun i => decide (s2 i = (Finset.image s2 Finset.univ).max' h_proof)) (List.finRange (u'.length - 1)))).head h_ne) = idxs1.head h_idxs_ne := by
+      intro h_proof h_ne; have h_eq := h_inner_idxs h_proof; revert h_ne; rw [h_eq]; intro h_ne; congr 1
+    have h_rw1 : ∀ h_proof h_ne, ((List.map mapInnerCut (List.filter (fun i => decide (s1' i = (Finset.image s1' Finset.univ).max' h_proof)) (List.finRange (u'.length - 1)))).getLast h_ne) = idxs1.getLast h_idxs_ne := by
+      intro h_proof h_ne; congr 1
+    have h_rw2 : ∀ h_proof h_ne, ((List.map mapInnerCut (List.filter (fun i => decide (s2 i = (Finset.image s2 Finset.univ).max' h_proof)) (List.finRange (u'.length - 1)))).getLast h_ne) = idxs1.getLast h_idxs_ne := by
+      intro h_proof h_ne; have h_eq := h_inner_idxs h_proof; revert h_ne; rw [h_eq]; intro h_ne; congr 1
+
+    have h_max1_val_eq : ∀ h_proof, ((Finset.image s1' Finset.univ).max' h_proof).val = max_val1.val := fun _ => rfl
+
+    simp only [h_max1_val_eq, h_int_eq]
+
+    apply binary_eq_height
+    · -- t_pre_mid
+      apply binary_eq_height
+      · -- t_pre
+        simp only [h_rw_pre1, h_rw_pre2]
+        split_ifs
+        all_goals {
+          first
+          | rfl
+          | exact h_pre_eq (by assumption) (by assumption) (by assumption)
+        }
+      · -- t_mid
+        apply list_to_nary_eq_height
+        · -- l1 = l2
+          apply map_eq
+          intro x hx
+          split_ifs
+          all_goals {
+            first
+            | rfl
+            | exact h_mid_eq x.1 x.2 hx (by assumption) (by assumption) (by assumption)
+          }
+        · rfl
+        · rfl
+      · rfl
+    · -- t_suf
+      simp only [h_rw1, h_rw2]
+      split_ifs
+      all_goals {
+        first
+        | rfl
+        | exact h_suf_eq (by assumption) (by assumption) (by assumption)
+      }
+    · rfl
 
 -- ---------------------------------------------------------------------------
 -- Section 10: Height Bound for Children
@@ -1083,7 +1522,6 @@ lemma nary_children_ramsey {A S : Type*} [Semigroup S] {h : ℕ}
           partitionIndices_props h_sorted hj_mem
         have h_len : j1.val - j0.val < u.length := by
           by_contra h_ge
-          push_not at h_ge
           have h_eq_u : j1.val - j0.val = u.length := by omega
           exact h_not_idxs (h_idx_eq.symm ▸ hj_len h_eq_u)
         have h_valid_true :
@@ -1098,9 +1536,7 @@ lemma nary_children_ramsey {A S : Type*} [Semigroup S] {h : ℕ}
             exact min_eq_left (by omega)
           exact ⟨by omega, by omega, by
             rw [← List.length_pos_iff, h_take_len]; omega⟩
-        nomatch h_valid_false h_valid_true
-
-
+        exact nomatch (h_valid_false h_valid_true)
 
 /-- The `nary_tree_structure` construction produces a Ramsey tree, given that
 the prefix, suffix, and children are all Ramsey. -/
