@@ -57,3 +57,7 @@ Contains the definitions, lemmas, and constructions for Simon's Split Theorem.
 
 * `Split.lean`
   - The induction steps for Simon's split theorem, proving that any multiplicative labeling over a finite linear order admits a bounded normalized Ramsey split. Culminates in `simon_word`, which applies this to words.
+
+### `Project/BrownLemma.lean`
+- Formalizes the application of Simon's Split Theorem to prove Brown's Lemma and the Algebraic Presentation Theorem.
+- Constructs the subsemigroup closure sequence ($X_n$) and proves that for a finite semigroup $T$, the closure stabilizes at $3|T|$ by exploiting bounded Ramsey splits.
