@@ -34,13 +34,10 @@ namespace SimonSplit
 
 variable {S : Type*} [Semigroup S] [Fintype S]
 
-
-
 open Classical in
 /-- The Simon complexity associated with an element `x ∈ S`. This is defined
 recursively as `nD(D_x) + max_{y : J(x) < J(y)} nSElement(y)`, where the
 maximum ranges over elements strictly above `x` in the J-order.
-
 The recursion terminates because the filter strictly shrinks as we ascend the
 J-order. -/
 noncomputable abbrev nSElement (x : S) : ℕ :=
@@ -86,8 +83,6 @@ instance instNonemptyFin_nSElement (x : S) :
     Nonempty (Fin (nSElement x)) :=
   Fin.pos_iff_nonempty.mp (nSElement_pos x)
 
-
-
 open Classical in
 /-- Constructs the sequence of "jump points" `x₀, x₁, …` used to partition
 the domain in both the regular and irregular D-class cases. Starting from `x`,
@@ -116,11 +111,6 @@ decreasing_by
     fun heq => lt_irrefl y (Finset.mem_filter.mp
       (heq.symm ▸ Finset.mem_filter.mpr ⟨Finset.mem_univ y, h_x_lt_y⟩ : y ∈ _)).2
   exact Finset.card_lt_card (lt_of_le_of_ne h_le h_ne)
-
--- ---------------------------------------------------------------------------
-
-
-
 
 /-- The elements built by `buildXSeq` cover the interval `[x₀, ∞)`: any
 element `x ≥ x₀` that is not in the sequence lies strictly between two
@@ -166,12 +156,12 @@ lemma buildXSeq_head (a : S) {α : Type*} [LinearOrder α] [Fintype α]
   grind
 
 /-- Key properties of the sequence `buildXSeq a σ w`:
-
 1. All elements are `≥ w`.
 2. For any two elements `x < y` in the sequence, `IsGreenD (σ(x, y)) a`.
 3. No element `y` strictly between consecutive sequence points can satisfy
    `IsGreenD (σ(xs[i], y)) a` (the sequence captures all D-related jump points).
-4. The sequence is strictly monotone. -/
+4. The sequence is strictly monotone.
+-/
 lemma buildXSeq_properties (a : S) {α : Type*} [LinearOrder α] [Fintype α]
     (σ : MultiplicativeLabeling S α) (h_img : labelingIn σ (jUp a)) (w : α) :
     (∀ y ∈ buildXSeq a σ w, w ≤ y) ∧
@@ -306,10 +296,6 @@ decreasing_by
         ⟨Finset.mem_univ _, hw_lt⟩ : (Finset.min' _ h) ∈ _)).2
   exact Finset.card_lt_card (lt_of_le_of_ne h_le h_ne)
 
-
-
-
-
 /-- If two elements `p` and `q` (both not in `xs`) are split-related under a
 combined split, they must lie in the same open interval. This key lemma shows
 that the split relation cannot straddle an interval boundary. -/
@@ -367,12 +353,9 @@ lemma buildXSeq_same_interval_of_splitRelation {α : Type*} [LinearOrder α]
     have h_le_val := Fin.le_iff_val_le_val.mp hb
     omega
 
-
-
 /-- Applies the inductive hypothesis to each open interval defined by `xs`
 to obtain local Ramsey splits. Returns, for each interval `i`, a split `s`
 with the Ramsey property and a strict upper bound on the split values.
-
 This lemma is the key "descent" step: elements in an open interval have a
 strictly smaller J-class than `a`, so the inductive hypothesis applies
 (with a strictly smaller Simon complexity). -/
@@ -512,12 +495,9 @@ lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
     exact ⟨fun _ => ⟨0, nSElement_pos a⟩,
       And.intro h_ramsey_vacuous (fun _ => h_Delta_pos)⟩
 
-
-
 /-- Combines a split on the sequence points `xs` with splits on the open
 intervals between consecutive sequence points into a single split on the
 entire domain `α`.
-
 For elements in `xs`, the rank is given by `rankX`. For elements in an open
 interval, the rank is given by the corresponding `sY i`. The case distinction
 is made by checking membership in `xs`. -/
@@ -537,8 +517,6 @@ noncomputable abbrev combineSplits {α S : Type*}
       ⟨x, Classical.choose_spec h_ex⟩
   else
     ⟨0, nSElement_pos a⟩
-
-
 
 /-- The `combineSplits` function preserves the Ramsey property for elements
 within the same open interval: if two elements `x, y ∉ xs` are split-related
@@ -675,11 +653,8 @@ lemma combineSplits_interval_ramsey {α S : Type*}
       )⟩
   ⟩
 
-
-
 /-- Proves that a combined split (assembled from local splits on sequence points
 and open intervals) satisfies the normalization and Ramsey properties.
-
 This is the main gluing lemma used by both `simon_split_regular_case` and
 `simon_split_irregular_case`. -/
 lemma combineSplits_props {α S : Type*}

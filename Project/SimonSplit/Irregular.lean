@@ -148,8 +148,7 @@ lemma irregularSplits_props {α S : Type*}
     (h_max_val := h_max_val)
 
 /-- Constructs a normalized Ramsey split for a labeling `σ` whose image lies
-in `jUp a`, when the D-class of `a` is **not regular** (irregular case).
-
+in `jUp a`, when the D-class of `a` is **irregular**.
 The construction:
 1. Builds the sequence `xs = buildXSeq a σ x₀`.
 2. Uses `irregular_d_class_no_three_seq` to prove `|xs| ≤ 2`.

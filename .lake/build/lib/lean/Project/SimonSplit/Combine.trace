@@ -1,9 +1,9 @@
 {"synthetic": false,
  "schemaVersion": "2025-09-10",
  "outputs":
- {"o": ["5aecff1804e4137f.olean"],
+ {"o": ["17926d144714b1a3.olean"],
   "m": false,
-  "i": "8321763f1b3b2b39.ilean",
+  "i": "932adb2f854014b5.ilean",
   "c": "06a106dd2619d4e3.c"},
  "log":
  [{"message":
@@ -24,7 +24,7 @@
       ["Project.GreensRelations.Order:importAllArts", "fad917a5eca499d1"],
       ["Project.SimonSplit.Basic transitive imports (legacy)",
        "2c6786312abdcd10"],
-      ["Project.SimonSplit.Basic:importAllArts", "eba5ad12dd8f26cf"]]]]],
+      ["Project.SimonSplit.Basic:importAllArts", "c454c26380052670"]]]]],
   ["libs",
    [["import dynlibs", "00000000000006bb"],
     ["package external libraries", "00000000000006bb"],
@@ -33,7 +33,7 @@
   ["Lean 4.33.0, commit 62eed1db4d67327ec8120be05f1a1b0847d74561",
    "8fa8fbe052c71a8e"],
   ["C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\Project\\SimonSplit\\Combine.lean",
-   "8385a4843dd3c452"],
+   "92fe4b0ba6529d8c"],
   ["options",
    [["-DmaxSynthPendingDepth=3", "c78e353d34de85d4"],
     ["-Dweak.linter.mathlibStandardSet=true", "8a155799906f2b42"],
@@ -43,4 +43,4 @@
   ["Module.name: Project.SimonSplit.Combine", "5761af69bf27589f"],
   ["Package.id?: (some Project)", "264312e6c45eec93"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "f0dc7b06a8d78f17"}
+ "depHash": "0fa4c13c7cf3a536"}

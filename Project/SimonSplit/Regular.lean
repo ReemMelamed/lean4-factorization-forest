@@ -29,8 +29,6 @@ section RegularDClassCase
 
 variable {S α : Type*} [Semigroup S] [LinearOrder α]
 
-
-
 /-- A context bundle packaging the common parameters for the Simon split construction
 over a regular D-class. -/
 structure SimonContext (S α : Type*) [Semigroup S] [LinearOrder α] where
@@ -80,8 +78,6 @@ noncomputable abbrev rOf (ctx : SimonContext S α) (x : α) : Set S :=
 intersection of its assigned L-class and R-class. -/
 noncomputable abbrev hOf (ctx : SimonContext S α) (x : α) : Set S :=
   lOf ctx x ∩ rOf ctx x
-
-
 
 section WithFiniteS
 
@@ -168,8 +164,6 @@ lemma hOf_eq_class (ctx : SimonContext S α) (z : α) :
     fun ⟨hwL, hwR⟩ ↦ ⟨IsGreenL.trans hwL he.1, IsGreenR.trans hwR he.2⟩
   ⟩
 
-
-
 open Classical in
 /-- Under the hypothesis that `mz < z` and `hOf ctx mz = hOf ctx z`, the
 product `σ(mz, z)` interacts with the chosen idempotent in a specific way:
@@ -255,8 +249,6 @@ lemma fColoring_isGreenH (ctx : SimonContext S α) (z : α) :
   · have h_props := sigma_props ctx z mz h_mz hm_H
     grind
   · exact IsGreenH.refl (eId ctx z)
-
-
 
 section WithFintypeSNonemptyAlpha
 
@@ -355,8 +347,6 @@ end WithFintypeSNonemptyAlpha
 end WithFintypeAlpha
 end WithFiniteS
 end RegularDClassCase
-
-
 
 section SplitConstruction
 
@@ -539,11 +529,8 @@ lemma regularSplits_props {α S : Type*}
   · grind
   · exact h_max_val
 
-
-
 /-- Constructs a normalized Ramsey split for a labeling `σ` whose image lies
 in `jUp a`, when the D-class of `a` is **regular**.
-
 The construction:
 1. Builds the sequence `xs = buildXSeq a σ x₀`.
 2. Applies `simon_regular_d_case` on the sequence points.

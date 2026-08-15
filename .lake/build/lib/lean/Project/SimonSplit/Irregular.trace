@@ -1,9 +1,9 @@
 {"synthetic": false,
  "schemaVersion": "2025-09-10",
  "outputs":
- {"o": ["4d0ed58efde9c15c.olean"],
+ {"o": ["8ec6822791c94d09.olean"],
   "m": false,
-  "i": "e60bc7f207060190.ilean",
+  "i": "042fa8c4218fa7af.ilean",
   "c": "13189833d9102d38.c"},
  "log":
  [{"message":
@@ -14,8 +14,8 @@
    [["Project/Project:extraDep", [["@Project:extraDep", "00000000000006bb"]]],
     ["imports",
      [["Project.SimonSplit.Combine transitive imports (legacy)",
-       "509507f0f3e259e8"],
-      ["Project.SimonSplit.Combine:importAllArts", "8f2a33256b6cd5d3"]]]]],
+       "17c756acc4260b04"],
+      ["Project.SimonSplit.Combine:importAllArts", "5523afe9dcc54804"]]]]],
   ["libs",
    [["import dynlibs", "00000000000006bb"],
     ["package external libraries", "00000000000006bb"],
@@ -24,7 +24,7 @@
   ["Lean 4.33.0, commit 62eed1db4d67327ec8120be05f1a1b0847d74561",
    "8fa8fbe052c71a8e"],
   ["C:\\Users\\reems\\git-repositories\\lean4-factorization-forest\\Project\\SimonSplit\\Irregular.lean",
-   "41c8118b79d2fd84"],
+   "a5bfcbe10b121dff"],
   ["options",
    [["-DmaxSynthPendingDepth=3", "c78e353d34de85d4"],
     ["-Dweak.linter.mathlibStandardSet=true", "8a155799906f2b42"],
@@ -34,4 +34,4 @@
   ["Module.name: Project.SimonSplit.Irregular", "7605474be53ad4ec"],
   ["Package.id?: (some Project)", "264312e6c45eec93"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "c8b698eb08679c7f"}
+ "depHash": "afde35c082a4a71a"}

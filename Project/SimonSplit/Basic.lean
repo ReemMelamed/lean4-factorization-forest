@@ -79,13 +79,11 @@ abbrev IsNormalized [Fintype α] [Nonempty α] [Nonempty (Fin h)]
 
 /-- `IsRamsey L s` holds if the split `s` is a Ramsey split for the labeling
 `L`. This means:
-
 1. **Idempotent condition**: for any three points `x < y < z` that are
    pairwise split-related, the product `L.σ x y * L.σ x y = L.σ x y`.
 2. **Uniformity condition**: for any two pairs `(x, y)` and `(u, v)` that
    are split-related and also cross-related (`SplitRelation s x u`), we have
    `L.σ x y = L.σ u v`.
-
 These two conditions together guarantee that all pairs within the same
 split-equivalence class of size ≥ 3 evaluate to the same idempotent element,
 which is required for n-ary nodes in the factorization tree. -/
@@ -130,7 +128,6 @@ abbrev wordLabeling {A S : Type*} [Semigroup S]
     grind
 
 end WordDefinitions
-
 
 section nD
 
@@ -367,11 +364,6 @@ lemma foldl_max_mem (l : List ℕ) (x : ℕ) (hx : x ∈ l) :
     | inr h_mem =>
       exact le_trans (ih h_mem)
         (foldl_max_mono tl 0 (max 0 hd) (by omega))
-
-/-- A helper lemma: `a ≤ b - 1` and `0 < b` implies `a + 1 ≤ b`. -/
-lemma plus_one_le {a b : ℕ} (h : a ≤ b - 1) (hb : 0 < b) : a + 1 ≤ b :=
-  by omega
-
 
 /-- A subtype of `α` representing elements strictly between `xs[i]` and
 `xs[i+1]` (or between `xs[i]` and +∞ if `i` is the last index).
