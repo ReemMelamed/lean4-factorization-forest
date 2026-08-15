@@ -196,7 +196,8 @@ lemma X_seq_inner_lemma (m : ℕ) (ϕ : S →ₙ* T) (X : Set S)
   (u : List S) (eval_T : List S → T)
   (hmul_T : ∀ v w, v ≠ [] → w ≠ [] → eval_T (v ++ w) = eval_T v * eval_T w)
   (h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw))
-  (s : Split (Fin (u.length + 1)) (m + 1))
+  {n : ℕ} (_ : m < n)
+  (s : Split (Fin (u.length + 1)) n)
   (h_ramsey : IsRamsey (wordLabeling eval_T hmul_T u) s)
   (ih : ∀ (i j : Fin (u.length + 1)) (hij : (i : ℕ) < (j : ℕ)),
     (∀ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m) →
@@ -342,7 +343,7 @@ lemma X_seq_outer_lemma (n : ℕ) (ϕ : S →ₙ* T) (X : Set S)
   (s : Split (Fin (u.length + 1)) n)
   (h_ramsey : IsRamsey (wordLabeling eval_T hmul_T u) s)
   (huX : ∀ (i : ℕ) (hi : i < u.length), u[i] ∈ X) :
-  ∀ (m : ℕ) (hm : m ≤ n) (i j : Fin (u.length + 1)) (hij : (i : ℕ) < (j : ℕ)),
+  ∀ (m : ℕ) (_ : m ≤ n) (i j : Fin (u.length + 1)) (hij : (i : ℕ) < (j : ℕ)),
   (∀ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m) →
   listProdNE ((u.drop i).take (j - i))
   (list_drop_take_ne_nil u i j hij (by omega)) ∈ X_seq ϕ X (3 * m) := by
@@ -396,8 +397,178 @@ lemma X_seq_outer_lemma (n : ℕ) (ϕ : S →ₙ* T) (X : Set S)
     exact huX i.1 h_i_lt
   | succ m' ih_m' =>
     intro hm i j hij h_less
-
-    sorry
+    let S_cuts :=
+      (Finset.univ : Finset (Fin (u.length + 1))).filter
+      (fun (x : Fin (u.length + 1)) =>
+      (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m')
+    have h_mul_mem_gen :
+      ∀ n a b, a ∈ X_seq ϕ X n → b ∈ X_seq ϕ X n → a * b ∈ X_seq ϕ X (n + 1) := by
+      intro n a b ha hb
+      dsimp [X_seq]
+      exact Or.inl (Or.inr ⟨a, ha, b, hb, rfl⟩)
+    by_cases h_empty : S_cuts = ∅
+    · have h_less' : ∀ x :
+        Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m' := by
+        intro x hix hxj
+        have h_bet := h_less x hix hxj
+        by_contra hc
+        have h_eq : (s x : ℕ) = m' := by omega
+        have h_mem : x ∈ S_cuts :=
+          Finset.mem_filter.mpr ⟨Finset.mem_univ x, hix, hxj, h_eq⟩
+        rw [h_empty] at h_mem
+        revert h_mem
+        simp
+      have h_ih := ih_m' (by omega) i j hij h_less'
+      exact X_seq_mono ϕ X (by omega) h_ih
+    · have h_nonempty : S_cuts.Nonempty := Finset.nonempty_of_ne_empty h_empty
+      let k_1 := S_cuts.min' h_nonempty
+      have hk1_mem := Finset.min'_mem S_cuts h_nonempty
+      have hk1_prop := (Finset.mem_filter.mp hk1_mem).2
+      let k_r := S_cuts.max' h_nonempty
+      have hkr_mem := Finset.max'_mem S_cuts h_nonempty
+      have hkr_prop := (Finset.mem_filter.mp hkr_mem).2
+      have hik1 : (i : ℕ) < (k_1 : ℕ) := hk1_prop.1
+      have h_less_ik1 : ∀ x :
+        Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (k_1 : ℕ) → (s x : ℕ) < m' := by
+        intro x hix hxk
+        have h_bet := h_less x hix (hxk.trans hk1_prop.2.1)
+        by_contra hc
+        have h_eq : (s x : ℕ) = m' := by omega
+        have h_mem : x ∈ S_cuts :=
+          Finset.mem_filter.mpr ⟨Finset.mem_univ x, hix, hxk.trans hk1_prop.2.1, h_eq⟩
+        have h_le := Finset.min'_le S_cuts x h_mem
+        omega
+      have h_ih_ik1 := ih_m' (by omega) i k_1 hik1 h_less_ik1
+      have hkrj : (k_r : ℕ) < (j : ℕ) := hkr_prop.2.1
+      have h_less_krj : ∀ x :
+        Fin (u.length + 1), (k_r : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m' := by
+        intro x hkx hxj
+        have h_min_le : k_1 ≤ k_r := Finset.min'_le S_cuts k_r hkr_mem
+        have hikr : (i : ℕ) < (k_r : ℕ) := by omega
+        have h_bound := h_less x (by omega) hxj
+        by_contra hc
+        have h_eq : (s x : ℕ) = m' := by omega
+        have h_mem : x ∈ S_cuts :=
+          Finset.mem_filter.mpr ⟨Finset.mem_univ x, (by omega), hxj, h_eq⟩
+        have h_le := Finset.le_max' S_cuts x h_mem
+        omega
+      have h_ih_krj := ih_m' (by omega) k_r j hkrj h_less_krj
+      by_cases h_eq : k_1 = k_r
+      · have hk1j : (k_1 : ℕ) < (j : ℕ) := by rw [h_eq]; exact hkrj
+        have h_split := listProdNE_split u i.1 k_1.1 j.1 hik1 hk1j (by omega)
+        rw [h_split]
+        have h_less_k1j : ∀ x :
+          Fin (u.length + 1), (k_1 : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m' := by
+          intro x hkx hxj
+          have heq2 : (k_1 : ℕ) = (k_r : ℕ) := by rw [h_eq]
+          rw [heq2] at hkx
+          exact h_less_krj x hkx hxj
+        have h_ih_k1j := ih_m' (by omega) k_1 j hk1j h_less_k1j
+        have h_prod := h_mul_mem_gen (3 * m') _ _ h_ih_ik1 h_ih_k1j
+        exact X_seq_mono ϕ X (by omega) h_prod
+      · have hk1kr : (k_1 : ℕ) < (k_r : ℕ) := by
+          have hle : k_1 ≤ k_r := Finset.min'_le S_cuts k_r hkr_mem
+          omega
+        have hk1j : (k_1 : ℕ) < (j : ℕ) := hk1kr.trans hkrj
+        have h_split1 := listProdNE_split u i.1 k_1.1 j.1 hik1 hk1j (by omega)
+        rw [h_split1]
+        have h_split2 := listProdNE_split u k_1.1 k_r.1 j.1 hk1kr hkrj (by omega)
+        rw [h_split2]
+        by_cases h_no_mid : ∀ x :
+          Fin (u.length + 1), (k_1 : ℕ) < (x : ℕ) → (x : ℕ) < (k_r : ℕ) → (s x : ℕ) < m'
+        · have h_ih_mid := ih_m' (by omega) k_1 k_r hk1kr h_no_mid
+          have h_mul1 := h_mul_mem_gen (3 * m') _ _ h_ih_mid h_ih_krj
+          have h_mul2 := h_mul_mem_gen (3 * m' + 1) _ _ (X_seq_mono ϕ X (by omega) h_ih_ik1) h_mul1
+          exact X_seq_mono ϕ X (by omega) h_mul2
+        · push Not at h_no_mid
+          rcases h_no_mid with ⟨k_2, hk12, hk2r, h_not_less⟩
+          have hk2_prop : (s k_2 : ℕ) = m' := by
+            have h_bet := h_less k_2 (hik1.trans hk12) (hk2r.trans hkrj)
+            omega
+          have h_rel_12 : SplitRelation s k_1 k_2 := by
+            have heq1 : (s k_1 : ℕ) = m' := hk1_prop.2.2
+            have heq2 : (s k_2 : ℕ) = m' := hk2_prop
+            refine ⟨Fin.ext (by omega), ?_⟩
+            intro x hx1 hx2
+            have hmin : min k_1 k_2 = k_1 := min_eq_left (le_of_lt hk12)
+            have hmax : max k_1 k_2 = k_2 := max_eq_right (le_of_lt hk12)
+            rw [hmin] at hx1 ⊢
+            rw [hmax] at hx2
+            change (s x : ℕ) ≤ (s k_1 : ℕ)
+            rw [hk1_prop.2.2]
+            have hx1_nat : (k_1 : ℕ) ≤ (x : ℕ) := hx1
+            have hx2_nat : (x : ℕ) ≤ (k_2 : ℕ) := hx2
+            have h_bound := h_less x (by omega) (by omega)
+            omega
+          have h_rel_2r : SplitRelation s k_2 k_r := by
+            have heq2 : (s k_2 : ℕ) = m' := hk2_prop
+            have heqr : (s k_r : ℕ) = m' := hkr_prop.2.2
+            refine ⟨Fin.ext (by omega), ?_⟩
+            intro x hx1 hx2
+            have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
+            have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
+            rw [hmin] at hx1 ⊢
+            rw [hmax] at hx2
+            change (s x : ℕ) ≤ (s k_2 : ℕ)
+            rw [hk2_prop]
+            have hx1_nat : (k_2 : ℕ) ≤ (x : ℕ) := hx1
+            have hx2_nat : (x : ℕ) ≤ (k_r : ℕ) := hx2
+            have h_bound := h_less x (by omega) (by omega)
+            omega
+          have h_rel_1r : SplitRelation s k_1 k_r := by
+            have heq1 : (s k_1 : ℕ) = m' := hk1_prop.2.2
+            have heqr : (s k_r : ℕ) = m' := hkr_prop.2.2
+            refine ⟨Fin.ext (by omega), ?_⟩
+            intro x hx1 hx2
+            have hmin : min k_1 k_r = k_1 := min_eq_left (le_of_lt hk1kr)
+            have hmax : max k_1 k_r = k_r := max_eq_right (le_of_lt hk1kr)
+            rw [hmin] at hx1 ⊢
+            rw [hmax] at hx2
+            change (s x : ℕ) ≤ (s k_1 : ℕ)
+            rw [hk1_prop.2.2]
+            have hx1_nat : (k_1 : ℕ) ≤ (x : ℕ) := hx1
+            have hx2_nat : (x : ℕ) ≤ (k_r : ℕ) := hx2
+            have h_bound := h_less x (by omega) (by omega)
+            omega
+          have h_color_eq :
+            (wordLabeling eval_T hmul_T u).σ k_1 k_2 = (wordLabeling eval_T hmul_T u).σ k_2 k_r :=
+            h_ramsey.2 k_1 k_2 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r h_rel_12
+          have h_color_idem : (wordLabeling eval_T hmul_T u).σ k_1 k_2
+            * (wordLabeling eval_T hmul_T u).σ k_1 k_2 = (wordLabeling eval_T hmul_T u).σ k_1 k_2 :=
+            h_ramsey.1 k_1 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r
+          have h_color_total : (wordLabeling eval_T hmul_T u).σ k_1 k_2
+            * (wordLabeling eval_T hmul_T u).σ k_2 k_r = (wordLabeling eval_T hmul_T u).σ k_1 k_r :=
+            (wordLabeling eval_T hmul_T u).prop k_1 k_2 k_r hk12 hk2r
+          have h_color_1r_eq_12 : (wordLabeling eval_T hmul_T u).σ k_1 k_r =
+            (wordLabeling eval_T hmul_T u).σ k_1 k_2 := by
+            rw [← h_color_total, ← h_color_eq, h_color_idem]
+          have h_idem_1r : (wordLabeling eval_T hmul_T u).σ k_1 k_r
+            * (wordLabeling eval_T hmul_T u).σ k_1 k_r =
+            (wordLabeling eval_T hmul_T u).σ k_1 k_r := by
+            rw [h_color_1r_eq_12, h_color_idem]
+          let e := eval_T ((u.drop k_1).take (k_r - k_1))
+          have he_idem : e * e = e := h_idem_1r
+          have h_inner := X_seq_inner_lemma m' ϕ X u eval_T hmul_T h_eval_eq (by omega) s h_ramsey
+            (fun i j hij hless => ih_m' (by omega) i j hij hless)
+            k_1 k_r hk1kr hk1_prop.2.2 hkr_prop.2.2 (by
+              intro x hk1x hxkr
+              have hk1x_nat : (k_1 : ℕ) < (x : ℕ) := hk1x
+              have hxkr_nat : (x : ℕ) < (k_r : ℕ) := hxkr
+              have h_bound := h_less x (by omega) (by omega)
+              omega
+            )
+          have h_subset : (Subsemigroup.closure (X_seq ϕ X (3 * m') ∩ ϕ ⁻¹' {e}) : Set S)
+            ⊆ X_seq ϕ X (3 * m' + 1) := by
+            intro x hx
+            dsimp [X_seq]
+            exact Or.inr (Set.mem_iUnion.mpr ⟨e, Set.mem_iUnion.mpr ⟨he_idem, hx⟩⟩)
+          have h_k1r_in_3m1 : listProdNE
+            ((u.drop k_1).take (k_r - k_1)) _ ∈ X_seq ϕ X (3 * m' + 1) := h_subset h_inner
+          have h_k1j_in_3m2 :=
+            h_mul_mem_gen (3 * m' + 1) _ _ h_k1r_in_3m1 (X_seq_mono ϕ X (by omega) h_ih_krj)
+          have h_total_in_3m3 :=
+            h_mul_mem_gen (3 * m' + 2) _ _ (X_seq_mono ϕ X (by omega) h_ih_ik1) h_k1j_in_3m2
+          exact X_seq_mono ϕ X (by omega) h_total_in_3m3
 
 /-- **Algebraic Presentation Theorem**:
 For a semigroup morphism `ϕ : S →ₙ* T` to a finite semigroup `T` and generator set `X ⊆ S`,
