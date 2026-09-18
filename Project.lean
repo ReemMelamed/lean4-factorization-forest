@@ -9,3 +9,4 @@ import Project.GreensRelations.Order
 import Project.GreensRelations.Green
 import Project.GreensRelations.Finite
 import Project.BrownLemma
+import Project.SimonSplit.FactorizationTree
