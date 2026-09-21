@@ -34,6 +34,8 @@ inductive FactorizationTree (A : Type*) where
 
 namespace FactorizationTree
 
+section TreeDefinitions
+
 variable {A : Type*}
 
 mutual
@@ -50,6 +52,7 @@ mutual
     | t :: ts => value t ++ listValue ts
 end
 
+/-- Decomposition of `listValue` on a non-empty list of trees. -/
 lemma listValue_cons (t : FactorizationTree A) (ts : List (FactorizationTree A)) :
     listValue (t :: ts) = value t ++ listValue ts := rfl
 
@@ -67,6 +70,7 @@ mutual
     | t :: ts => max (height t) (listHeight ts)
 end
 
+/-- Bounding the height of a list of trees when each individual tree's height is bounded. -/
 lemma listHeight_le {H : ℕ} : ∀ (ts : List (FactorizationTree A)),
     (∀ t ∈ ts, height t ≤ H) → listHeight ts ≤ H
   | [], _ => Nat.zero_le H
@@ -95,14 +99,18 @@ mutual
     | t :: ts => IsRamsey eval t ∧ listIsRamsey eval ts
 end
 
+/-- A leaf node is unconditionally Ramsey for any evaluation map. -/
 lemma leaf_isRamsey (eval : List A → S) (a : A) : (leaf a).IsRamsey eval := by
   simp [IsRamsey]
 
+/-- A binary node is Ramsey if and only if both children are Ramsey. -/
 lemma binary_isRamsey (eval : List A → S) {l r : FactorizationTree A}
     (hl : l.IsRamsey eval) (hr : r.IsRamsey eval) :
     (binary l r).IsRamsey eval := by
   simp [IsRamsey, hl, hr]
 
+/-- An idempotent node is Ramsey if it has at least two children, all children are Ramsey,
+and all children evaluate to the same idempotent. -/
 lemma idempotent_isRamsey (eval : List A → S) {children : List (FactorizationTree A)}
     (hlen : 2 ≤ children.length) (hlist : listIsRamsey eval children)
     {e : S} (he : e * e = e) (he_eval : ∀ t ∈ children, eval (value t) = e) :
@@ -110,12 +118,17 @@ lemma idempotent_isRamsey (eval : List A → S) {children : List (FactorizationT
   simp only [IsRamsey]
   exact ⟨hlen, hlist, e, he, he_eval⟩
 
+/-- Decomposition of `listIsRamsey` on a `cons` list. -/
 lemma listIsRamsey_cons (eval : List A → S) (t : FactorizationTree A)
     (ts : List (FactorizationTree A)) :
     listIsRamsey eval (t :: ts) ↔ (t.IsRamsey eval ∧ listIsRamsey eval ts) := by
   simp [listIsRamsey]
 
+end TreeDefinitions
+
 end FactorizationTree
+
+section ListSlices
 
 /-- The Simon complexity `nS S` of any non-empty finite semigroup `S` is strictly positive. -/
 lemma nS_pos {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] : 0 < nS S := by
@@ -135,6 +148,7 @@ instance instNonemptyFin_nS {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] :
     Nonempty (Fin (nS S)) :=
   Fin.pos_iff_nonempty.mp nS_pos
 
+/-- Concatenating consecutive slices of a list yields the merged slice. -/
 lemma list_drop_take_append {A : Type*} (u : List A) (i k j : ℕ) (hik : i ≤ k) (hkj : k ≤ j) :
     (u.drop i).take (k - i) ++ (u.drop k).take (j - k) = (u.drop i).take (j - i) := by
   have h_drop : u.drop k = (u.drop i).drop (k - i) := by
@@ -149,6 +163,7 @@ lemma list_drop_take_append {A : Type*} (u : List A) (i k j : ℕ) (hik : i ≤ 
   rw [h_eq] at h_take
   exact h_take
 
+/-- Slicing a single element from index `i` yields `[u[i]]`. -/
 lemma list_drop_take_one {A : Type*} (u : List A) (i : ℕ) (hi : i < u.length) :
     (u.drop i).take 1 = [u[i]] := by
   cases h_drop : u.drop i with
@@ -166,10 +181,13 @@ lemma list_drop_take_one {A : Type*} (u : List A) (i : ℕ) (hi : i < u.length) 
     simp only [h_get]
     grind
 
+/-- A non-empty slice of a list is non-empty. -/
 lemma list_drop_take_ne_nil {A : Type*} (u : List A) (i j : ℕ) (hij : i < j) (hj : j ≤ u.length) :
     (u.drop i).take (j - i) ≠ [] := by
   simp
   grind
+
+end ListSlices
 
 section SplitToTree
 
@@ -588,6 +606,8 @@ lemma split_to_tree_outer {n : ℕ}
 
 end SplitToTree
 
+section ForestTheorem
+
 /-- Simon's Factorization Forest Theorem (Theorem 3.4): every non-empty word admits
 a Ramsey factorization tree of height at most `3 * nS S - 1`. -/
 theorem factorization_forest_theorem {A S : Type*} [Semigroup S] [Fintype S]
@@ -762,5 +782,7 @@ theorem factorization_forest_theorem {A S : Type*} [Semigroup S] [Fintype S]
         dsimp [t, FactorizationTree.height]
         omega
       exact ⟨t, ht_val, ht_ramsey, ht_height⟩
+
+end ForestTheorem
 
 end SimonSplit

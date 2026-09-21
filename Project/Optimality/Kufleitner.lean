@@ -25,7 +25,7 @@ namespace Optimality
 
 open FactorizationTree
 
-/-! ### Algebraic Properties of Groups in Ramsey Factorization Trees -/
+section GroupProperties
 
 /-- In any group `G`, the only idempotent element is the identity `1`. -/
 lemma group_idempotent_eq_one {G : Type*} [Group G] (e : G) (he : e * e = e) : e = 1 := by
@@ -53,7 +53,9 @@ lemma no_idempotent_root_of_children_eval {G : Type*} [Group G] (eval : List G �
   subst ht_eq
   exact group_idempotent_node_eval_one eval ht_ramsey
 
-/-! ### Theorem 3.6 (Kufleitner's Lower Bound) -/
+end GroupProperties
+
+section LowerBound
 
 /-- Kufleitner's lower bound (Theorem 3.6): for any non-trivial finite group `G`, there exists
 a non-empty word whose Ramsey trees have height at least `3 * |G| - 1`. -/
@@ -62,7 +64,9 @@ axiom kufleitner_lower_bound (G : Type*) [Group G] [Fintype G] (hG : 1 < Fintype
     ∃ w : List G, w ≠ [] ∧ ∀ t : FactorizationTree G,
       t.value = w → t.IsRamsey eval → 3 * Fintype.card G - 1 ≤ t.height
 
-/-! ### Corollary 3.7 (Optimality of the Bound for Splits) -/
+end LowerBound
+
+section RamseySplitBound
 
 /-- Optimality of Ramsey splits (Corollary 3.7): for any non-trivial finite group `G`,
 there exists a word whose Ramsey splits have height at least `|G|`. -/
@@ -84,6 +88,8 @@ theorem ramsey_split_lower_bound (G : Type*) [Group G] [Fintype G] (hG : 1 < Fin
   have h_tree_ge := hw_tree t ht_val ht_ramsey
   have : 3 * h ≤ 3 * (Fintype.card G - 1) := by omega
   omega
+
+end RamseySplitBound
 
 end Optimality
 

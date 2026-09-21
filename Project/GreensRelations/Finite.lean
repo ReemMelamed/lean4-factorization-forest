@@ -17,6 +17,8 @@ Structural theorems for Green's relations on finite semigroups, including `D` = 
 
 variable {S : Type*} [Semigroup S]
 
+section GreenDAndJ
+
 /-- If `a` and `b` are `J`-related in a finite semigroup, they are also `D`-related. -/
 theorem isGreenD_of_isGreenJ [Finite S] {a b : S} (h : IsGreenJ a b) : IsGreenD a b :=
   match h.left, h.right with
@@ -115,6 +117,10 @@ theorem isRegularDClass_iff_exists_mul_mem
     rcases h_exists with ⟨e, heD, he_idem, _⟩
     exact (isRegularDClass_iff_exists_idempotent D hD).mpr ⟨e, heD, he_idem⟩
 
+end GreenDAndJ
+
+section SubgroupsInHClasses
+
 /-- A predicate stating that a set `H : Set S` forms a group under
     the semigroup multiplication restricted to `H`. -/
 def IsGroup (H : Set S) : Prop := Nonempty (Group H)
@@ -196,3 +202,5 @@ theorem isGreenH_eqvClass_dichotomy
     exact h_disj
   · right
     exact ⟨h_closed, isGreenH_eqvClass_isGroup_of_idempotent hH heH he_idem⟩
+
+end SubgroupsInHClasses

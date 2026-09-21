@@ -33,6 +33,8 @@ open scoped Pointwise
 
 variable {S T : Type*} [Semigroup S] [Semigroup T]
 
+section ClosureSequence
+
 /-- The Simon complexity `nS S` of any non-empty finite semigroup `S` is strictly positive. -/
 lemma nS_pos {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] : 0 < nS S := by
   dsimp [nS]
@@ -51,9 +53,9 @@ instance instNonemptyFin_nS {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] :
     Nonempty (Fin (nS S)) :=
   Fin.pos_iff_nonempty.mp nS_pos
 
-/-- The inductive sequence of subsets Xₙ ⊆ S.
-X₀ = X
-Xₙ₊₁ = Xₙ ∪ (Xₙ * Xₙ) ∪ ⋃_{e ∈ T, e² = e} ⟨Xₙ ∩ ϕ⁻¹(e)⟩_S -/
+/-- The inductive sequence of subsets `X_seq ϕ X n ⊆ S`:
+`X_seq ϕ X 0 = X`.
+`X_seq ϕ X (n + 1) = X_seq ϕ X n ∪ (X_seq ϕ X n * X_seq ϕ X n) ∪ ⋃_{e ∈ T, e² = e} ⟨X_seq ϕ X n ∩ ϕ⁻¹(e)⟩_S`. -/
 def X_seq (ϕ : S →ₙ* T) (X : Set S) : ℕ → Set S
   | 0 => X
   | n + 1 =>
@@ -91,11 +93,16 @@ lemma X_seq_subset_closure (ϕ : S →ₙ* T) (X : Set S) (n : ℕ) :
 def IsLocallyFinite (S : Type*) [Semigroup S] : Prop :=
   ∀ (X : Set S), X.Finite → (Subsemigroup.closure X : Set S).Finite
 
+end ClosureSequence
+
+section ListProduct
+
 /-- Product of a non-empty list of elements in a semigroup `S`. -/
 def listProdNE : (u : List S) → u ≠ [] → S
   | [], hu => False.elim (hu rfl)
   | a :: rest, _ => rest.foldl (· * ·) a
 
+/-- `List.foldl` multiplication by `x` on the left equals `x * listProdNE v hv`. -/
 lemma foldl_mul_eq_mul_listProdNE (x : S) (v : List S) (hv : v ≠ []) :
     v.foldl (· * ·) x = x * listProdNE v hv := by
   revert x
@@ -110,6 +117,7 @@ lemma foldl_mul_eq_mul_listProdNE (x : S) (v : List S) (hv : v ≠ []) :
       change List.foldl (· * ·) (x * b) (c :: rest') = x * List.foldl (· * ·) b (c :: rest')
       rw [ih h_rest_ne (x * b), ih h_rest_ne b, mul_assoc]
 
+/-- Product of concatenated non-empty lists is the product of their individual products. -/
 lemma listProdNE_concat (u v : List S) (hu : u ≠ []) (hv : v ≠ []) :
     listProdNE (u ++ v) (by simp [hu, hv]) = listProdNE u hu * listProdNE v hv := by
   cases u with
@@ -153,10 +161,16 @@ lemma mem_closure_iff_exists_list (X : Set S) (s : S) :
         rw [h_eq]
         exact Subsemigroup.mul_mem _ ha ih'
 
+/-- Well-definedness of `listProdNE` with respect to list equality. -/
 lemma listProdNE_eq (u v : List S) (hu : u ≠ []) (hv : v ≠ []) (h : u = v) :
     listProdNE u hu = listProdNE v hv := by
   cases h
   rfl
+
+end ListProduct
+
+section TreeLemmas
+
 omit [Semigroup S] in
 mutual
   /-- The yield of a Ramsey factorization tree is always non-empty. -/
@@ -173,16 +187,18 @@ mutual
       exact tree_value_ne_nil l eval ht.1 h.1
     | idempotent cs =>
       have hlen := ht.1
-      have hne : cs ≠ [] := by
-        rintro rfl
-        cases hlen
-      dsimp [FactorizationTree.value]
-      exact listTree_value_ne_nil cs eval ht.2.1 hne
+      cases cs with
+      | nil => contradiction
+      | cons c _ =>
+        dsimp [FactorizationTree.value, FactorizationTree.listValue]
+        intro h
+        rw [List.append_eq_nil_iff] at h
+        exact tree_value_ne_nil c eval ht.2.1.1 h.1
 
-  /-- The concatenated yield of a non-empty list of Ramsey factorization trees is non-empty. -/
+  /-- The yield of a list of Ramsey factorization trees is non-empty if the list is non-empty. -/
   lemma listTree_value_ne_nil (cs : List (FactorizationTree S)) (eval : List S → T)
-      (hcs : FactorizationTree.listIsRamsey eval cs)
-      (hne : cs ≠ []) : FactorizationTree.listValue cs ≠ [] := by
+      (hcs : FactorizationTree.listIsRamsey eval cs) (hne : cs ≠ []) :
+      FactorizationTree.listValue cs ≠ [] := by
     cases cs with
     | nil => contradiction
     | cons c rest =>
@@ -193,9 +209,7 @@ mutual
 end
 
 mutual
-  /-- Structural induction on factorization trees: the evaluation of any Ramsey tree
-  whose leaves belong to `X` lies in `X_seq ϕ X (height t)`.
-  This is the core induction of Theorem 4.1 in Colcombet. -/
+  /-- Product of the yield of a Ramsey tree is contained in `X_seq` at its height. -/
   lemma tree_prod_in_X_seq (ϕ : S →ₙ* T) (X : Set S)
       (eval : List S → T)
       (h_eval : ∀ w hw, eval w = ϕ (listProdNE w hw))
@@ -205,62 +219,45 @@ mutual
       listProdNE t.value ht_ne ∈ X_seq ϕ X t.height := by
     cases t with
     | leaf a =>
-      have ha : a ∈ X := hX a (by simp [FactorizationTree.value])
-      have h_eq : listProdNE (FactorizationTree.value (.leaf a)) ht_ne = a := by
-        have h1 : (FactorizationTree.value (.leaf a)) = [a] := rfl
-        rw [listProdNE_eq _ [a] ht_ne (by simp) h1]
-        rfl
-      rw [h_eq]
+      dsimp [FactorizationTree.value] at hX ht_ne ⊢
       dsimp [FactorizationTree.height, X_seq]
+      have ha : a ∈ X := hX a (by simp)
       exact ha
     | binary l r =>
       have hl_ramsey := ht.1
       have hr_ramsey := ht.2
       have hl_ne := tree_value_ne_nil l eval hl_ramsey
       have hr_ne := tree_value_ne_nil r eval hr_ramsey
-      have hl_X : ∀ x ∈ l.value, x ∈ X := fun x hx ↦ hX x (by simp [FactorizationTree.value, hx])
-      have hr_X : ∀ x ∈ r.value, x ∈ X := fun x hx ↦ hX x (by simp [FactorizationTree.value, hx])
-      have ihl := tree_prod_in_X_seq ϕ X eval h_eval l hl_ramsey hl_X hl_ne
-      have ihr := tree_prod_in_X_seq ϕ X eval h_eval r hr_ramsey hr_X hr_ne
-      let H := max l.height r.height
-      have hl_le : l.height ≤ H := le_max_left _ _
-      have hr_le : r.height ≤ H := le_max_right _ _
-      have ihl_H := X_seq_mono ϕ X hl_le ihl
-      have ihr_H := X_seq_mono ϕ X hr_le ihr
-      have h_val_eq : (FactorizationTree.value (.binary l r)) = l.value ++ r.value := rfl
-      have h_prod_eq : listProdNE (FactorizationTree.value (.binary l r)) ht_ne =
+      have hl_X : ∀ x ∈ l.value, x ∈ X := fun x hx ↦
+        hX x (by simp [FactorizationTree.value, hx])
+      have hr_X : ∀ x ∈ r.value, x ∈ X := fun x hx ↦
+        hX x (by simp [FactorizationTree.value, hx])
+      have ih_l := tree_prod_in_X_seq ϕ X eval h_eval l hl_ramsey hl_X hl_ne
+      have ih_r := tree_prod_in_X_seq ϕ X eval h_eval r hr_ramsey hr_X hr_ne
+      have hl_le : l.height ≤ max l.height r.height := le_max_left _ _
+      have hr_le : r.height ≤ max l.height r.height := le_max_right _ _
+      have ih_l' := X_seq_mono ϕ X hl_le ih_l
+      have ih_r' := X_seq_mono ϕ X hr_le ih_r
+      have h_val_eq : (FactorizationTree.binary l r).value = l.value ++ r.value := rfl
+      have h_prod_eq : listProdNE (FactorizationTree.binary l r).value ht_ne =
           listProdNE l.value hl_ne * listProdNE r.value hr_ne := by
-        rw [listProdNE_eq _ (l.value ++ r.value) ht_ne (by simp [hl_ne, hr_ne]) h_val_eq]
+        rw [listProdNE_eq _ _ _ (by simp [hl_ne, hr_ne]) h_val_eq]
         exact listProdNE_concat l.value r.value hl_ne hr_ne
       rw [h_prod_eq]
-      have h_in_mul : listProdNE l.value hl_ne * listProdNE r.value hr_ne ∈
-          X_seq ϕ X H * X_seq ϕ X H := ⟨_, ihl_H, _, ihr_H, rfl⟩
-      dsimp [FactorizationTree.height]
-      rw [Nat.add_comm 1 H]
-      dsimp [X_seq]
-      exact Or.inl (Or.inr h_in_mul)
+      dsimp [FactorizationTree.height, X_seq]
+      refine Or.inr (Or.inl ?_)
+      exact ⟨listProdNE l.value hl_ne, ih_l', listProdNE r.value hr_ne, ih_r', rfl⟩
     | idempotent cs =>
-      have hlen := ht.1
-      have hcs_ramsey := ht.2.1
-      rcases ht.2.2 with ⟨e, he_idem, he_eval⟩
-      have hne : cs ≠ [] := by
+      obtain ⟨hlen, hcs_ramsey, e, he_idem, he_eval⟩ := ht
+      have hcs_ne : cs ≠ [] := by
         rintro rfl
-        cases hlen
-      have h_cs_prod := listTree_prod_in_closure ϕ X eval h_eval cs hcs_ramsey hne e he_eval
-        (by dsimp [FactorizationTree.value] at hX; exact hX)
-      have h_val_eq : (FactorizationTree.value (.idempotent cs)) =
-          FactorizationTree.listValue cs := rfl
-      have hcs_val_ne := listTree_value_ne_nil cs eval hcs_ramsey hne
-      have h_prod_eq : listProdNE (FactorizationTree.value (.idempotent cs)) ht_ne =
-          listProdNE (FactorizationTree.listValue cs) hcs_val_ne :=
-        listProdNE_eq _ _ ht_ne hcs_val_ne h_val_eq
-      rw [h_prod_eq]
-      let H := FactorizationTree.listHeight cs
-      dsimp [FactorizationTree.height]
-      rw [Nat.add_comm 1 H]
-      dsimp [X_seq]
-      refine Or.inr ?_
-      exact Set.mem_iUnion.mpr ⟨e, Set.mem_iUnion.mpr ⟨he_idem, h_cs_prod⟩⟩
+        dsimp at hlen
+        omega
+      have ih := listTree_prod_in_closure ϕ X eval h_eval cs hcs_ramsey hcs_ne e he_eval hX
+      dsimp [FactorizationTree.height, X_seq]
+      refine Or.inr (Or.inr ?_)
+      simp only [mem_iUnion]
+      refine ⟨e, he_idem, ih⟩
 
   /-- Auxiliary induction for the children of an idempotent node. -/
   lemma listTree_prod_in_closure (ϕ : S →ₙ* T) (X : Set S)
@@ -343,6 +340,10 @@ mutual
         exact Subsemigroup.mul_mem _ hc_in_closure ih_rest_H
 end
 
+end TreeLemmas
+
+section AlgebraicPresentation
+
 /-- Algebraic Presentation Theorem (Colcombet Theorem 4.1): `⟨X⟩_S = X_{3 * nS T}`. -/
 theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S) :
     (Subsemigroup.closure X : Set S) = X_seq ϕ X (3 * nS T) := by
@@ -379,6 +380,10 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
     rw [h_val_eq] at h_in_3n
     exact h_in_3n
   · exact fun hs => X_seq_subset_closure ϕ X (3 * nS T) hs
+
+end AlgebraicPresentation
+
+section SetFamilyFixedPoint
 
 /-- Condition (1):
 For all a ∈ T, {x ∈ X | ϕ(x) = a} ∈ P. -/
@@ -486,6 +491,10 @@ theorem closure_mem_set_family [Finite T] [Nonempty T] (ϕ : S →ₙ* T) (X : S
         exact h_empty
   rw [closure_eq_X_seq ϕ X]
   exact h_Xn (3 * nS T)
+
+end SetFamilyFixedPoint
+
+section BrownLemmaTheorem
 
 /-- The fiber subsemigroup of an idempotent e ∈ T under a morphism `f`. -/
 def fiberSubsemigroup (f : S →ₙ* T) (e : T) (he : e * e = e) : Subsemigroup S where
@@ -604,5 +613,7 @@ theorem brown_lemma (f : S →ₙ* T)
     rw [hX_empty]
     simp only [Subsemigroup.closure_empty]
     exact finite_empty
+
+end BrownLemmaTheorem
 
 end BrownLemma

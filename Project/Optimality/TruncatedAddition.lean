@@ -20,20 +20,25 @@ linear bound `3 * N(S) - 1` is not tight for all semigroups.
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-
 namespace SimonSplit.Optimality
 
 open FactorizationTree
 
+section Log2Ceil
+
+/-- Ceiling of the base-2 logarithm of `n`. -/
 def log2Ceil (n : ℕ) : ℕ := Nat.clog 2 n
 
+/-- Monotonicity of `log2Ceil`. -/
 lemma log2Ceil_monotone {a b : ℕ} (h : a ≤ b) : log2Ceil a ≤ log2Ceil b :=
   Nat.clog_mono_right 2 h
 
+/-- `log2Ceil 1 = 0`. -/
 lemma log2Ceil_one : log2Ceil 1 = 0 := by
   dsimp [log2Ceil]
   exact Nat.clog_one_right 2
 
+/-- Recurrence relation for `log2Ceil` when `n ≥ 2`. -/
 lemma log2Ceil_of_two_le {n : ℕ} (hn : 2 ≤ n) :
     log2Ceil n = 1 + log2Ceil ((n + 1) / 2) := by
   dsimp [log2Ceil]
@@ -42,6 +47,11 @@ lemma log2Ceil_of_two_le {n : ℕ} (hn : 2 ≤ n) :
   rw [h]
   omega
 
+end Log2Ceil
+
+section BalancedTree
+
+/-- Taking half the elements of a list of length at least 2 is non-empty. -/
 lemma take_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
     l.take (l.length / 2) ≠ [] := by
   intro h
@@ -49,6 +59,7 @@ lemma take_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
   rw [List.length_take] at hlen
   omega
 
+/-- Dropping half the elements of a list of length at least 2 is non-empty. -/
 lemma drop_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
     l.drop (l.length / 2) ≠ [] := by
   intro h
@@ -56,6 +67,7 @@ lemma drop_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
   rw [List.length_drop] at hlen
   omega
 
+/-- Constructs a balanced binary factorization tree for a word `v`. -/
 def balancedTree {A : Type*} (d : A) (v : List A) : FactorizationTree A :=
   if h : v.length ≤ 1 then
     match v with
@@ -71,6 +83,7 @@ decreasing_by
   · rw [List.length_take]; omega
   · rw [List.length_drop]; omega
 
+/-- The yield of `balancedTree d v` is `v`. -/
 lemma balancedTree_val {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
     (balancedTree d v).value = v := by
   generalize hlen : v.length = k
@@ -96,6 +109,7 @@ lemma balancedTree_val {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
       have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
       rw [ih1, ih2, List.take_append_drop]
 
+/-- The balanced tree is Ramsey for any evaluation map. -/
 lemma balancedTree_isRamsey {A S : Type*} [Semigroup S] (eval : List A → S) (d : A)
     (v : List A) (hv : v ≠ []) : (balancedTree d v).IsRamsey eval := by
   generalize hlen : v.length = k
@@ -120,6 +134,7 @@ lemma balancedTree_isRamsey {A S : Type*} [Semigroup S] (eval : List A → S) (d
       have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
       exact FactorizationTree.binary_isRamsey eval ih1 ih2
 
+/-- The height of a balanced tree on `v` is at most `log2Ceil v.length`. -/
 lemma balancedTree_height_le {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
     (balancedTree d v).height ≤ log2Ceil v.length := by
   generalize hlen : v.length = k
@@ -166,6 +181,11 @@ lemma balancedTree_height_le {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
       rw [← hlen, h_log]
       omega
 
+end BalancedTree
+
+section TruncatedAddSemigroup
+
+/-- The truncated addition semigroup `S_n = {1, ..., n}` with operation `min (a + b) n`. -/
 @[ext]
 structure TruncatedAdd (n : ℕ) where
   val : ℕ
@@ -187,6 +207,7 @@ instance : Mul (TruncatedAdd n) where
     have hle := a.le
     omega, min_le_right _ _⟩
 
+/-- Product in `TruncatedAdd n` is given by truncated integer addition. -/
 lemma mul_val (a b : TruncatedAdd n) : (a * b).val = min (a.val + b.val) n := rfl
 
 instance : Semigroup (TruncatedAdd n) where
@@ -195,15 +216,19 @@ instance : Semigroup (TruncatedAdd n) where
     simp only [mul_val]
     omega
 
+/-- The maximum element `n` in `TruncatedAdd n`. -/
 def top (hn : 0 < n) : TruncatedAdd n := ⟨n, hn, le_rfl⟩
 
+/-- Value of `top` is `n`. -/
 lemma top_val (hn : 0 < n) : (top hn).val = n := rfl
 
+/-- The top element is an idempotent: `top * top = top`. -/
 lemma top_mul_self (hn : 0 < n) : top hn * top hn = top hn := by
   ext
   simp only [mul_val, top_val]
   omega
 
+/-- In `TruncatedAdd n`, `top` is the unique idempotent element. -/
 lemma idempotent_eq_top (hn : 0 < n) (e : TruncatedAdd n) (he : e * e = e) :
     e = top hn := by
   ext
@@ -214,6 +239,7 @@ lemma idempotent_eq_top (hn : 0 < n) (e : TruncatedAdd n) (he : e * e = e) :
   have := e.le
   omega
 
+/-- Evaluator mapping lists of elements to their truncated sum in `TruncatedAdd n`. -/
 def evalTrunc (hn : 0 < n) (u : List (TruncatedAdd n)) : TruncatedAdd n :=
   ⟨if u = [] then n else min (u.map TruncatedAdd.val).sum n, by
     split_ifs with h
@@ -232,11 +258,13 @@ def evalTrunc (hn : 0 < n) (u : List (TruncatedAdd n)) : TruncatedAdd n :=
     · exact le_rfl
     · exact min_le_right _ _⟩
 
+/-- Value of `evalTrunc` on non-empty lists. -/
 lemma evalTrunc_val (hn : 0 < n) {u : List (TruncatedAdd n)} (hu : u ≠ []) :
     (evalTrunc hn u).val = min (u.map TruncatedAdd.val).sum n := by
   dsimp [evalTrunc]
   rw [if_neg hu]
 
+/-- `evalTrunc` is a semigroup morphism on non-empty lists. -/
 lemma evalTrunc_mul (hn : 0 < n) (u v : List (TruncatedAdd n))
     (hu : u ≠ []) (hv : v ≠ []) :
     evalTrunc hn (u ++ v) = evalTrunc hn u * evalTrunc hn v := by
@@ -254,6 +282,7 @@ lemma evalTrunc_mul (hn : 0 < n) (u v : List (TruncatedAdd n))
   have hb : 1 ≤ b.val := b.pos
   omega
 
+/-- The length of a list in `TruncatedAdd n` is bounded by the sum of its values. -/
 lemma length_le_sum_val (u : List (TruncatedAdd n)) :
     u.length ≤ (u.map TruncatedAdd.val).sum := by
   induction u with
@@ -263,6 +292,7 @@ lemma length_le_sum_val (u : List (TruncatedAdd n)) :
     have ha : 1 ≤ a.val := a.pos
     omega
 
+/-- Any word of length at least `n` evaluates to the top idempotent element. -/
 lemma evalTrunc_of_length_ge (hn : 0 < n) (u : List (TruncatedAdd n))
     (hlen : n ≤ u.length) :
     evalTrunc hn u = top hn := by
@@ -278,8 +308,13 @@ lemma evalTrunc_of_length_ge (hn : 0 < n) (u : List (TruncatedAdd n))
 
 end TruncatedAdd
 
+end TruncatedAddSemigroup
+
+section RamseyTreeConstruction
+
 open TruncatedAdd
 
+/-- A list of trees is Ramsey if and only if each individual tree is Ramsey. -/
 lemma listIsRamsey_iff {A S : Type*} [Semigroup S] (eval : List A → S) :
     ∀ (ts : List (FactorizationTree A)), listIsRamsey eval ts ↔ ∀ t ∈ ts, t.IsRamsey eval
   | [] => by simp [listIsRamsey]
@@ -287,12 +322,14 @@ lemma listIsRamsey_iff {A S : Type*} [Semigroup S] (eval : List A → S) :
     rw [listIsRamsey_cons, listIsRamsey_iff eval ts]
     simp
 
+/-- The yield of a list of trees equals the flattened list of yields. -/
 lemma listValue_eq_flatten {A : Type*} :
     ∀ (ts : List (FactorizationTree A)), listValue ts = (ts.map FactorizationTree.value).flatten
   | [] => rfl
   | t :: ts => by
     rw [listValue_cons, List.map_cons, List.flatten_cons, listValue_eq_flatten ts]
 
+/-- Partitioning a list into blocks of size `n` and concatenating yields the prefix. -/
 lemma flatten_map_range_take_drop {A : Type*} (u : List A) (n : ℕ) :
     ∀ (q : ℕ), ((List.range q).map (fun i ↦ (u.drop (i * n)).take n)).flatten =
       u.take (q * n)
@@ -306,6 +343,8 @@ lemma flatten_map_range_take_drop {A : Type*} (u : List A) (n : ℕ) :
       rw [Nat.succ_mul]
     rw [← h_add, ← List.take_add]
 
+/-- Sub-linear bound for truncated addition (Colcombet Section 3.4): every non-empty word in
+`TruncatedAdd n` admits a Ramsey tree of height at most `log2Ceil n + 2`. -/
 theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
     (u : List (TruncatedAdd n)) (hu : u ≠ []) :
     ∃ t : FactorizationTree (TruncatedAdd n),
@@ -462,5 +501,7 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
           have htrem : trem.height ≤ log2Ceil n := htrem_h'
           have hidem : (FactorizationTree.idempotent trees).height ≤ 1 + log2Ceil n := h_idem_height
           omega
+
+end RamseyTreeConstruction
 
 end SimonSplit.Optimality

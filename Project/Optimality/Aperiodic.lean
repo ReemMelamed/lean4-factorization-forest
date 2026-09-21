@@ -26,6 +26,8 @@ open FactorizationTree
 
 universe u
 
+section AperiodicSemigroup
+
 /-- A semigroup is *aperiodic* (or *group-trivial* / *group-free*) if every subgroup
 of `S` is trivial: whenever a group `G` embeds into `S` as a subsemigroup, `G` must
 be a subsingleton. -/
@@ -46,6 +48,10 @@ theorem aperiodic_bound_strictly_better {S : Type*} [Fintype S]
     (hS : 2 ≤ Fintype.card S) :
     2 * Fintype.card S < 3 * Fintype.card S - 1 := by
   omega
+
+end AperiodicSemigroup
+
+section AperiodicBounds
 
 /-- Theorem 3.8 (Upper bound): for an aperiodic finite semigroup `S`, every word admits
 a Ramsey factorization tree of height at most `2 * |S|`. -/
@@ -71,6 +77,8 @@ axiom aperiodic_bound_tight (n : ℕ) (_ : 2 ≤ n) :
           t.value = u →
           t.IsRamsey eval →
           2 * n - 1 ≤ t.height
+
+end AperiodicBounds
 
 end Optimality
 
