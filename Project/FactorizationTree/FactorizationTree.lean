@@ -114,9 +114,7 @@ and all children evaluate to the same idempotent. -/
 lemma idempotent_isRamsey (eval : List A → S) {children : List (FactorizationTree A)}
     (hlen : 2 ≤ children.length) (hlist : listIsRamsey eval children)
     {e : S} (he : e * e = e) (he_eval : ∀ t ∈ children, eval (value t) = e) :
-    (idempotent children).IsRamsey eval := by
-  simp only [IsRamsey]
-  exact ⟨hlen, hlist, e, he, he_eval⟩
+    (idempotent children).IsRamsey eval := by grind [IsRamsey]
 
 /-- Decomposition of `listIsRamsey` on a `cons` list. -/
 lemma listIsRamsey_cons (eval : List A → S) (t : FactorizationTree A)
@@ -159,9 +157,7 @@ lemma list_drop_take_append {A : Type*} (u : List A) (i k j : ℕ) (hik : i ≤ 
   have list_take_drop_take (l : List A) (a b : ℕ) :
       l.take a ++ (l.drop a).take b = l.take (a + b) := by grind
   have h_take := list_take_drop_take (u.drop i) (k - i) (j - k)
-  have h_eq : k - i + (j - k) = j - i := by omega
-  rw [h_eq] at h_take
-  exact h_take
+  grind
 
 /-- Slicing a single element from index `i` yields `[u[i]]`. -/
 lemma list_drop_take_one {A : Type*} (u : List A) (i : ℕ) (hi : i < u.length) :
@@ -178,7 +174,6 @@ lemma list_drop_take_one {A : Type*} (u : List A) (i : ℕ) (hi : i < u.length) 
       have h1 : (u.drop i)[0]? = some u[i] := by
         rw [List.getElem?_drop, Nat.add_zero, List.getElem?_eq_getElem hi]
       simp_all
-    simp only [h_get]
     grind
 
 /-- A non-empty slice of a list is non-empty. -/
@@ -269,41 +264,41 @@ lemma split_to_tree_inner {n : ℕ} (m : ℕ) (_ : m < n)
             (fun x hkx hxj => h_between x (hik.trans hkx) hxj)
         have h_rel_ik : SplitRelation s i k := by
           have h_eq : s i = s k := Fin.ext (by omega)
-          refine ⟨h_eq, fun z hz1 hz2 => ?_⟩
-          have h_min : min i k = i := min_eq_left (le_of_lt hik)
-          rw [h_min]
-          change (s z : ℕ) ≤ (s i : ℕ)
-          rw [hsi]
-          by_cases h_zi : z = i
-          · rw [h_zi, hsi]
-          · have h_zj : (z : ℕ) < (j : ℕ) := by
-              have h_zk : z ≤ k := by
-                have h_max : max i k = k := max_eq_right (le_of_lt hik)
-                rwa [h_max] at hz2
-              omega
-            have h_iz : (i : ℕ) < (z : ℕ) := by
-              have h_iz' : i ≤ z := by rwa [h_min] at hz1
-              omega
-            exact h_between z h_iz h_zj
+          exact ⟨h_eq, fun z hz1 hz2 => by
+            have h_min : min i k = i := min_eq_left (le_of_lt hik)
+            rw [h_min]
+            change (s z : ℕ) ≤ (s i : ℕ)
+            rw [hsi]
+            by_cases h_zi : z = i
+            · rw [h_zi, hsi]
+            · have h_zj : (z : ℕ) < (j : ℕ) := by
+                have h_zk : z ≤ k := by
+                  have h_max : max i k = k := max_eq_right (le_of_lt hik)
+                  rwa [h_max] at hz2
+                omega
+              have h_iz : (i : ℕ) < (z : ℕ) := by
+                have h_iz' : i ≤ z := by rwa [h_min] at hz1
+                omega
+              exact h_between z h_iz h_zj⟩
         have h_rel_kj : SplitRelation s k j := by
           have h_eq : s k = s j := Fin.ext (by omega)
-          refine ⟨h_eq, fun z hz1 hz2 => ?_⟩
-          have h_min : min k j = k := min_eq_left (le_of_lt hkj)
-          rw [h_min]
-          change (s z : ℕ) ≤ (s k : ℕ)
-          rw [hsk]
-          by_cases h_zk : z = k
-          · rw [h_zk, hsk]
-          · by_cases h_zj : z = j
-            · rw [h_zj, hsj]
-            · have h_kz : (k : ℕ) < (z : ℕ) := by
-                have h_kz' : k ≤ z := by rwa [h_min] at hz1
-                omega
-              have h_zj_lt : (z : ℕ) < (j : ℕ) := by
-                have h_max : max k j = j := max_eq_right (le_of_lt hkj)
-                have h_zj' : z ≤ j := by rwa [h_max] at hz2
-                omega
-              exact h_between z (hik.trans h_kz) h_zj_lt
+          exact ⟨h_eq, fun z hz1 hz2 => by
+            have h_min : min k j = k := min_eq_left (le_of_lt hkj)
+            rw [h_min]
+            change (s z : ℕ) ≤ (s k : ℕ)
+            rw [hsk]
+            by_cases h_zk : z = k
+            · rw [h_zk, hsk]
+            · by_cases h_zj : z = j
+              · rw [h_zj, hsj]
+              · have h_kz : (k : ℕ) < (z : ℕ) := by
+                  have h_kz' : k ≤ z := by rwa [h_min] at hz1
+                  omega
+                have h_zj_lt : (z : ℕ) < (j : ℕ) := by
+                  have h_max : max k j = j := max_eq_right (le_of_lt hkj)
+                  have h_zj' : z ≤ j := by rwa [h_max] at hz2
+                  omega
+                exact h_between z (hik.trans h_kz) h_zj_lt⟩
         have h_color_eq :
           (wordLabeling eval hmul u).σ i k = (wordLabeling eval hmul u).σ k j :=
           h_ramsey.2 i k k j hik hkj h_rel_ik h_rel_kj h_rel_ik
@@ -335,17 +330,21 @@ lemma split_to_tree_inner {n : ℕ} (m : ℕ) (_ : m < n)
           · rw [ht_outer_val]
             exact h_eval_ik_eq_ij
           · rw [h_inner_eval t ht, h_eval_kj_eq_ij]
-        refine ⟨t_outer :: trees_inner, by simp, h_val_concat, h_trees_ramsey,
-                h_trees_eval_all, ?_, ?_⟩
-        · intro t ht
+        have h_height : ∀ t ∈ t_outer :: trees_inner, t.height ≤ 3 * m := by
+          intro t ht
           simp only [List.mem_cons] at ht
           rcases ht with rfl | ht
           · exact ht_outer_height
           · exact h_inner_height t ht
-        · intro _
+        have h_two_le :
+            (∃ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m) →
+            2 ≤ (t_outer :: trees_inner).length := by
+          intro _
           cases trees_inner with
           | nil => contradiction
           | cons _ _ => simp
+        exact ⟨t_outer :: trees_inner, by simp, h_val_concat, h_trees_ramsey,
+               h_trees_eval_all, h_height, h_two_le⟩
       · have h_less : ∀ x : Fin (u.length + 1),
           (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m := by
           intro x hix hxj
@@ -353,19 +352,20 @@ lemma split_to_tree_inner {n : ℕ} (m : ℕ) (_ : m < n)
           have h2 : ¬ ((s x : ℕ) = m) := fun hc ↦ h_cut ⟨x, hix, hxj, hc⟩
           omega
         obtain ⟨t_outer, ht_outer_val, ht_outer_ramsey, ht_outer_height⟩ := ih i j hij h_less
-        refine ⟨[t_outer], by simp, by simp [FactorizationTree.listValue, ht_outer_val],
-                by simp [FactorizationTree.listIsRamsey, ht_outer_ramsey], ?_, ?_, ?_⟩
-        · intro t ht
-          simp only [List.mem_singleton] at ht
-          subst ht
-          rw [ht_outer_val]
-        · intro t ht
-          simp only [List.mem_singleton] at ht
-          subst ht
+        have h_eval : ∀ t ∈ [t_outer], eval (t.value) = (wordLabeling eval hmul u).σ i j := by
+          intro t ht
+          rw [List.mem_singleton.mp ht, ht_outer_val]
+        have h_height : ∀ t ∈ [t_outer], t.height ≤ 3 * m := by
+          intro t ht
+          rw [List.mem_singleton.mp ht]
           exact ht_outer_height
-        · intro h_exists
-          exfalso
-          exact h_cut h_exists
+        have h_len :
+            (∃ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m) →
+            2 ≤ [t_outer].length := by
+          intro hc
+          exact False.elim (h_cut hc)
+        exact ⟨[t_outer], by simp, by simp [FactorizationTree.listValue, ht_outer_val],
+               by simp [FactorizationTree.listIsRamsey, ht_outer_ramsey], h_eval, h_height, h_len⟩
   intro hij hsi hsj h_between
   exact H ((j : ℕ) - (i : ℕ)) i j hij rfl hsi hsj h_between
 
@@ -518,9 +518,7 @@ lemma split_to_tree_outer {n : ℕ}
           have heq1 : (s k_1 : ℕ) = m' := hk1_prop.2.2
           have heq2 : (s k_2 : ℕ) = m' := hk2_prop
           have heqr : (s k_r : ℕ) = m' := hkr_prop.2.2
-          have h_rel_12 : SplitRelation s k_1 k_2 := by
-            refine ⟨Fin.ext (by omega), ?_⟩
-            intro x hx1 hx2
+          have h_rel_12 : SplitRelation s k_1 k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
             have hmin : min k_1 k_2 = k_1 := min_eq_left (le_of_lt hk12)
             have hmax : max k_1 k_2 = k_2 := max_eq_right (le_of_lt hk12)
             rw [hmin] at hx1 ⊢
@@ -530,10 +528,8 @@ lemma split_to_tree_outer {n : ℕ}
             have hx1_nat : (k_1 : ℕ) ≤ (x : ℕ) := hx1
             have hx2_nat : (x : ℕ) ≤ (k_2 : ℕ) := hx2
             have h_bound := h_less x (by omega) (by omega)
-            omega
-          have h_rel_2r : SplitRelation s k_2 k_r := by
-            refine ⟨Fin.ext (by omega), ?_⟩
-            intro x hx1 hx2
+            omega⟩
+          have h_rel_2r : SplitRelation s k_2 k_r := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
             have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
             have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
             rw [hmin] at hx1 ⊢
@@ -543,7 +539,7 @@ lemma split_to_tree_outer {n : ℕ}
             have hx1_nat : (k_2 : ℕ) ≤ (x : ℕ) := hx1
             have hx2_nat : (x : ℕ) ≤ (k_r : ℕ) := hx2
             have h_bound := h_less x (by omega) (by omega)
-            omega
+            omega⟩
           have h_color_idem : (wordLabeling eval hmul u).σ k_1 k_2
             * (wordLabeling eval hmul u).σ k_1 k_2 = (wordLabeling eval hmul u).σ k_1 k_2 :=
             h_ramsey.1 k_1 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r
@@ -716,26 +712,22 @@ theorem factorization_forest_theorem {A S : Type*} [Semigroup S] [Fintype S]
       have heqi : (s i : ℕ) = m := hsi
       have heq2 : (s k_2 : ℕ) = m := hk2_prop
       have heqr : (s k_r : ℕ) = m := hskr
-      have h_rel_i2 : SplitRelation s i k_2 := by
-        refine ⟨Fin.ext (by omega), ?_⟩
-        intro x hx1 hx2
+      have h_rel_i2 : SplitRelation s i k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
         have hmin : min i k_2 = i := min_eq_left (le_of_lt hik2)
         have hmax : max i k_2 = k_2 := max_eq_right (le_of_lt hik2)
         rw [hmin] at hx1 ⊢
         rw [hmax] at hx2
         change (s x : ℕ) ≤ (s i : ℕ)
         rw [hsi]
-        exact h_bound_all x
-      have h_rel_2r : SplitRelation s k_2 k_r := by
-        refine ⟨Fin.ext (by omega), ?_⟩
-        intro x hx1 hx2
+        exact h_bound_all x⟩
+      have h_rel_2r : SplitRelation s k_2 k_r := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
         have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
         have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
         rw [hmin] at hx1 ⊢
         rw [hmax] at hx2
         change (s x : ℕ) ≤ (s k_2 : ℕ)
         rw [hk2_prop]
-        exact h_bound_all x
+        exact h_bound_all x⟩
       have h_color_idem : (wordLabeling eval hmul u).σ i k_2
         * (wordLabeling eval hmul u).σ i k_2 = (wordLabeling eval hmul u).σ i k_2 :=
         h_ramsey.1 i k_2 k_r hik2 hk2r h_rel_i2 h_rel_2r

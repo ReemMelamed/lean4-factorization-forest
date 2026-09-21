@@ -55,7 +55,8 @@ instance instNonemptyFin_nS {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] :
 
 /-- The inductive sequence of subsets `X_seq ϕ X n ⊆ S`:
 `X_seq ϕ X 0 = X`.
-`X_seq ϕ X (n + 1) = X_seq ϕ X n ∪ (X_seq ϕ X n * X_seq ϕ X n) ∪ ⋃_{e ∈ T, e² = e} ⟨X_seq ϕ X n ∩ ϕ⁻¹(e)⟩_S`. -/
+`X_seq ϕ X (n + 1) = X_seq ϕ X n ∪ (X_seq ϕ X n * X_seq ϕ X n) ∪`
+  `⋃_{e ∈ T, e² = e} ⟨X_seq ϕ X n ∩ ϕ⁻¹(e)⟩_S`. -/
 def X_seq (ϕ : S →ₙ* T) (X : Set S) : ℕ → Set S
   | 0 => X
   | n + 1 =>
@@ -82,9 +83,11 @@ lemma X_seq_subset_closure (ϕ : S →ₙ* T) (X : Set S) (n : ℕ) :
   | zero => exact Subsemigroup.subset_closure
   | succ n ih =>
     dsimp [X_seq]
-    refine union_subset (union_subset ih ?_) ?_
-    · rintro _ ⟨a, ha, b, hb, rfl⟩
-      exact Subsemigroup.mul_mem _ (ih ha) (ih hb)
+    apply union_subset
+    · apply union_subset
+      · exact ih
+      · rintro _ ⟨a, ha, b, hb, rfl⟩
+        exact Subsemigroup.mul_mem _ (ih ha) (ih hb)
     · simp only [iUnion_subset_iff, SetLike.coe_subset_coe, Subsemigroup.closure_le]
       intro e he x hx
       exact ih hx.1
@@ -140,11 +143,12 @@ lemma mem_closure_iff_exists_list (X : Set S) (s : S) :
     | mul x y hx hy ihx ihy =>
       rcases ihx with ⟨ux, hux, hX_x, rfl⟩
       rcases ihy with ⟨uy, huy, hX_y, rfl⟩
-      refine ⟨ux ++ uy, by simp [hux, huy], ?_, listProdNE_concat ux uy hux huy⟩
-      rintro a ha
-      rcases List.mem_append.mp ha with h | h
-      · exact hX_x a h
-      · exact hX_y a h
+      have h_mem : ∀ a ∈ ux ++ uy, a ∈ X := by
+        rintro a ha
+        rcases List.mem_append.mp ha with h | h
+        · exact hX_x a h
+        · exact hX_y a h
+      exact ⟨ux ++ uy, by simp [hux, huy], h_mem, listProdNE_concat ux uy hux huy⟩
   · rintro ⟨u, hu, hX, rfl⟩
     induction u with
     | nil => contradiction
@@ -244,9 +248,13 @@ mutual
         rw [listProdNE_eq _ _ _ (by simp [hl_ne, hr_ne]) h_val_eq]
         exact listProdNE_concat l.value r.value hl_ne hr_ne
       rw [h_prod_eq]
-      dsimp [FactorizationTree.height, X_seq]
-      refine Or.inr (Or.inl ?_)
-      exact ⟨listProdNE l.value hl_ne, ih_l', listProdNE r.value hr_ne, ih_r', rfl⟩
+      have h_in_mul : listProdNE l.value hl_ne * listProdNE r.value hr_ne ∈
+          X_seq ϕ X (max l.height r.height) * X_seq ϕ X (max l.height r.height) :=
+        ⟨_, ih_l', _, ih_r', rfl⟩
+      dsimp [FactorizationTree.height]
+      rw [Nat.add_comm 1 (max l.height r.height)]
+      dsimp [X_seq]
+      exact Or.inl (Or.inr h_in_mul)
     | idempotent cs =>
       obtain ⟨hlen, hcs_ramsey, e, he_idem, he_eval⟩ := ht
       have hcs_ne : cs ≠ [] := by
@@ -254,10 +262,11 @@ mutual
         dsimp at hlen
         omega
       have ih := listTree_prod_in_closure ϕ X eval h_eval cs hcs_ramsey hcs_ne e he_eval hX
-      dsimp [FactorizationTree.height, X_seq]
-      refine Or.inr (Or.inr ?_)
-      simp only [mem_iUnion]
-      refine ⟨e, he_idem, ih⟩
+      let H := FactorizationTree.listHeight cs
+      dsimp [FactorizationTree.height]
+      rw [Nat.add_comm 1 H]
+      dsimp [X_seq]
+      exact Or.inr (Set.mem_iUnion.mpr ⟨e, Set.mem_iUnion.mpr ⟨he_idem, ih⟩⟩)
 
   /-- Auxiliary induction for the children of an idempotent node. -/
   lemma listTree_prod_in_closure (ϕ : S →ₙ* T) (X : Set S)
@@ -469,7 +478,6 @@ theorem closure_mem_set_family [Finite T] [Nonempty T] (ϕ : S →ₙ* T) (X : S
       exact finset_bUnion_mem_P P h2 h_empty Finset.univ _ (fun a _ ↦ h1 a)
     | succ n ih =>
       dsimp [X_seq]
-      refine h2 (h2 ih (h3 ih ih)) ?_
       have h_empty : ∅ ∈ P := by
         have : ∅ ⊆ X_seq ϕ X n := empty_subset _
         exact h1' this ih
@@ -479,16 +487,20 @@ theorem closure_mem_set_family [Finite T] [Nonempty T] (ϕ : S →ₙ* T) (X : S
         (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S) := by
         ext x
         simp
-      rw [h_eq']
-      refine finset_bUnion_mem_P P h2 h_empty Finset.univ _ (fun e _ ↦ ?_)
-      by_cases he : e * e = e
-      · simp only [he, iUnion_true]
-        have h_inter : X_seq ϕ X n ∩ ϕ ⁻¹' {e} ∈ P :=
-          h1' inter_subset_left ih
-        have h_sub_e : X_seq ϕ X n ∩ ϕ ⁻¹' {e} ⊆ ϕ ⁻¹' {e} := inter_subset_right
-        exact h4 h_inter ⟨e, he, h_sub_e⟩
-      · simp only [he, iUnion_false]
-        exact h_empty
+      have h_union : (⋃ (e : T) (_ : e * e = e),
+        (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S)) ∈ P := by
+        rw [h_eq']
+        apply finset_bUnion_mem_P P h2 h_empty Finset.univ _
+        intro e _
+        by_cases he : e * e = e
+        · simp only [he, iUnion_true]
+          have h_inter : X_seq ϕ X n ∩ ϕ ⁻¹' {e} ∈ P :=
+            h1' inter_subset_left ih
+          have h_sub_e : X_seq ϕ X n ∩ ϕ ⁻¹' {e} ⊆ ϕ ⁻¹' {e} := inter_subset_right
+          exact h4 h_inter ⟨e, he, h_sub_e⟩
+        · simp only [he, iUnion_false]
+          exact h_empty
+      exact h2 (h2 ih (h3 ih ih)) h_union
   rw [closure_eq_X_seq ϕ X]
   exact h_Xn (3 * nS T)
 

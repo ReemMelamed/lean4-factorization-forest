@@ -354,10 +354,11 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
   let d : TruncatedAdd n := top hn
   let eval := evalTrunc hn
   by_cases hle : u.length ≤ n
-  · refine ⟨balancedTree d u, balancedTree_val d u hu, balancedTree_isRamsey eval d u hu, ?_⟩
-    have h_h := balancedTree_height_le d u hu
-    have h_mono := log2Ceil_monotone hle
-    omega
+  · have ht_height : (balancedTree d u).height ≤ log2Ceil n + 2 := by
+      have h_h := balancedTree_height_le d u hu
+      have h_mono := log2Ceil_monotone hle
+      omega
+    exact ⟨balancedTree d u, balancedTree_val d u hu, balancedTree_isRamsey eval d u hu, ht_height⟩
   · push Not at hle
     by_cases h2n : u.length < 2 * n
     · have htake_ne : u.take n ≠ [] := by
@@ -373,16 +374,18 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
       let t1 := balancedTree d (u.take n)
       let t2 := balancedTree d (u.drop n)
       let t := FactorizationTree.binary t1 t2
-      refine ⟨t, ?_, ?_, ?_⟩
-      · dsimp [t, FactorizationTree.value]
+      have ht_val : t.value = u := by
+        dsimp [t, FactorizationTree.value]
         rw [balancedTree_val d (u.take n) htake_ne,
             balancedTree_val d (u.drop n) hdrop_ne,
             List.take_append_drop]
-      · dsimp [t]
+      have ht_ramsey : t.IsRamsey eval := by
+        dsimp [t]
         exact FactorizationTree.binary_isRamsey eval
           (balancedTree_isRamsey eval d _ htake_ne)
           (balancedTree_isRamsey eval d _ hdrop_ne)
-      · dsimp [t, FactorizationTree.height]
+      have ht_height : t.height ≤ log2Ceil n + 2 := by
+        dsimp [t, FactorizationTree.height]
         have ht1 := balancedTree_height_le d (u.take n) htake_ne
         have ht2 := balancedTree_height_le d (u.drop n) hdrop_ne
         rw [List.length_take] at ht1
@@ -393,6 +396,7 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
         have ht2' := ht2.trans (log2Ceil_monotone h2)
         have : max t1.height t2.height ≤ log2Ceil n := max_le ht1' ht2'
         omega
+      exact ⟨t, ht_val, ht_ramsey, ht_height⟩
     · push Not at h2n
       let q := u.length / n
       have hq2 : 2 ≤ q := Nat.le_div_iff_mul_le hn |>.mpr (by omega)
@@ -472,10 +476,10 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
           have := List.take_append_drop (q * n) u
           rw [hrem, List.append_nil] at this
           exact this.symm
-        refine ⟨FactorizationTree.idempotent trees, ?_, h_idem_ramsey, ?_⟩
-        · dsimp [FactorizationTree.value]
+        have h_val : (FactorizationTree.idempotent trees).value = u := by
+          dsimp [FactorizationTree.value]
           rw [h_trees_val, ← hu_eq]
-        · omega
+        exact ⟨FactorizationTree.idempotent trees, h_val, h_idem_ramsey, by omega⟩
       · let trem := balancedTree d (u.drop (q * n))
         let t := FactorizationTree.binary (FactorizationTree.idempotent trees) trem
         have htrem_val := balancedTree_val d (u.drop (q * n)) hrem
@@ -490,17 +494,20 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
           exact (Nat.mod_lt u.length hn).le
         have htrem_h' : trem.height ≤ log2Ceil n :=
           htrem_h.trans (log2Ceil_monotone hrem_len)
-        refine ⟨t, ?_, ?_, ?_⟩
-        · dsimp [t, FactorizationTree.value]
+        have ht_val : t.value = u := by
+          dsimp [t, FactorizationTree.value]
           rw [h_trees_val, htrem_val, List.take_append_drop]
-        · dsimp [t]
+        have ht_ramsey : t.IsRamsey eval := by
+          dsimp [t]
           exact FactorizationTree.binary_isRamsey eval h_idem_ramsey htrem_ramsey
-        · have ht_eq : t.height =
+        have ht_height : t.height ≤ log2Ceil n + 2 := by
+          have ht_eq : t.height =
               1 + max (FactorizationTree.idempotent trees).height trem.height := rfl
           rw [ht_eq]
           have htrem : trem.height ≤ log2Ceil n := htrem_h'
           have hidem : (FactorizationTree.idempotent trees).height ≤ 1 + log2Ceil n := h_idem_height
           omega
+        exact ⟨t, ht_val, ht_ramsey, ht_height⟩
 
 end RamseyTreeConstruction
 

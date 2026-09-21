@@ -80,14 +80,13 @@ theorem ramsey_split_lower_bound (G : Type*) [Group G] [Fintype G] (hG : 1 < Fin
         IsRamsey (wordLabeling eval hmul w) s) →
       Fintype.card G ≤ h := by
   obtain ⟨w, hw_ne, hw_tree⟩ := kufleitner_lower_bound G hG eval hmul
-  refine ⟨w, hw_ne, ?_⟩
-  intro split_to_tree h hs
-  by_contra h_lt
-  push Not at h_lt
-  obtain ⟨t, ht_val, ht_ramsey, ht_height⟩ := split_to_tree h hs
-  have h_tree_ge := hw_tree t ht_val ht_ramsey
-  have : 3 * h ≤ 3 * (Fintype.card G - 1) := by omega
-  omega
+  exact ⟨w, hw_ne, fun split_to_tree h hs ↦ by
+    by_contra h_lt
+    push Not at h_lt
+    obtain ⟨t, ht_val, ht_ramsey, ht_height⟩ := split_to_tree h hs
+    have h_tree_ge := hw_tree t ht_val ht_ramsey
+    have : 3 * h ≤ 3 * (Fintype.card G - 1) := by omega
+    omega⟩
 
 end RamseySplitBound
 
