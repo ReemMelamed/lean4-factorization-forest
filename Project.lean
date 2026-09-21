@@ -9,4 +9,7 @@ import Project.GreensRelations.Order
 import Project.GreensRelations.Green
 import Project.GreensRelations.Finite
 import Project.BrownLemma
-import Project.SimonSplit.FactorizationTree
+import Project.FactorizationTree.FactorizationTree
+import Project.Optimality.TruncatedAddition
+import Project.Optimality.Kufleitner
+import Project.Optimality.Aperiodic

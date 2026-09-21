@@ -9,19 +9,8 @@ import Project.SimonSplit.Irregular
 /-!
 # Simon's Split Theorem
 
-This file assembles the two cases (regular and irregular D-class) into the
-main Simon split theorem `simon_split`, and applies it to word labelings in
-`simon_word`.
-
-## Main Results
-
-* `simon_split_induction_aux` — the induction step: any labeling into `jUp a`
-  (with Simon complexity ≤ n) admits a normalized Ramsey split of size
-  `nSElement a`.
-* `simon_split_induction` — the induction step without the auxiliary bound.
-* `simon_split` — **Simon's Theorem**: every multiplicative labeling over a
-  finite linearly ordered type admits a normalized Ramsey split.
-* `simon_word` — Simon's split theorem applied to word labelings.
+Assembles the regular and irregular cases to prove Simon's Split Theorem (`simon_split`),
+and applies it to word labelings (`simon_word`).
 
 ## References
 
@@ -34,13 +23,8 @@ section SimonSplit
 
 variable {S : Type*} [Semigroup S] [Fintype S]
 
-/-- Auxiliary induction step for Simon's split theorem. For each element
-`a : S` with `nSElement a ≤ n`, and for each multiplicative labeling `σ`
-taking values in `jUp a`, there exists a normalized Ramsey split of size
-`nSElement a`.
-The proof proceeds by strong induction on `n` and branches on whether the
-D-class of `a` is regular or irregular, delegating to
-`simon_split_regular_case` or `simon_split_irregular_case` respectively. -/
+/-- Induction step for Simon's split theorem,
+branching on whether the `D`-class of `a` is regular. -/
 lemma simon_split_induction_aux {S : Type*} [Semigroup S] [Fintype S]
     (n : ℕ) :
     ∀ (a : S) (_hn : nSElement a ≤ n)
@@ -70,12 +54,7 @@ lemma simon_split_induction (a : S) {α : Type*} [LinearOrder α]
     ∃ (s : Split α (nSElement a)), IsNormalized s ∧ IsRamsey σ s :=
   simon_split_induction_aux (nSElement a) a le_rfl σ h_img
 
-/-- **Simon's Theorem (Split Form)**: every multiplicative labeling `σ` over a
-non-empty finite linear order into a finite semigroup `S` admits a normalized
-Ramsey split of size `nS S`.
-The proof applies `simon_split_induction` to the element `σ(x₀, y₀)` where
-`x₀` and `y₀` are the minimum and maximum of the domain, and then shifts the
-split ranks to fit into `Fin (nS S)`. -/
+/-- Simon's Theorem (Split Form): every multiplicative labeling admits a normalized Ramsey split. -/
 theorem simon_split {S α : Type*} [Semigroup S] [Fintype S]
     [LinearOrder α] [Fintype α] [Nonempty α] [Nonempty (Fin (nS S))]
     (σ : MultiplicativeLabeling S α) :
@@ -141,10 +120,7 @@ end SimonSplit
 
 section SimonWord
 
-/-- **Simon's split theorem for words**: for any word `u` over an alphabet
-`A` and any homomorphism `eval` from `A*` to a finite semigroup `S`, there
-exists a normalized Ramsey split of `Fin (u.length + 1)` of size `nS S`.
-This is the main result of Simon's split theorem applied to words. -/
+/-- Simon's split theorem for words: every word admits a normalized Ramsey split of size `nS S`. -/
 theorem simon_word {A S : Type*} [Semigroup S] [Fintype S]
     [Nonempty (Fin (nS S))]
     (eval : List A → S)

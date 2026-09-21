@@ -6,15 +6,10 @@ Authors: Re'em Melamed-Katz
 import Project.SimonSplit.Combine
 
 /-!
-# Simon's Split Theorem — Irregular D-Class Case
+# Simon's Split Theorem — Irregular `D`-Class Case
 
-This file proves the irregular case of Simon's split theorem. The main result
-is `simon_split_irregular_case`.
-
-The key observation (in `irregular_d_class_no_three_seq`) is that an irregular
-D-class cannot contain three consecutive products `σ(x₀, x₁)`, `σ(x₁, x₂)` in
-the same class, since their product would force the class to be regular. This
-bounds the length of the jump sequence `buildXSeq` to at most 2.
+Constructs the Simon split (`simon_split_irregular_case`) for the case where the `D`-class
+is irregular, using the fact that the sequence length is at most 2.
 
 ## References
 
@@ -27,7 +22,7 @@ section LabelingProperties
 
 variable {S : Type*} [Semigroup S]
 
-/-- If an irregular D-class contains elements from a multiplicative sequence,
+/-- If an irregular `D`-class contains elements from a multiplicative sequence,
 it cannot contain three consecutive products in that sequence. -/
 lemma irregular_d_class_no_three_seq [Finite S] (a : S) {α : Type*} [LinearOrder α]
     (σ : MultiplicativeLabeling S α) (x y z : α)
@@ -53,7 +48,7 @@ end LabelingProperties
 
 section SplitConstruction
 
-/-- A specialized version of `combineSplits` for irregular D-classes.
+/-- A specialized version of `combineSplits` for irregular `D`-classes.
 All sequence-point elements receive the maximum rank `nSElement a - 1`,
 preventing overlap with the interval ranks. -/
 noncomputable abbrev irregularSplits {α S : Type*}
@@ -66,7 +61,7 @@ noncomputable abbrev irregularSplits {α S : Type*}
     (fun _ => ⟨nSElement a - 1, by have h_pos := nSElement_pos a; omega⟩) sY
 
 /-- Proves the normalization and Ramsey properties for `irregularSplits`.
-This is the main interface lemma for the irregular D-class case, delegating
+This is the main interface lemma for the irregular `D`-class case, delegating
 to `combineSplits_props`. -/
 lemma irregularSplits_props {α S : Type*}
     [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S]
@@ -147,13 +142,7 @@ lemma irregularSplits_props {α S : Type*}
       grind)
     (h_max_val := h_max_val)
 
-/-- Constructs a normalized Ramsey split for a labeling `σ` whose image lies
-in `jUp a`, when the D-class of `a` is **irregular**.
-The construction:
-1. Builds the sequence `xs = buildXSeq a σ x₀`.
-2. Uses `irregular_d_class_no_three_seq` to prove `|xs| ≤ 2`.
-3. Applies `build_interval_splits_of_ih` on each open interval.
-4. Assembles the global split using `irregularSplits`. -/
+/-- Constructs a normalized Ramsey split when the `D`-class of `a` is irregular. -/
 lemma simon_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
     (a : S) {α : Type*} [LinearOrder α] [Fintype α] [Nonempty α]
     (σ : MultiplicativeLabeling S α) (_h_img : labelingIn σ (jUp a))

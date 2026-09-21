@@ -9,10 +9,11 @@ import Mathlib.Data.Fintype.Card
 /-!
 # Main Theorems of Green's Relations
 
-This file proves the major structural theorems regarding Green's relations,
-including Green's theorem (bijections between H-classes) and regular D-class characterizations.
+Major structural theorems for Green's relations, including Green's Lemma and regular
+`D`-class characterizations.
 
 ## References
+
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 

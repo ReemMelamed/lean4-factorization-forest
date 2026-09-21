@@ -1,0 +1,25 @@
+# Lake build artifacts and dependencies
+/.lake/build/
+/.lake/packages/
+/.lake/config/
+/.lake/lake.env
+/.lake/*
+!/.lake/lake-manifest.json
+
+# Scratch directory
+/scratch/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors & IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~

@@ -8,11 +8,10 @@ import Project.GreensRelations.Green
 /-!
 # Finite Semigroup Theorems for Green's Relations
 
-This file proves structural theorems regarding Green's relations that specifically
-require a finite semigroup, such as the equivalence of D and J, and conditions
-for H-classes to be subgroups.
+Structural theorems for Green's relations on finite semigroups, including `D` = `J`.
 
 ## References
+
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
@@ -75,10 +74,7 @@ theorem isGreenR_sr_of_isGreenD_sr [Finite S] {a b : S} (h : IsGreenD a (a * b))
   rw [← op_mul, ← IsGreenD.isGreenD_iff_isGreenD_op]
   exact h
 
-/-- If `a`, `b`, and `a * b` are all in the same regular `D`-class,
-    then `a` is `R`-related to `a * b`, `b` is `L`-related to `a * b`,
-    and there exists an idempotent `e` in the `D`-class such that `a`
-    is `L`-related to `e` and `b` is `R`-related to `e`. -/
+/-- Structural properties when `a`, `b`, and `a * b` all belong to the same `D`-class. -/
 theorem mul_mem_isGreenD_eqvClass_properties
     [Finite S] {D : Set S} (hD_exists : ∃ x, D = IsGreenD.eqvClass x)
     (a b : S) (ha : a ∈ D) (hb : b ∈ D) (hab : a * b ∈ D) :

@@ -11,19 +11,8 @@ import Project.SimonSplit.Basic
 /-!
 # Combine Splits Construction
 
-This file defines the Simon complexity invariants `nSElement` and `nS`,
-constructs the auxiliary sequence `buildXSeq`, defines the `OpenIntervalType`
-subtype, and proves the key lemma `combineSplits_props` which assembles a
-global Ramsey split from local splits over open intervals.
-
-## Main Definitions
-
-* `nSElement x` — the Simon complexity of an element `x ∈ S`.
-* `nS S` — the maximum Simon complexity over all elements of `S`.
-* `buildXSeq a σ x₀` — the sequence of "jump points" used to partition the
-  domain into intervals.
-* `combineSplits a xs rankX sY` — combines a split on the sequence points with
-  splits on the open intervals into a single global split.
+Defines the Simon complexity `nSElement` and sequence `buildXSeq`, and proves the gluing
+lemma `combineSplits_props` that assembles a global Ramsey split from interval splits.
 
 ## References
 
@@ -35,11 +24,7 @@ namespace SimonSplit
 variable {S : Type*} [Semigroup S] [Fintype S]
 
 open Classical in
-/-- The Simon complexity associated with an element `x ∈ S`. This is defined
-recursively as `nD(D_x) + max_{y : J(x) < J(y)} nSElement(y)`, where the
-maximum ranges over elements strictly above `x` in the J-order.
-The recursion terminates because the filter strictly shrinks as we ascend the
-J-order. -/
+/-- The Simon complexity of `x ∈ S`, recursively summing `nD` along ascending `J`-chains. -/
 noncomputable abbrev nSElement (x : S) : ℕ :=
   let currentCost := nD (IsGreenD.eqvClass x)
   let strictlyAbove := Finset.univ.filter
@@ -84,12 +69,8 @@ instance instNonemptyFin_nSElement (x : S) :
   Fin.pos_iff_nonempty.mp (nSElement_pos x)
 
 open Classical in
-/-- Constructs the sequence of "jump points" `x₀, x₁, …` used to partition
-the domain in both the regular and irregular D-class cases. Starting from `x`,
-each successive point is the minimum element `y > x` with `IsGreenD (σ(x, y)) a`.
-
-The recursion terminates because each step moves strictly upward in the linear
-order, shrinking the filter of elements above the current point. -/
+/-- Constructs jump points partitioning the domain, stepping to the minimal `y > x`
+with `IsGreenD (σ(x, y)) a`. -/
 noncomputable abbrev buildXSeq (a : S) {α : Type*} [LinearOrder α] [Fintype α]
     (σ : MultiplicativeLabeling S α) (x : α) : List α :=
   let candidates := Finset.univ.filter (fun y => x < y ∧ IsGreenD (σ.σ x y) a)
@@ -155,13 +136,8 @@ lemma buildXSeq_head (a : S) {α : Type*} [LinearOrder α] [Fintype α]
     else [w] := by rw [buildXSeq]
   grind
 
-/-- Key properties of the sequence `buildXSeq a σ w`:
-1. All elements are `≥ w`.
-2. For any two elements `x < y` in the sequence, `IsGreenD (σ(x, y)) a`.
-3. No element `y` strictly between consecutive sequence points can satisfy
-   `IsGreenD (σ(xs[i], y)) a` (the sequence captures all D-related jump points).
-4. The sequence is strictly monotone.
--/
+/-- Sequence points are `≥ w`, strictly monotone, pairwise `D`-related, with no intermediate
+`D`-related points. -/
 lemma buildXSeq_properties (a : S) {α : Type*} [LinearOrder α] [Fintype α]
     (σ : MultiplicativeLabeling S α) (h_img : labelingIn σ (jUp a)) (w : α) :
     (∀ y ∈ buildXSeq a σ w, w ≤ y) ∧
@@ -353,12 +329,7 @@ lemma buildXSeq_same_interval_of_splitRelation {α : Type*} [LinearOrder α]
     have h_le_val := Fin.le_iff_val_le_val.mp hb
     omega
 
-/-- Applies the inductive hypothesis to each open interval defined by `xs`
-to obtain local Ramsey splits. Returns, for each interval `i`, a split `s`
-with the Ramsey property and a strict upper bound on the split values.
-This lemma is the key "descent" step: elements in an open interval have a
-strictly smaller J-class than `a`, so the inductive hypothesis applies
-(with a strictly smaller Simon complexity). -/
+/-- Applies induction to each open interval of `xs` to obtain local Ramsey splits. -/
 lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
     (a : S) {α : Type*} [LinearOrder α] [Fintype α] [Nonempty α]
     (σ : MultiplicativeLabeling S α) (h_img : labelingIn σ (jUp a))
@@ -495,12 +466,7 @@ lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
     exact ⟨fun _ => ⟨0, nSElement_pos a⟩,
       And.intro h_ramsey_vacuous (fun _ => h_Delta_pos)⟩
 
-/-- Combines a split on the sequence points `xs` with splits on the open
-intervals between consecutive sequence points into a single split on the
-entire domain `α`.
-For elements in `xs`, the rank is given by `rankX`. For elements in an open
-interval, the rank is given by the corresponding `sY i`. The case distinction
-is made by checking membership in `xs`. -/
+/-- Combines a split on `xs` with splits on open intervals into a global split. -/
 noncomputable abbrev combineSplits {α S : Type*}
     [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S]
     (a : S) (xs : List α)
@@ -518,11 +484,7 @@ noncomputable abbrev combineSplits {α S : Type*}
   else
     ⟨0, nSElement_pos a⟩
 
-/-- The `combineSplits` function preserves the Ramsey property for elements
-within the same open interval: if two elements `x, y ∉ xs` are split-related
-under the combined split and `x < y`, then there exists an interval index `i`
-such that `x` and `y` both lie in `OpenIntervalType xs i` and are split-related
-under the local split `sY i`. -/
+/-- Split-related elements in the combined split outside `xs` belong to the same interval. -/
 lemma combineSplits_interval_ramsey {α S : Type*}
     [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S]
     (a : S) (xs : List α)
@@ -653,10 +615,7 @@ lemma combineSplits_interval_ramsey {α S : Type*}
       )⟩
   ⟩
 
-/-- Proves that a combined split (assembled from local splits on sequence points
-and open intervals) satisfies the normalization and Ramsey properties.
-This is the main gluing lemma used by both `simon_split_regular_case` and
-`simon_split_irregular_case`. -/
+/-- The combined split satisfies normalization and the Ramsey property. -/
 lemma combineSplits_props {α S : Type*}
     [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S]
     (a : S) (xs : List α) (C : ℕ)

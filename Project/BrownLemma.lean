@@ -13,19 +13,22 @@ import Mathlib.Algebra.Group.Pointwise.Set.Finite
 import Mathlib.Order.CompleteLattice.Finset
 import Project.SimonSplit.Combine
 import Project.SimonSplit.Split
+import Project.FactorizationTree.FactorizationTree
 
 /-!
-# Brown's Lemma and Algebraic Applications of Simon's Split Theorem
+# Brown's Lemma and Algebraic Applications
 
-This file formalizes the proof of Brown's Lemma without using factorization trees.
+Formalization of Brown's Lemma and the Algebraic Presentation Theorem (Colcombet Theorem 4.1)
+using Simon's Factorization Forest Theorem for trees.
 
 ## References
+
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
 namespace BrownLemma
 
-open Set SimonSplit
+open Set SimonSplit FactorizationTree
 open scoped Pointwise
 
 variable {S T : Type*} [Semigroup S] [Semigroup T]
@@ -154,425 +157,193 @@ lemma listProdNE_eq (u v : List S) (hu : u ≠ []) (hv : v ≠ []) (h : u = v) :
     listProdNE u hu = listProdNE v hv := by
   cases h
   rfl
-
 omit [Semigroup S] in
-lemma list_drop_take_append (u : List S) (i j k : ℕ) (hij : i ≤ j) (hjk : j ≤ k) :
-    (u.drop i).take (j - i) ++ (u.drop j).take (k - j) = (u.drop i).take (k - i) := by
-  have h_drop : u.drop j = (u.drop i).drop (j - i) := by
-    rw [List.drop_drop]
-    congr 1
-    omega
-  rw [h_drop]
-  have list_take_drop_take (u : List S) (a b : ℕ) :
-    u.take a ++ (u.drop a).take b = u.take (a + b) := by grind
-  have h_take := list_take_drop_take (u.drop i) (j - i) (k - j)
-  have h_eq : j - i + (k - j) = k - i := by omega
-  rw [h_eq] at h_take
-  exact h_take
+mutual
+  /-- The yield of a Ramsey factorization tree is always non-empty. -/
+  lemma tree_value_ne_nil (t : FactorizationTree S) (eval : List S → T)
+      (ht : t.IsRamsey eval) : t.value ≠ [] := by
+    cases t with
+    | leaf a =>
+      dsimp [FactorizationTree.value]
+      simp
+    | binary l r =>
+      dsimp [FactorizationTree.value]
+      intro h
+      rw [List.append_eq_nil_iff] at h
+      exact tree_value_ne_nil l eval ht.1 h.1
+    | idempotent cs =>
+      have hlen := ht.1
+      have hne : cs ≠ [] := by
+        rintro rfl
+        cases hlen
+      dsimp [FactorizationTree.value]
+      exact listTree_value_ne_nil cs eval ht.2.1 hne
 
-omit [Semigroup S] in
-lemma list_drop_take_ne_nil (u : List S) (i j : ℕ) (hij : i < j) (hj : j ≤ u.length) :
-  (u.drop i).take (j - i) ≠ [] := by
-  simp
-  grind
+  /-- The concatenated yield of a non-empty list of Ramsey factorization trees is non-empty. -/
+  lemma listTree_value_ne_nil (cs : List (FactorizationTree S)) (eval : List S → T)
+      (hcs : FactorizationTree.listIsRamsey eval cs)
+      (hne : cs ≠ []) : FactorizationTree.listValue cs ≠ [] := by
+    cases cs with
+    | nil => contradiction
+    | cons c rest =>
+      dsimp [FactorizationTree.listValue]
+      intro h
+      rw [List.append_eq_nil_iff] at h
+      exact tree_value_ne_nil c eval hcs.1 h.1
+end
 
-lemma listProdNE_split (u : List S) (i j k : ℕ) (hij : i < j) (hjk : j < k) (hk : k ≤ u.length) :
-    listProdNE ((u.drop i).take (k - i)) (list_drop_take_ne_nil u i k (hij.trans hjk) hk) =
-    listProdNE ((u.drop i).take (j - i)) (list_drop_take_ne_nil u i j hij (hjk.le.trans hk)) *
-    listProdNE ((u.drop j).take (k - j)) (list_drop_take_ne_nil u j k hjk hk) := by
-  have h_append := list_drop_take_append u i j k hij.le hjk.le
-  have h_concat := listProdNE_concat ((u.drop i).take (j - i)) ((u.drop j).take (k - j))
-    (list_drop_take_ne_nil u i j hij (hjk.le.trans hk))
-    (list_drop_take_ne_nil u j k hjk hk)
-  have h_eq := listProdNE_eq ((u.drop i).take (j - i) ++ (u.drop j).take (k - j))
-    ((u.drop i).take (k - i))
-    (by simp [list_drop_take_ne_nil u i j hij (hjk.le.trans hk),
-      list_drop_take_ne_nil u j k hjk hk])
-    (list_drop_take_ne_nil u i k (hij.trans hjk) hk) h_append
-  rw [h_eq] at h_concat
-  exact h_concat
-
-lemma X_seq_inner_lemma (m : ℕ) (ϕ : S →ₙ* T) (X : Set S)
-  (u : List S) (eval_T : List S → T)
-  (hmul_T : ∀ v w, v ≠ [] → w ≠ [] → eval_T (v ++ w) = eval_T v * eval_T w)
-  (h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw))
-  {n : ℕ} (_ : m < n)
-  (s : Split (Fin (u.length + 1)) n)
-  (h_ramsey : IsRamsey (wordLabeling eval_T hmul_T u) s)
-  (ih : ∀ (i j : Fin (u.length + 1)) (hij : (i : ℕ) < (j : ℕ)),
-    (∀ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m) →
-    listProdNE ((u.drop i).take (j - i))
-    (list_drop_take_ne_nil u i j hij (by omega)) ∈ X_seq ϕ X (3 * m)) :
-  ∀ (i j : Fin (u.length + 1)) (hij : (i : ℕ) < (j : ℕ)),
-  (s i : ℕ) = m → (s j : ℕ) = m →
-  (∀ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) ≤ m) →
-  listProdNE ((u.drop i).take (j - i))
-    (list_drop_take_ne_nil u i j hij (by omega)) ∈ Subsemigroup.closure
-    (X_seq ϕ X (3 * m) ∩ ϕ ⁻¹' {eval_T ((u.drop i).take (j - i))}) := by
-  intro i j
-  have H : ∀ (len : ℕ) (i j : Fin (u.length + 1))
-    (hij : (i : ℕ) < (j : ℕ)) (hlen : (j : ℕ) - (i : ℕ) = len),
-    (s i : ℕ) = m → (s j : ℕ) = m →
-    (∀ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) ≤ m) →
-    listProdNE ((u.drop i).take (j - i))
-      (list_drop_take_ne_nil u i j hij (by omega)) ∈ Subsemigroup.closure
-      (X_seq ϕ X (3 * m) ∩ ϕ ⁻¹' {eval_T ((u.drop i).take (j - i))}) := by
-    intro len
-    induction len using Nat.strong_induction_on with
-    | h len ih_strong =>
-      intro i j hij hlen hsi hsj h_between
-      by_cases h_cut : ∃ x : Fin (u.length + 1),
-        (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m
-      · let S_cuts :=
-          (Finset.univ : Finset (Fin (u.length + 1))).filter
-          (fun (x : Fin (u.length + 1)) =>
-          (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m)
-        have h_nonempty : S_cuts.Nonempty := by
-          rcases h_cut with ⟨x, hix, hxj, hsx⟩
-          exact ⟨x, Finset.mem_filter.mpr ⟨Finset.mem_univ x, ⟨hix, hxj, hsx⟩⟩⟩
-        let k := S_cuts.min' h_nonempty
-        have hk_mem : k ∈ S_cuts := Finset.min'_mem S_cuts h_nonempty
-        have hk_prop := (Finset.mem_filter.mp hk_mem).2
-        have hik : (i : ℕ) < (k : ℕ) := hk_prop.1
-        have hkj : (k : ℕ) < (j : ℕ) := hk_prop.2.1
-        have hsk : (s k : ℕ) = m := hk_prop.2.2
-        have h_less : ∀ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) →
-          (x : ℕ) < (k : ℕ) → (s x : ℕ) < m := by
-          intro x hix hxk
-          have h_bet := h_between x hix (hxk.trans hkj)
-          have h_not_eq : ¬ ((s x : ℕ) = m) := by
-            intro hc
-            have hx_mem : x ∈ S_cuts :=
-              Finset.mem_filter.mpr ⟨Finset.mem_univ x, ⟨hix, hxk.trans hkj, hc⟩⟩
-            have h_min := Finset.min'_le S_cuts x hx_mem
-            omega
-          omega
-        have h_outer := ih i k hik h_less
-        have h_len : (j : ℕ) - (k : ℕ) < len := by omega
-        have h_inner :=
-          ih_strong ((j : ℕ) - (k : ℕ)) h_len k j hkj rfl hsk hsj
-            (fun x hkx hxj => h_between x (hik.trans hkx) hxj)
-        have h_split := listProdNE_split u i.1 k.1 j.1 hik hkj (by omega)
-        rw [h_split]
-        have h_rel_ik : SplitRelation s i k := by
-          have h_eq : s i = s k := Fin.ext (by omega)
-          refine ⟨h_eq, fun z hz1 hz2 => ?_⟩
-          have h_min : min i k = i := min_eq_left (le_of_lt hik)
-          rw [h_min]
-          change (s z : ℕ) ≤ (s i : ℕ)
-          rw [hsi]
-          by_cases h_zi : z = i
-          · rw [h_zi, hsi]
-          · have h_zj : (z : ℕ) < (j : ℕ) := by
-              have h_zk : z ≤ k := by
-                have h_max : max i k = k := max_eq_right (le_of_lt hik)
-                rwa [h_max] at hz2
-              omega
-            have h_iz : (i : ℕ) < (z : ℕ) := by
-              have h_iz' : i ≤ z := by rwa [h_min] at hz1
-              omega
-            exact h_between z h_iz h_zj
-        have h_rel_kj : SplitRelation s k j := by
-          have h_eq : s k = s j := Fin.ext (by omega)
-          refine ⟨h_eq, fun z hz1 hz2 => ?_⟩
-          have h_min : min k j = k := min_eq_left (le_of_lt hkj)
-          rw [h_min]
-          change (s z : ℕ) ≤ (s k : ℕ)
-          rw [hsk]
-          by_cases h_zk : z = k
-          · rw [h_zk, hsk]
-          · by_cases h_zj : z = j
-            · rw [h_zj, hsj]
-            · have h_kz : (k : ℕ) < (z : ℕ) := by
-                have h_kz' : k ≤ z := by rwa [h_min] at hz1
-                omega
-              have h_zj_lt : (z : ℕ) < (j : ℕ) := by
-                have h_max : max k j = j := max_eq_right (le_of_lt hkj)
-                have h_zj' : z ≤ j := by rwa [h_max] at hz2
-                omega
-              exact h_between z (hik.trans h_kz) h_zj_lt
-        have h_color_eq :
-          (wordLabeling eval_T hmul_T u).σ i k = (wordLabeling eval_T hmul_T u).σ k j :=
-          h_ramsey.2 i k k j hik hkj h_rel_ik h_rel_kj h_rel_ik
-        have h_color_idem : (wordLabeling eval_T hmul_T u).σ i k *
-          (wordLabeling eval_T hmul_T u).σ i k = (wordLabeling eval_T hmul_T u).σ i k :=
-          h_ramsey.1 i k j hik hkj h_rel_ik h_rel_kj
-        have h_color_total : (wordLabeling eval_T hmul_T u).σ i k *
-          (wordLabeling eval_T hmul_T u).σ k j = (wordLabeling eval_T hmul_T u).σ i j :=
-          (wordLabeling eval_T hmul_T u).prop i k j hik hkj
-        have h_eval_ik_eq_ij : eval_T ((u.drop (i : ℕ)).take ((k : ℕ) - (i : ℕ))) = eval_T
-          ((u.drop (i : ℕ)).take ((j : ℕ) - (i : ℕ))) := by
-          change (wordLabeling eval_T hmul_T u).σ i k = (wordLabeling eval_T hmul_T u).σ i j
-          rw [← h_color_total, ← h_color_eq, h_color_idem]
-        have h_eval_kj_eq_ij : eval_T ((u.drop (k : ℕ)).take ((j : ℕ) - (k : ℕ))) = eval_T
-          ((u.drop (i : ℕ)).take ((j : ℕ) - (i : ℕ))) := by
-          change (wordLabeling eval_T hmul_T u).σ k j = (wordLabeling eval_T hmul_T u).σ i j
-          rw [← h_color_eq, ← h_color_total, ← h_color_eq, h_color_idem]
-        have h_part1 : listProdNE ((u.drop i).take (k - i))
-          (list_drop_take_ne_nil u i k hik (by omega)) ∈ Subsemigroup.closure
-          (X_seq ϕ X (3 * m) ∩ ϕ ⁻¹' {eval_T ((u.drop i).take (j - i))}) := by
-          apply Subsemigroup.subset_closure
-          simp only [mem_inter_iff, mem_preimage, mem_singleton_iff]
-          refine ⟨h_outer, ?_⟩
-          rw [← h_eval_ik_eq_ij, (h_eval_eq _ _).symm]
-        have h_part2 : listProdNE ((u.drop k).take (j - k))
-          (list_drop_take_ne_nil u k j hkj (by omega)) ∈ Subsemigroup.closure
-          (X_seq ϕ X (3 * m) ∩ ϕ ⁻¹' {eval_T ((u.drop i).take (j - i))}) := by
-          have h_eq : eval_T ((u.drop (k : ℕ)).take ((j : ℕ) - (k : ℕ))) = eval_T
-            ((u.drop (i : ℕ)).take ((j : ℕ) - (i : ℕ))) := h_eval_kj_eq_ij
-          rw [← h_eq]
-          exact h_inner
-        exact Subsemigroup.mul_mem _ h_part1 h_part2
-      · have h_less : ∀ x : Fin (u.length + 1),
-          (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m := by
-          intro x hix hxj
-          have h1 := h_between x hix hxj
-          have h2 : ¬ ((s x : ℕ) = m) := fun hc ↦ h_cut ⟨x, hix, hxj, hc⟩
-          omega
-        have h_outer := ih i j hij h_less
-        apply Subsemigroup.subset_closure
-        simp only [mem_inter_iff, mem_preimage, mem_singleton_iff]
-        refine ⟨h_outer, (h_eval_eq _ _).symm⟩
-  intro hij hsi hsj h_between
-  exact H ((j : ℕ) - (i : ℕ)) i j hij rfl hsi hsj h_between
-
-lemma X_seq_outer_lemma (n : ℕ) (ϕ : S →ₙ* T) (X : Set S)
-  (u : List S) (eval_T : List S → T)
-  (hmul_T : ∀ v w, v ≠ [] → w ≠ [] → eval_T (v ++ w) = eval_T v * eval_T w)
-  (h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw))
-  (s : Split (Fin (u.length + 1)) n)
-  (h_ramsey : IsRamsey (wordLabeling eval_T hmul_T u) s)
-  (huX : ∀ (i : ℕ) (hi : i < u.length), u[i] ∈ X) :
-  ∀ (m : ℕ) (_ : m ≤ n) (i j : Fin (u.length + 1)) (hij : (i : ℕ) < (j : ℕ)),
-  (∀ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m) →
-  listProdNE ((u.drop i).take (j - i))
-  (list_drop_take_ne_nil u i j hij (by omega)) ∈ X_seq ϕ X (3 * m) := by
-  intro m
-  induction m with
-  | zero =>
-    intro hm i j hij h_less
-    have h_empty : ∀ x, (i : ℕ) < x → x < (j : ℕ) → False := by
-      intro x hix hxj
-      have h1 := h_less ⟨x, by omega⟩ hix hxj
-      omega
-    have h_j_eq_i_add_one : (j : ℕ) = (i : ℕ) + 1 := by
-      by_contra hc
-      have h_lt : (i : ℕ) + 1 < (j : ℕ) := by omega
-      have h_x_bound : (i : ℕ) + 1 < u.length + 1 := by
-        have h_j_bound := j.isLt
-        omega
-      let x : Fin (u.length + 1) := ⟨(i : ℕ) + 1, h_x_bound⟩
-      have h_x_val : (x : ℕ) = (i : ℕ) + 1 := rfl
-      have h_false := h_empty x (by omega) (by omega)
-      exact h_false
-    have h_len : (j : ℕ) - (i : ℕ) = 1 := by omega
-    have h_i_lt : (i : ℕ) < u.length := by
-      by_contra hc
-      have h_j_gt : (j : ℕ) > u.length := by omega
-      have h_j_bound := j.isLt
-      omega
-    have h_drop_take : (u.drop i).take (j - i) = [u[i.1]] := by
-      rw [h_len]
-      cases u_eq : u.drop (i : ℕ) with
-      | nil =>
-        have h_len_drop : (u.drop (i : ℕ)).length = 0 := by rw [u_eq, List.length_nil]
-        have h_len_drop' : (u.drop (i : ℕ)).length = u.length - (i : ℕ) := by rw [List.length_drop]
-        omega
-      | cons head tail =>
-        have h_head : head = u[i.1] := by
-          have h_get : (u.drop i)[0]? = some head := by rw [u_eq, List.getElem?_cons_zero]
-          have h_get2 : (u.drop i)[0]? = some u[i.1] := by
-            rw [List.getElem?_drop, Nat.add_zero, List.getElem?_eq_getElem h_i_lt]
-          simp_all
-        rw [h_head]
+mutual
+  /-- Structural induction on factorization trees: the evaluation of any Ramsey tree
+  whose leaves belong to `X` lies in `X_seq ϕ X (height t)`.
+  This is the core induction of Theorem 4.1 in Colcombet. -/
+  lemma tree_prod_in_X_seq (ϕ : S →ₙ* T) (X : Set S)
+      (eval : List S → T)
+      (h_eval : ∀ w hw, eval w = ϕ (listProdNE w hw))
+      (t : FactorizationTree S) (ht : t.IsRamsey eval)
+      (hX : ∀ x ∈ t.value, x ∈ X)
+      (ht_ne : t.value ≠ []) :
+      listProdNE t.value ht_ne ∈ X_seq ϕ X t.height := by
+    cases t with
+    | leaf a =>
+      have ha : a ∈ X := hX a (by simp [FactorizationTree.value])
+      have h_eq : listProdNE (FactorizationTree.value (.leaf a)) ht_ne = a := by
+        have h1 : (FactorizationTree.value (.leaf a)) = [a] := rfl
+        rw [listProdNE_eq _ [a] ht_ne (by simp) h1]
         rfl
-    have h_prod : listProdNE ((u.drop i).take (j - i))
-      (list_drop_take_ne_nil u i j hij (by omega)) = u[i.1] := by
-      have h_eq_list : (u.drop i).take (j - i) = [u[i.1]] := h_drop_take
-      have h_prod_one : listProdNE [u[i.1]] (by simp) = u[i.1] := rfl
-      rw [listProdNE_eq _ _ _ _ h_eq_list]
-      exact h_prod_one
-    rw [h_prod]
-    change u[i.1] ∈ X
-    exact huX i.1 h_i_lt
-  | succ m' ih_m' =>
-    intro hm i j hij h_less
-    let S_cuts :=
-      (Finset.univ : Finset (Fin (u.length + 1))).filter
-      (fun (x : Fin (u.length + 1)) =>
-      (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m')
-    have h_mul_mem_gen :
-      ∀ n a b, a ∈ X_seq ϕ X n → b ∈ X_seq ϕ X n → a * b ∈ X_seq ϕ X (n + 1) := by
-      intro n a b ha hb
+      rw [h_eq]
+      dsimp [FactorizationTree.height, X_seq]
+      exact ha
+    | binary l r =>
+      have hl_ramsey := ht.1
+      have hr_ramsey := ht.2
+      have hl_ne := tree_value_ne_nil l eval hl_ramsey
+      have hr_ne := tree_value_ne_nil r eval hr_ramsey
+      have hl_X : ∀ x ∈ l.value, x ∈ X := fun x hx ↦ hX x (by simp [FactorizationTree.value, hx])
+      have hr_X : ∀ x ∈ r.value, x ∈ X := fun x hx ↦ hX x (by simp [FactorizationTree.value, hx])
+      have ihl := tree_prod_in_X_seq ϕ X eval h_eval l hl_ramsey hl_X hl_ne
+      have ihr := tree_prod_in_X_seq ϕ X eval h_eval r hr_ramsey hr_X hr_ne
+      let H := max l.height r.height
+      have hl_le : l.height ≤ H := le_max_left _ _
+      have hr_le : r.height ≤ H := le_max_right _ _
+      have ihl_H := X_seq_mono ϕ X hl_le ihl
+      have ihr_H := X_seq_mono ϕ X hr_le ihr
+      have h_val_eq : (FactorizationTree.value (.binary l r)) = l.value ++ r.value := rfl
+      have h_prod_eq : listProdNE (FactorizationTree.value (.binary l r)) ht_ne =
+          listProdNE l.value hl_ne * listProdNE r.value hr_ne := by
+        rw [listProdNE_eq _ (l.value ++ r.value) ht_ne (by simp [hl_ne, hr_ne]) h_val_eq]
+        exact listProdNE_concat l.value r.value hl_ne hr_ne
+      rw [h_prod_eq]
+      have h_in_mul : listProdNE l.value hl_ne * listProdNE r.value hr_ne ∈
+          X_seq ϕ X H * X_seq ϕ X H := ⟨_, ihl_H, _, ihr_H, rfl⟩
+      dsimp [FactorizationTree.height]
+      rw [Nat.add_comm 1 H]
       dsimp [X_seq]
-      exact Or.inl (Or.inr ⟨a, ha, b, hb, rfl⟩)
-    by_cases h_empty : S_cuts = ∅
-    · have h_less' : ∀ x :
-        Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m' := by
-        intro x hix hxj
-        have h_bet := h_less x hix hxj
-        by_contra hc
-        have h_eq : (s x : ℕ) = m' := by omega
-        have h_mem : x ∈ S_cuts :=
-          Finset.mem_filter.mpr ⟨Finset.mem_univ x, hix, hxj, h_eq⟩
-        rw [h_empty] at h_mem
-        revert h_mem
-        simp
-      have h_ih := ih_m' (by omega) i j hij h_less'
-      exact X_seq_mono ϕ X (by omega) h_ih
-    · have h_nonempty : S_cuts.Nonempty := Finset.nonempty_of_ne_empty h_empty
-      let k_1 := S_cuts.min' h_nonempty
-      have hk1_mem := Finset.min'_mem S_cuts h_nonempty
-      have hk1_prop := (Finset.mem_filter.mp hk1_mem).2
-      let k_r := S_cuts.max' h_nonempty
-      have hkr_mem := Finset.max'_mem S_cuts h_nonempty
-      have hkr_prop := (Finset.mem_filter.mp hkr_mem).2
-      have hik1 : (i : ℕ) < (k_1 : ℕ) := hk1_prop.1
-      have h_less_ik1 : ∀ x :
-        Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (k_1 : ℕ) → (s x : ℕ) < m' := by
-        intro x hix hxk
-        have h_bet := h_less x hix (hxk.trans hk1_prop.2.1)
-        by_contra hc
-        have h_eq : (s x : ℕ) = m' := by omega
-        have h_mem : x ∈ S_cuts :=
-          Finset.mem_filter.mpr ⟨Finset.mem_univ x, hix, hxk.trans hk1_prop.2.1, h_eq⟩
-        have h_le := Finset.min'_le S_cuts x h_mem
-        omega
-      have h_ih_ik1 := ih_m' (by omega) i k_1 hik1 h_less_ik1
-      have hkrj : (k_r : ℕ) < (j : ℕ) := hkr_prop.2.1
-      have h_less_krj : ∀ x :
-        Fin (u.length + 1), (k_r : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m' := by
-        intro x hkx hxj
-        have h_min_le : k_1 ≤ k_r := Finset.min'_le S_cuts k_r hkr_mem
-        have hikr : (i : ℕ) < (k_r : ℕ) := by omega
-        have h_bound := h_less x (by omega) hxj
-        by_contra hc
-        have h_eq : (s x : ℕ) = m' := by omega
-        have h_mem : x ∈ S_cuts :=
-          Finset.mem_filter.mpr ⟨Finset.mem_univ x, (by omega), hxj, h_eq⟩
-        have h_le := Finset.le_max' S_cuts x h_mem
-        omega
-      have h_ih_krj := ih_m' (by omega) k_r j hkrj h_less_krj
-      by_cases h_eq : k_1 = k_r
-      · have hk1j : (k_1 : ℕ) < (j : ℕ) := by rw [h_eq]; exact hkrj
-        have h_split := listProdNE_split u i.1 k_1.1 j.1 hik1 hk1j (by omega)
-        rw [h_split]
-        have h_less_k1j : ∀ x :
-          Fin (u.length + 1), (k_1 : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m' := by
-          intro x hkx hxj
-          have heq2 : (k_1 : ℕ) = (k_r : ℕ) := by rw [h_eq]
-          rw [heq2] at hkx
-          exact h_less_krj x hkx hxj
-        have h_ih_k1j := ih_m' (by omega) k_1 j hk1j h_less_k1j
-        have h_prod := h_mul_mem_gen (3 * m') _ _ h_ih_ik1 h_ih_k1j
-        exact X_seq_mono ϕ X (by omega) h_prod
-      · have hk1kr : (k_1 : ℕ) < (k_r : ℕ) := by
-          have hle : k_1 ≤ k_r := Finset.min'_le S_cuts k_r hkr_mem
-          omega
-        have hk1j : (k_1 : ℕ) < (j : ℕ) := hk1kr.trans hkrj
-        have h_split1 := listProdNE_split u i.1 k_1.1 j.1 hik1 hk1j (by omega)
-        rw [h_split1]
-        have h_split2 := listProdNE_split u k_1.1 k_r.1 j.1 hk1kr hkrj (by omega)
-        rw [h_split2]
-        by_cases h_no_mid : ∀ x :
-          Fin (u.length + 1), (k_1 : ℕ) < (x : ℕ) → (x : ℕ) < (k_r : ℕ) → (s x : ℕ) < m'
-        · have h_ih_mid := ih_m' (by omega) k_1 k_r hk1kr h_no_mid
-          have h_mul1 := h_mul_mem_gen (3 * m') _ _ h_ih_mid h_ih_krj
-          have h_mul2 := h_mul_mem_gen (3 * m' + 1) _ _ (X_seq_mono ϕ X (by omega) h_ih_ik1) h_mul1
-          exact X_seq_mono ϕ X (by omega) h_mul2
-        · push Not at h_no_mid
-          rcases h_no_mid with ⟨k_2, hk12, hk2r, h_not_less⟩
-          have hk2_prop : (s k_2 : ℕ) = m' := by
-            have h_bet := h_less k_2 (hik1.trans hk12) (hk2r.trans hkrj)
-            omega
-          have h_rel_12 : SplitRelation s k_1 k_2 := by
-            have heq1 : (s k_1 : ℕ) = m' := hk1_prop.2.2
-            have heq2 : (s k_2 : ℕ) = m' := hk2_prop
-            refine ⟨Fin.ext (by omega), ?_⟩
-            intro x hx1 hx2
-            have hmin : min k_1 k_2 = k_1 := min_eq_left (le_of_lt hk12)
-            have hmax : max k_1 k_2 = k_2 := max_eq_right (le_of_lt hk12)
-            rw [hmin] at hx1 ⊢
-            rw [hmax] at hx2
-            change (s x : ℕ) ≤ (s k_1 : ℕ)
-            rw [hk1_prop.2.2]
-            have hx1_nat : (k_1 : ℕ) ≤ (x : ℕ) := hx1
-            have hx2_nat : (x : ℕ) ≤ (k_2 : ℕ) := hx2
-            have h_bound := h_less x (by omega) (by omega)
-            omega
-          have h_rel_2r : SplitRelation s k_2 k_r := by
-            have heq2 : (s k_2 : ℕ) = m' := hk2_prop
-            have heqr : (s k_r : ℕ) = m' := hkr_prop.2.2
-            refine ⟨Fin.ext (by omega), ?_⟩
-            intro x hx1 hx2
-            have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
-            have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
-            rw [hmin] at hx1 ⊢
-            rw [hmax] at hx2
-            change (s x : ℕ) ≤ (s k_2 : ℕ)
-            rw [hk2_prop]
-            have hx1_nat : (k_2 : ℕ) ≤ (x : ℕ) := hx1
-            have hx2_nat : (x : ℕ) ≤ (k_r : ℕ) := hx2
-            have h_bound := h_less x (by omega) (by omega)
-            omega
-          have h_rel_1r : SplitRelation s k_1 k_r := by
-            have heq1 : (s k_1 : ℕ) = m' := hk1_prop.2.2
-            have heqr : (s k_r : ℕ) = m' := hkr_prop.2.2
-            refine ⟨Fin.ext (by omega), ?_⟩
-            intro x hx1 hx2
-            have hmin : min k_1 k_r = k_1 := min_eq_left (le_of_lt hk1kr)
-            have hmax : max k_1 k_r = k_r := max_eq_right (le_of_lt hk1kr)
-            rw [hmin] at hx1 ⊢
-            rw [hmax] at hx2
-            change (s x : ℕ) ≤ (s k_1 : ℕ)
-            rw [hk1_prop.2.2]
-            have hx1_nat : (k_1 : ℕ) ≤ (x : ℕ) := hx1
-            have hx2_nat : (x : ℕ) ≤ (k_r : ℕ) := hx2
-            have h_bound := h_less x (by omega) (by omega)
-            omega
-          have h_color_eq :
-            (wordLabeling eval_T hmul_T u).σ k_1 k_2 = (wordLabeling eval_T hmul_T u).σ k_2 k_r :=
-            h_ramsey.2 k_1 k_2 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r h_rel_12
-          have h_color_idem : (wordLabeling eval_T hmul_T u).σ k_1 k_2
-            * (wordLabeling eval_T hmul_T u).σ k_1 k_2 = (wordLabeling eval_T hmul_T u).σ k_1 k_2 :=
-            h_ramsey.1 k_1 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r
-          have h_color_total : (wordLabeling eval_T hmul_T u).σ k_1 k_2
-            * (wordLabeling eval_T hmul_T u).σ k_2 k_r = (wordLabeling eval_T hmul_T u).σ k_1 k_r :=
-            (wordLabeling eval_T hmul_T u).prop k_1 k_2 k_r hk12 hk2r
-          have h_color_1r_eq_12 : (wordLabeling eval_T hmul_T u).σ k_1 k_r =
-            (wordLabeling eval_T hmul_T u).σ k_1 k_2 := by
-            rw [← h_color_total, ← h_color_eq, h_color_idem]
-          have h_idem_1r : (wordLabeling eval_T hmul_T u).σ k_1 k_r
-            * (wordLabeling eval_T hmul_T u).σ k_1 k_r =
-            (wordLabeling eval_T hmul_T u).σ k_1 k_r := by
-            rw [h_color_1r_eq_12, h_color_idem]
-          let e := eval_T ((u.drop k_1).take (k_r - k_1))
-          have he_idem : e * e = e := h_idem_1r
-          have h_inner := X_seq_inner_lemma m' ϕ X u eval_T hmul_T h_eval_eq (by omega) s h_ramsey
-            (fun i j hij hless => ih_m' (by omega) i j hij hless)
-            k_1 k_r hk1kr hk1_prop.2.2 hkr_prop.2.2 (by
-              intro x hk1x hxkr
-              have hk1x_nat : (k_1 : ℕ) < (x : ℕ) := hk1x
-              have hxkr_nat : (x : ℕ) < (k_r : ℕ) := hxkr
-              have h_bound := h_less x (by omega) (by omega)
-              omega
-            )
-          have h_subset : (Subsemigroup.closure (X_seq ϕ X (3 * m') ∩ ϕ ⁻¹' {e}) : Set S)
-            ⊆ X_seq ϕ X (3 * m' + 1) := by
-            intro x hx
-            dsimp [X_seq]
-            exact Or.inr (Set.mem_iUnion.mpr ⟨e, Set.mem_iUnion.mpr ⟨he_idem, hx⟩⟩)
-          have h_k1r_in_3m1 : listProdNE
-            ((u.drop k_1).take (k_r - k_1)) _ ∈ X_seq ϕ X (3 * m' + 1) := h_subset h_inner
-          have h_k1j_in_3m2 :=
-            h_mul_mem_gen (3 * m' + 1) _ _ h_k1r_in_3m1 (X_seq_mono ϕ X (by omega) h_ih_krj)
-          have h_total_in_3m3 :=
-            h_mul_mem_gen (3 * m' + 2) _ _ (X_seq_mono ϕ X (by omega) h_ih_ik1) h_k1j_in_3m2
-          exact X_seq_mono ϕ X (by omega) h_total_in_3m3
+      exact Or.inl (Or.inr h_in_mul)
+    | idempotent cs =>
+      have hlen := ht.1
+      have hcs_ramsey := ht.2.1
+      rcases ht.2.2 with ⟨e, he_idem, he_eval⟩
+      have hne : cs ≠ [] := by
+        rintro rfl
+        cases hlen
+      have h_cs_prod := listTree_prod_in_closure ϕ X eval h_eval cs hcs_ramsey hne e he_eval
+        (by dsimp [FactorizationTree.value] at hX; exact hX)
+      have h_val_eq : (FactorizationTree.value (.idempotent cs)) =
+          FactorizationTree.listValue cs := rfl
+      have hcs_val_ne := listTree_value_ne_nil cs eval hcs_ramsey hne
+      have h_prod_eq : listProdNE (FactorizationTree.value (.idempotent cs)) ht_ne =
+          listProdNE (FactorizationTree.listValue cs) hcs_val_ne :=
+        listProdNE_eq _ _ ht_ne hcs_val_ne h_val_eq
+      rw [h_prod_eq]
+      let H := FactorizationTree.listHeight cs
+      dsimp [FactorizationTree.height]
+      rw [Nat.add_comm 1 H]
+      dsimp [X_seq]
+      refine Or.inr ?_
+      exact Set.mem_iUnion.mpr ⟨e, Set.mem_iUnion.mpr ⟨he_idem, h_cs_prod⟩⟩
 
-/-- **Algebraic Presentation Theorem**:
-For a semigroup morphism `ϕ : S →ₙ* T` to a finite semigroup `T` and generator set `X ⊆ S`,
-the subsemigroup closure `⟨X⟩_S` coincides with the X_{3|T|} step of the sequence. -/
+  /-- Auxiliary induction for the children of an idempotent node. -/
+  lemma listTree_prod_in_closure (ϕ : S →ₙ* T) (X : Set S)
+      (eval : List S → T)
+      (h_eval : ∀ w hw, eval w = ϕ (listProdNE w hw))
+      (cs : List (FactorizationTree S)) (hcs : FactorizationTree.listIsRamsey eval cs)
+      (hne : cs ≠ []) (e : T)
+      (he_eval : ∀ c ∈ cs, eval c.value = e)
+      (hX : ∀ x ∈ FactorizationTree.listValue cs, x ∈ X) :
+      listProdNE (FactorizationTree.listValue cs) (listTree_value_ne_nil cs eval hcs hne) ∈
+        (Subsemigroup.closure (X_seq ϕ X (FactorizationTree.listHeight cs) ∩ ϕ ⁻¹' {e}) :
+          Set S) := by
+    cases cs with
+    | nil => contradiction
+    | cons c rest =>
+      have hc_ramsey := hcs.1
+      have hrest_ramsey := hcs.2
+      have hc_ne := tree_value_ne_nil c eval hc_ramsey
+      have hc_X : ∀ x ∈ c.value, x ∈ X := fun x hx ↦
+        hX x (by simp [FactorizationTree.listValue, hx])
+      have ih_c := tree_prod_in_X_seq ϕ X eval h_eval c hc_ramsey hc_X hc_ne
+      have hc_eval : eval c.value = e := he_eval c (by simp)
+      have hc_phi : ϕ (listProdNE c.value hc_ne) = e := by
+        have h1 := h_eval c.value hc_ne
+        rw [hc_eval] at h1
+        exact h1.symm
+      have hc_height_le : c.height ≤ FactorizationTree.listHeight (c :: rest) := by
+        dsimp [FactorizationTree.listHeight]
+        exact le_max_left _ _
+      have ih_c_H := X_seq_mono ϕ X hc_height_le ih_c
+      have hc_mem_inter : listProdNE c.value hc_ne ∈
+          X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e} :=
+        ⟨ih_c_H, hc_phi⟩
+      have hc_in_closure : listProdNE c.value hc_ne ∈
+          Subsemigroup.closure (X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e}) :=
+        Subsemigroup.subset_closure hc_mem_inter
+      by_cases hrest_eq : rest = []
+      · subst hrest_eq
+        have h_val_eq : FactorizationTree.listValue [c] = c.value := by
+          dsimp [FactorizationTree.listValue]
+          simp
+        have h_prod_eq : listProdNE (FactorizationTree.listValue [c])
+            (listTree_value_ne_nil [c] eval hcs (by simp)) = listProdNE c.value hc_ne :=
+          listProdNE_eq _ _ _ hc_ne h_val_eq
+        rw [h_prod_eq]
+        exact hc_in_closure
+      · have hrest_ne' : rest ≠ [] := hrest_eq
+        have hrest_val_ne := listTree_value_ne_nil rest eval hrest_ramsey hrest_ne'
+        have hrest_X : ∀ x ∈ FactorizationTree.listValue rest, x ∈ X :=
+          fun x hx ↦ hX x (by simp [FactorizationTree.listValue, hx])
+        have he_rest : ∀ t ∈ rest, eval t.value = e :=
+          fun t ht ↦ he_eval t (by simp [ht])
+        have ih_rest := listTree_prod_in_closure ϕ X eval h_eval rest hrest_ramsey hrest_ne' e
+          he_rest hrest_X
+        have hrest_height_le : FactorizationTree.listHeight rest ≤
+            FactorizationTree.listHeight (c :: rest) := by
+          dsimp [FactorizationTree.listHeight]
+          exact le_max_right _ _
+        have h_subset_inter : (X_seq ϕ X (FactorizationTree.listHeight rest) ∩ ϕ ⁻¹' {e}) ⊆
+            (X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e}) :=
+          Set.inter_subset_inter_left _ (X_seq_mono ϕ X hrest_height_le)
+        have h_subset_closure :
+            (Subsemigroup.closure (X_seq ϕ X (FactorizationTree.listHeight rest) ∩ ϕ ⁻¹' {e}) :
+              Set S) ⊆
+            Subsemigroup.closure
+              (X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e}) := by
+          simp only [SetLike.coe_subset_coe, Subsemigroup.closure_le]
+          intro x hx
+          exact Subsemigroup.subset_closure (h_subset_inter hx)
+        have ih_rest_H := h_subset_closure ih_rest
+        have h_val_eq : FactorizationTree.listValue (c :: rest) =
+            c.value ++ FactorizationTree.listValue rest := rfl
+        have h_prod_eq : listProdNE (FactorizationTree.listValue (c :: rest))
+            (listTree_value_ne_nil (c :: rest) eval hcs hne) =
+            listProdNE c.value hc_ne *
+              listProdNE (FactorizationTree.listValue rest) hrest_val_ne := by
+          rw [listProdNE_eq _ _ _ (by simp [hc_ne, hrest_val_ne]) h_val_eq]
+          exact listProdNE_concat c.value (FactorizationTree.listValue rest) hc_ne hrest_val_ne
+        rw [h_prod_eq]
+        exact Subsemigroup.mul_mem _ hc_in_closure ih_rest_H
+end
+
+/-- Algebraic Presentation Theorem (Colcombet Theorem 4.1): `⟨X⟩_S = X_{3 * nS T}`. -/
 theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S) :
     (Subsemigroup.closure X : Set S) = X_seq ϕ X (3 * nS T) := by
   ext s
@@ -587,31 +358,26 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
       rw [dif_neg (by simp [hv, hw]), dif_neg hv, dif_neg hw]
       rw [listProdNE_concat v w hv hw]
       exact ϕ.map_mul (listProdNE v hv) (listProdNE w hw)
-    obtain ⟨split_s, h_norm, h_ramsey⟩ := simon_word eval_T hmul_T u
+    obtain ⟨t, ht_val, ht_ramsey, ht_height⟩ :=
+      factorization_forest_theorem eval_T hmul_T u hu
     have h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw) := by
       intros w hw
       dsimp [eval_T]
       rw [dif_neg hw]
-    have hX_u : ∀ (i : ℕ) (hi : i < u.length), u[i] ∈ X := by
-      intros i hi
-      exact huX u[i] (List.get_mem u ⟨i, hi⟩)
-    have h_outer := X_seq_outer_lemma (nS T) ϕ X u eval_T hmul_T h_eval_eq split_s h_ramsey hX_u
-    have h_le : nS T ≤ nS T := le_refl _
-    have hij : (0 : ℕ) < (u.length : ℕ) := by
-      have h_len : u.length > 0 := List.length_pos_of_ne_nil hu
+    have ht_X : ∀ x ∈ t.value, x ∈ X := by
+      rw [ht_val]
+      exact huX
+    have ht_ne : t.value ≠ [] := by
+      rw [ht_val]
+      exact hu
+    have h_in_height := tree_prod_in_X_seq ϕ X eval_T h_eval_eq t ht_ramsey ht_X ht_ne
+    have h_height_le : t.height ≤ 3 * nS T := by
       omega
-    have h_eval := h_outer (nS T) h_le ⟨0, by omega⟩ ⟨u.length, by omega⟩ hij (by
-      intros x hx1 hx2
-      exact (split_s x).isLt
-    )
-    have h_drop_take : (u.drop 0).take (u.length - 0) = u := by
-      simp
-    have h_eq : listProdNE ((u.drop 0).take (u.length - 0)) (list_drop_take_ne_nil u 0 u.length hij
-      (by omega)) = listProdNE u hu := by
-      apply listProdNE_eq
-      exact h_drop_take
-    rw [h_eq] at h_eval
-    exact h_eval
+    have h_in_3n := X_seq_mono ϕ X h_height_le h_in_height
+    have h_val_eq : listProdNE t.value ht_ne = listProdNE u hu := by
+      exact listProdNE_eq _ _ _ _ ht_val
+    rw [h_val_eq] at h_in_3n
+    exact h_in_3n
   · exact fun hs => X_seq_subset_closure ϕ X (3 * nS T) hs
 
 /-- Condition (1):
@@ -668,11 +434,7 @@ lemma finset_bUnion_mem_P (P : Set (Set S)) (h2 : Cond2 P) (h_empty : ∅ ∈ P)
     rw [Finset.set_biUnion_insert]
     exact h2 (hf _ (Or.inl rfl)) (ih (fun b hb ↦ hf b (Or.inr hb)))
 
-/-- **Set-Family Fixed Point Theorem**:
-Let S be a semigroup, ϕ : S →ₙ* T a semigroup morphism to a
-finite semigroup T, and X ⊆ S. If P ⊆ 𝒫(S)
-satisfies conditions (1)-(4) (and down-closedness `Cond1'`),
-then ⟨X⟩_S ∈ P. -/
+/-- Set-Family Fixed Point Theorem: if `P` satisfies conditions (1)-(4), then `⟨X⟩_S ∈ P`. -/
 theorem closure_mem_set_family [Finite T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S) (P : Set (Set S))
     (h1' : Cond1' P)
     (h1 : Cond1 ϕ X P)
@@ -732,9 +494,7 @@ def fiberSubsemigroup (f : S →ₙ* T) (e : T) (he : e * e = e) : Subsemigroup 
     simp only [mem_preimage, mem_singleton_iff] at hx hy ⊢
     rw [f.map_mul, hx, hy, he]
 
-/-- **Brown's Lemma**:
-Let `f : S →ₙ* T` be a semigroup morphism. If `T` is locally finite
-and for every idempotent `e ∈ T`, the fiber subsemigroup `f ⁻¹' {e}` is locally finite,
+/-- Brown's Lemma: if `T` and all idempotent fiber subsemigroups are locally finite,
 then `S` is locally finite. -/
 theorem brown_lemma (f : S →ₙ* T)
     (hT : IsLocallyFinite T)

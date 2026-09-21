@@ -10,31 +10,8 @@ import Project.GreensRelations.Order
 /-!
 # Simon's Split Theorem — Basic Definitions
 
-This file defines the core structures needed to state and prove Simon's Split Theorem.
-
-## Main Definitions
-
-* `MultiplicativeLabeling S α` — a function `σ : α → α → S` satisfying the
-  multiplicativity property `σ x y * σ y z = σ x z` for all `x < y < z`.
-* `Split α h` — a rank function from `α` into `Fin h`.
-* `SplitRelation s x y` — the relation identifying pairs that share the same
-  maximal rank value under the split `s`, with all intermediate elements
-  having at most that rank.
-* `IsNormalized s` — the split assigns the maximum rank to the minimum element.
-* `IsRamsey L s` — a split is Ramsey for a labeling if all equivalence
-  classes of size ≥ 3 evaluate to the same idempotent.
-* `wordLabeling eval hmul u` — the multiplicative labeling induced by a word
-  `u` and an evaluation function `eval`.
-* `OpenIntervalType xs i` — elements of `α` strictly between `xs[i]`
-  and `xs[i+1]`.
-* `nD D` — the number of H-class elements in a D-class that are related to
-  an idempotent; returns 1 for non-regular D-classes.
-* `jUp a` — the upward J-class closure of `a`.
-* `labelingIn σ U` — all pairs `(x, y)` with `x < y` map into `U` under `σ`.
-* `labeling_factor_le_J` — the J-class of any factor is bounded by the
-  J-class of the full product.
-* `isGreenD_of_prefix` — if a prefix product is D-related to `a`, so is the
-  extended product.
+Core structures and definitions for Simon's Split Theorem, including multiplicative
+labelings, splits, Ramsey condition, and Green's relation invariants.
 
 ## References
 
@@ -77,16 +54,8 @@ abbrev IsNormalized [Fintype α] [Nonempty α] [Nonempty (Fin h)]
   let min_α := Finset.min' Finset.univ Finset.univ_nonempty
   s min_α = Finset.max' Finset.univ Finset.univ_nonempty
 
-/-- `IsRamsey L s` holds if the split `s` is a Ramsey split for the labeling
-`L`. This means:
-1. **Idempotent condition**: for any three points `x < y < z` that are
-   pairwise split-related, the product `L.σ x y * L.σ x y = L.σ x y`.
-2. **Uniformity condition**: for any two pairs `(x, y)` and `(u, v)` that
-   are split-related and also cross-related (`SplitRelation s x u`), we have
-   `L.σ x y = L.σ u v`.
-These two conditions together guarantee that all pairs within the same
-split-equivalence class of size ≥ 3 evaluate to the same idempotent element,
-which is required for n-ary nodes in the factorization tree. -/
+/-- `IsRamsey L s` holds if adjacent split-related points evaluate to idempotents and
+cross-related points evaluate uniformly. -/
 abbrev IsRamsey (L : MultiplicativeLabeling S α) (s : Split α h) : Prop :=
   (∀ x y z : α, x < y → y < z → SplitRelation s x y → SplitRelation s y z →
     L.σ x y * L.σ x y = L.σ x y) ∧
@@ -98,12 +67,7 @@ end SplitDefinitions
 
 section WordDefinitions
 
-/-- The multiplicative labeling induced by a word `u` and an evaluation function
-`eval`. The labeling maps `(i, j)` to `eval(u[i..j])`, i.e., the evaluation of
-the subword from position `i` to position `j` (exclusive).
-
-The proof of the `prop` field verifies that adjacent subwords multiply
-correctly, relying on the hypothesis `hmul`. -/
+/-- Multiplicative labeling mapping `(i, j)` to `eval(u[i..j])`. -/
 abbrev wordLabeling {A S : Type*} [Semigroup S]
     (eval : List A → S)
     (hmul : ∀ u v, u ≠ [] → v ≠ [] → eval (u ++ v) = eval u * eval v)
@@ -134,11 +98,7 @@ section nD
 variable {S : Type*} [Semigroup S] [Fintype S]
 
 open Classical in
-/-- The number of elements in a Green's D-class `D` that lie in the H-class of
-some idempotent also in `D`. This quantity is used to bound the split complexity
-in the regular D-class case of Simon's theorem.
-
-For non-regular D-classes, returns 1 (matching Colcombet's original bound). -/
+/-- Number of elements in `D` in the `H`-class of some idempotent, or 1 if non-regular. -/
 noncomputable abbrev nD (D : Set S) : ℕ :=
   if IsRegularDClass D then
     (Finset.univ.filter (fun x ↦
@@ -148,7 +108,7 @@ noncomputable abbrev nD (D : Set S) : ℕ :=
     1
 
 open Classical in
-/-- The value `nD D` is strictly positive for any Green's D-class `D`. -/
+/-- The value `nD D` is strictly positive for any Green's `D`-class `D`. -/
 theorem nD_pos (D : Set S) (hD : ∃ x, D = IsGreenD.eqvClass x) : 0 < nD D := by
   dsimp [nD]
   split_ifs with hReg
@@ -164,7 +124,7 @@ section LabelingProperties
 
 variable {S : Type*} [Semigroup S]
 
-/-- The set of elements of `S` whose Green's J-class is at least as large as
+/-- The set of elements of `S` whose Green's `J`-class is at least as large as
 that of `a`, i.e., `b` such that `a ≤_J b`. Used to bound the image of a
 multiplicative labeling during the induction in Simon's theorem. -/
 abbrev jUp (a : S) : Set S := { b | GreenJClass.mk a ≤ GreenJClass.mk b }
@@ -176,10 +136,7 @@ abbrev labelingIn {α : Type*} [LinearOrder α]
     (σ : MultiplicativeLabeling S α) (U : Set S) : Prop :=
   ∀ x y : α, x < y → σ.σ x y ∈ U
 
-/-- The J-class of any factor `σ(v, w)` in a multiplicative labeling is bounded
-below by the J-class of the full product `σ(u, x)`, provided `u ≤ v` and
-`w ≤ x` with `v < w`. This reflects the fact that factors are J-greater than
-the product they participate in. -/
+/-- Factors are J-greater than or equal to the product containing them. -/
 lemma labeling_factor_le_J {α : Type*} [LinearOrder α]
     (σ : MultiplicativeLabeling S α) (u v w x : α)
     (huv : u ≤ v) (hvw : v < w) (hwx : w ≤ x) :
@@ -200,10 +157,7 @@ lemma labeling_factor_le_J {α : Type*} [LinearOrder α]
 
 variable [Finite S]
 
-/-- If the product `σ(u, v)` is D-related to an element `a`, then the extended
-product `σ(u, w)` (where `v ≤ w`) is also D-related to `a`. This uses the
-J-order monotonicity of the labeling and the fact that D-relatedness lifts
-along J-order equalities. -/
+/-- If a prefix product is `D`-related to `a`, the extended product is also `D`-related to `a`. -/
 lemma isGreenD_of_prefix (a : S) {α : Type*} [LinearOrder α]
     (σ : MultiplicativeLabeling S α) (h_img : labelingIn σ (jUp a))
     (u v w : α) (huv : u < v) (hvw : v ≤ w) (hD : IsGreenD (σ.σ u v) a) :
