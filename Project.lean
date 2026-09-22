@@ -4,6 +4,7 @@ import Project.SimonSplit.Combine
 import Project.SimonSplit.Irregular
 import Project.SimonSplit.Regular
 import Project.SimonSplit.Split
+import Project.SimonSplit.Infinitary
 import Project.GreensRelations.MulSeq
 import Project.GreensRelations.Order
 import Project.GreensRelations.Green
@@ -12,4 +13,6 @@ import Project.BrownLemma
 import Project.FactorizationTree.FactorizationTree
 import Project.Optimality.TruncatedAddition
 import Project.Optimality.Kufleitner
-import Project.Optimality.Aperiodic
+import Project.Optimality.Aperiodic.Basic
+import Project.Optimality.Aperiodic.UpperBound
+import Project.Optimality.Aperiodic.Tightness

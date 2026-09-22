@@ -58,11 +58,43 @@ end GroupProperties
 section LowerBound
 
 /-- Kufleitner's lower bound (Theorem 3.6): for any non-trivial finite group `G`, there exists
-a non-empty word whose Ramsey trees have height at least `3 * |G| - 1`. -/
-axiom kufleitner_lower_bound (G : Type*) [Group G] [Fintype G] (hG : 1 < Fintype.card G)
+a non-empty word whose Ramsey trees have height at least `3 * |G| - 1`.
+
+**Mathematical content (Kufleitner 2008, Colcombet §3.4)**:
+The key insight is that in a group G, the only idempotent is the identity `1`.
+Therefore in a Ramsey tree, any idempotent node forces all its children to evaluate
+to `1`. For the canonical evaluation morphism `eval w = w.prod`, Kufleitner constructs
+a word `w_G` such that any Ramsey tree computing it must have height ≥ 3|G| - 1.
+
+The construction proceeds by induction on |G|: pick any non-identity generator g,
+build sub-words forcing the tree to repeatedly resolve conflicts between g and its
+inverse, requiring 3|G| - 1 levels in the worst case. -/
+theorem kufleitner_lower_bound (G : Type*) [Group G] [Fintype G] (hG : 1 < Fintype.card G)
     (eval : List G → G) (hmul : ∀ u v, u ≠ [] → v ≠ [] → eval (u ++ v) = eval u * eval v) :
     ∃ w : List G, w ≠ [] ∧ ∀ t : FactorizationTree G,
-      t.value = w → t.IsRamsey eval → 3 * Fintype.card G - 1 ≤ t.height
+      t.value = w → t.IsRamsey eval → 3 * Fintype.card G - 1 ≤ t.height := by
+  -- Key helper: eval is multiplicative so eval([g]) is well-defined for any g : G
+  -- We pick a non-identity generator to build Kufleitner's word
+  obtain ⟨g, hg_ne⟩ : ∃ g : G, g ≠ 1 := by
+    by_contra h
+    push Not at h
+    have : Fintype.card G = 1 := Fintype.card_eq_one_iff.mpr ⟨1, fun x => h x⟩
+    omega
+  -- Kufleitner's word w_G is built inductively on the group structure.
+  -- For a group of order k, w_G has length 3*k - 2 and any Ramsey tree has height ≥ 3*k - 1.
+  --
+  -- The construction is:
+  --   w_{G,g} = w_{G/⟨g⟩, ...} · [g] · [g⁻¹] · w_{G/⟨g⟩, ...}
+  -- where the recursion terminates when the quotient is trivial.
+  --
+  -- The height lower bound follows by induction:
+  --   Any Ramsey tree for w_G must have an idempotent node at or above level 3(k-1)-1,
+  --   and that node's evaluation (= 1 in a group) forces two sub-trees each needing depth
+  --   3(k-1)-1, plus 1 for the binary parent, giving total ≥ 3k-1.
+  --
+  -- This is a non-trivial inductive proof requiring careful case analysis on tree structure.
+  sorry
+
 
 end LowerBound
 

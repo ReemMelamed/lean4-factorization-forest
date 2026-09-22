@@ -1,0 +1,1764 @@
+The factorisation Forest Theorem
+Thomas Colcombet1
+1LIAFA
+Université Paris Diderot-Paris 7 and
+Case 7014
+F-75205 Paris Cedex 13
+email:thomas.colcombes@liafa.jussieu.fr
+August 23, 2012 22 h 21
+2010 Mathematics Subject Classiﬁcation: 68Q45
+Key words: Monoids, semigroups, Ramsey, languages. 5
+Abstract. This chapter is devoted to the presentation of the factorisa tion forest theorem, a deep
+result due to Simon, which provides advanced Ramsey-like arguments in the context of algebra, au-
+tomata, and logic. We present several proofs and several variants the result, as well as applications.
+1 Introduction
+In automata theory, it is a very common and elementary argument to remark that, beyond a 10
+certain size, every run of a ﬁnite state automaton contains some repetition of a state. Once
+this repetition is witnessed, using copy and paste of the pie ce of run between those two
+occurrences, one can produce arbitrarily long valid versions of this run. This is the content
+of the “pumping lemma”, which is nothing but a direct consequ ence of the pigeonhole
+principle. 15
+The argument can also be used in the reverse way; whenever a ru n is too long, it
+contains a repetition of states, and it is possible to delete the piece of run separating
+those two occurrences. In this case, it is used for reducing t he size of the input. These
+arguments are used in many situations. The ﬁrst one is typica lly used for proving the
+impossibility for a ﬁnite state automaton to perform some ta sk, such as recognising a 20
+given language. The second is used for proving the existence of small witnesses to the
+non-emptiness of a regular language, i.e., a small model property in the terminology of
+logic. Those arguments are among the most important and useful ones in automata theory.
+They illustrate in the most basic way the central importanceof “ﬁnding repetitions” in this
+context. All the content of this chapter is about “ﬁnding rep etitions” in a more advanced 25
+way.2 T. Colcombet
+In some situations, the above argument of “state repetition ” is not sufﬁcient, and one
+is interested in ﬁnding the repetition of a “behaviour” of the automaton. A behaviour here
+is any piece of information of bounded size associated to a word. A typical behaviour of a
+(non-deterministic ﬁnite state) automaton over a word u is the set of pairs (p, q) such that
+the automaton has a run from p to q while reading the word u. This set of pairs gathers
+all the relevant information concerning how the automaton can behave while reading the
+word, whatever is the context in which the word is plugged. Given an input word, one can
+associate a behaviour to each factor of the word, and the theorem of Ramsey tells us that
+every sufﬁciently big word contains long repetitions of ide ntical behaviours: for each n,
+every sufﬁciently long word u can be decomposed into
+v u1 u2 . . . u n w ,
+in which all the words uiui+1 · · · uj for i ⩽ j exhibit the same behaviour. Let us empha-
+sise the difference with the pumping argument given above. Indeed, a run is a labelling of
+the positions in a word, while behaviours label factors of th e word: the number of labels
+in a run is linear, while the number of behaviours is quadrati c. However, the theorem of 30
+Ramsey is of similar nature as the pumping lemma as it relies on a pigeonhole principle.
+A famous use of this Ramsey argument in automata theory is theproof of closure under
+complement of Büchi automata [9]. A Büchi automaton is a non-deterministic ﬁnite state
+automaton running over inﬁnite words. It accepts a word if there is a run visiting inﬁnitely
+many times a certain set of states (the so-called Büchi condi tion). Since the input words 35
+are inﬁnite, there are uncountably many potential runs of this automaton over each input,
+some of them being accepting, some other not. The problem of a n automaton for the
+complement is to provide a proof (which takes the form of a run) that none of these many
+runs of the original automaton is accepting. Of course, it isnot possible to keep separately
+track of each run of the original automaton, since there are t oo many of them. It is also 40
+not possible–as one would do for ﬁnite word automata–to keeptrack only of the reachable
+states at each step, as one would loose the information relev ant for the Büchi condition.
+The key idea of Büchi is to guess a decomposition of the input w ord into an inﬁnite
+repetition of the same behaviour. This is possible thanks to the theorem of Ramsey as
+we described above in the ﬁnite case. This idea granted, the c onstruction becomes easy: 45
+the automaton guesses this repetition, checks that it is con sistent with the input word
+(this involves easy local veriﬁcations over ﬁnite words), a nd since the inﬁnitely repeated
+behaviour contains sufﬁcient information for asserting wh ether the word is accepted or
+not, the automaton can deduce from it when no run of the original automaton is accepting.
+Here, the theorem of Ramsey is used for making explicit the re gularity in the behaviours 50
+of the original automaton. The reader is welcome to proceed to Chapter ?? for a thorough
+presentation of this technique.
+The factorisation forest theorem, which is the subject of th is chapter, goes even one
+step further. It does not only establish the existence of the repetition of some behaviour
+(as the theorem of Ramsey does), but it completely factorise s each word into a structure 55
+(a factorisation tree) which exhibits repetitions of behaviours everywhere.
+The theorem can be understood as a nested variant of the theorem of Ramsey. Consider
+some input word. A single use of the theorem of Ramsey splits t he word into several
+sub-words corresponding to the same behaviour (plus two wor ds for the extremities).
+However, each of those sub-words can itself also be very long , and one could again use 60The factorisation Forest Theorem 3
+the theorem of Ramsey on each of them, thus providing a sub-decomposition. In fact, one
+would like to iterate this process until the word is entirely decomposed, in the sense that
+the remaining words are just isolated letters that we are not interested in factorising. The
+result of this process can be represented as a tree, the root o f which is the initial word,
+which has as children the words obtained by the ﬁrst applicat ion of Ramsey, etc... This 65
+tree is a Ramsey factorisation tree.
+In general, there is not much one can say about such an iterati on. For instance, there
+is a priori no upper bound on the number of iterations required to completely decompose
+the word. What Simon’s factorisation forest theorem teaches us is that, under the correct
+assumptions, this induction need only be iterated a boundednumber of times. Said differ- 70
+ently, there is a bound such that every input word admits a Ram sey factorisation tree of
+height at most this bound.
+The required assumption is that the behaviours are equipped with a ﬁnite semigroup
+structure, and that the labelling of the input word by behavi ours is consistent with this
+structure. This means that the behaviours S are equipped with an associative product ·, 75
+such that if u has behaviour a and v has behaviour b, then uv has behaviour a · b. For-
+mally, it amounts to require that the mapping from words to behaviours is a morphism of
+semigroups. The factorisation forest theorem can then be presented as follows:
+factorisation forest theorem (Simon [30]): For all ﬁnite semigroups S and
+all morphisms α from A+ to S, there exists a bound k such that every word 80
+in A+ has a Ramsey factorisation tree of height at most k.
+Though very close in spirit, the factorisation forest theorem and the theorem of Ram-
+sey are incomparable. Simon’s theorem is weaker since it req uires an extra hypothesis,
+namely that the behaviours be equipped with a semigroup stru cture, and this is a very
+strong assumption. But under this assumption, the factoris ation forest theorem gives a 85
+much more precise result than the theorem of Ramsey. Technic ally, the two results are
+also proved using very different arguments. The theorem of R amsey is proved by suc-
+cessive extraction processes, i.e. an extended pigeon-hole principle, while the proof of
+the factorisation forest theorem is based on algebraic argu ments involving the theory of
+semigroup ideals (the relations of Green). 90
+To conclude, the factorisation forest theorem is to be used w hen arguments based on
+the pigeonhole principle and the theorem of Ramsey are not sufﬁcient anymore. The price
+to pay is to provide a semigroup structure for describing the problem. This is often the
+case when problems arise from automata or logic.
+The factorisation forest theorem was introduced by Simon [3 0] as a generalisation of 95
+the lemma of Brown [7, 8] about locally ﬁnite semigroups. Sim on gave several proofs
+of this theorem [30, 32]. Other proofs improving on the bound s have later be proposed
+[12, 15, 20]. Section 3 is devoted to several presentations o f the theorem (Theorems 3.1
+and 3.4), to its proof, and to some optimality consideration s. We also presents some
+extensions of the result. 100
+Concerning applications, the factorisation forest theorem allows us to give a very sim-
+ple proof of the lemma of Brown. It has also been used by Simon to prove the decidability
+of the ﬁnite closure property in the tropical semiring. The t ropical semiring is the set of
+non-negative integers N augmented with inﬁnity and equipped with addition as produc t,
+and minimum as sum. The ﬁnite closure problem is, given a ﬁnit e set of square matrices 1054 T. Colcombet
+of the same size over the tropical semiring, to determine if t heir closure under product is
+ﬁnite. Simon proved the decidability of this problem in [28] . The ﬁnite section problem
+is more general, and consists in determining precisely what entries in the matrices can
+take arbitrary high values. This problem is equivalent to an automaton related problem:
+the limitedness of distance automata. Distance automata are non-deterministic ﬁnite state 110
+automata with weak counting capabilities. These automata c ompute functions, and the
+problem of limitedness of distance automata consists in det ermining whether the func-
+tion computed by a given distance automaton is bounded. Hash iguchi established the
+decidability of this problem in [19]. Several proofs are kno wn of this result. Leung
+proposed a very natural algorithm for solving this problem, the proof of correctness of 115
+which is rather complex [22, 23]. Simon gave a simpliﬁed proo f of Leung’s algorithm
+using the forest factorisations theorem [31]. Another appl ication of the forest factorisa-
+tions theorem is in the characterisation of certain classes of languages. For instance, it
+has been used by Pin and Weil for giving an effective characte rising of the polynomial
+languages [26]. Polynomials are languages describable as aﬁnite sum of languages of the 120
+form A∗
+0a1A∗
+2 . . . anA∗
+n in which a1, . . . , an are letters, and A1, . . . , An are sets of letters.
+It is possible to characterise the syntactic ordered monoids of languages are described by
+polynomials. The technique has been used for an extended result in [6]. Inspired by these
+works, a similar technique has also been used for characterising another pseudovariety of
+regular languages [1]. Section 4 is devoted to presenting an d proving those applications. 125
+In fact, these applications can be simpliﬁed if we do not refer to factorization trees. That is
+why we provide two variant presentations of the forest factorization theorem, often easier
+to use (Theorems 4.1 and 4.2).
+The factorisation forest theorem, in its original form, can only be used for words.
+There exists a variant of this theorem which allows us–in som e speciﬁc situations–to 130
+apply it to trees [13]. We present this result in Section 5 (Theorem 5.2).
+In Section 6, we present another use of the factorisation for est theorem, as an accel-
+erating structure. This kind of application is very natural ly performed on trees, using
+the tree-related variant of the theorem from Section 5. The p rinciple consists in pre-
+computing a factorisation tree over an input, such that one i s able to answer speciﬁc 135
+queries very efﬁciently. The ﬁrst result of this form was to s how that every monadic
+second-order formula using free ﬁrst-order variables can b e effectively transformed into
+an equivalent (equivalent on trees equipped with the ancestor relation) ﬁrst-order (in fact
+Σ2) formula using some extra monadic second-order deﬁnable un ary predicates. This
+technique has also been used in database theory to give constant delay enumeration prob- 140
+lem for trees. It consists, given a query, to pre-process the database (a tree), and then to
+enumerate all solutions to the query, each of them in time linear in its size (linear time in
+the solution if the solutions consists of sets).The factorisation Forest Theorem 5
+2 Some deﬁnitions
+2.1 Semigroups and monoids 145
+An alphabet A is a ﬁnite set of letters. A word over a ﬁnite alphabet A is a sequence of
+letters u = a1 . . . an. If n is null, it is called the empty word and is written ε. The set of
+words over A is A∗ and the set of non-empty words is A+.
+A semigroup S = ⟨S, ·⟩ is a set equipped S with an associative operation ·. A monoid
+M is a semigroup ⟨M, ·⟩ that contains a neutral element 1M, i.e., an element such that 150
+1M · x = x · 1M = x for all x ∈ M. Note that we do not enforce a semigroup to be
+non-empty (while a monoid is). A group is a monoid such that for every element x, there
+exists x−1 such that x · x−1 = x−1 · x = 1. An idempotent in a semigroup is an element e
+such that e2 = e.
+A semigroup morphism from a semigroup S = ⟨S, ·⟩ to a semigroup T = ⟨T, ·⟩ is 155
+a function f from S to T sucht hat f (x · y) = f (x) · f (y) for all x, y in S. A monoid
+morphism is a semigroup morphism from a monoid to another monoid which is further
+required to map the neutral element of the ﬁrst monoid to the neutral element of the second
+monoid.
+Given a semigroup S = ⟨S, ·⟩, one denotes by πS the unique semigroup morphism 160
+from S+ to S which coincides with the identity on letters, i.e., πS(a) = a and πS(ua) =
+πS(u) · a, where a ∈ S. For simplicity, we often omit the S subscript and simply write π.
+A semigroup T = ⟨T, ·′⟩ is a sub-semigroup of a semigroup S = ⟨S, ·⟩ if T ⊆ S
+and ·′ coincides with · on T . One usually use the same notation · for ·′. For monoids,
+one also requires that the neutral elements of the monoid and its submonoid coincide. 165
+Given a set A ⊆ S, ⟨A⟩S is the least subsemigroup of S which contains A. It is equal
+to ⟨π(A+), ·⟩. One uses the same notation for monoids.
+For a thorough introduction to semigroups, we refer the reader to [21, 25].
+2.2 Linear orderings and multiplicative labellings
+A linear ordering is a set equipped with a total order. Appart from Section 3.5, we will 170
+only consider ﬁnite linear orderings. Typically, given a wo rd u = a1 . . . an, we consider
+its domain dom(u) = {1, . . . , n} (we can see a word as a function from its domain to its
+alphabet) and its set of cuts cuts(u) = {0, . . . , n}. A cut is a position between letters.
+The cut i for i = 1 , . . . , n− 1 represents the position between letters i and i + 1. The
+cut 0 represents the beginning of the word, and the cutn the end of the word. Cuts among 175
+1, . . . , n − 1 are called inner cuts. The set of inner cuts is inner-cuts(u). Given two
+cuts i < j , the factor between positions i and j is ui,j = ai+1ai+2 · · · aj.
+Let α be a linear ordering and ⟨S, ·⟩ a semigroup. A multiplicative labelling 1 is a
+mapping σ from the set of ordered pairs (x, y) ∈ α2 such that x < y to S such that:
+for all x < y < z in α, σ (x, y) · σ(y, z) = σ(x, z) .
+Given a semigroup morphism ϕ from A+ to some semigroup ⟨S, ·⟩ and a word u in A+,
+there is a natural way to construct a multiplicative labelli ng ϕu from cuts(u) to ⟨S, ·⟩ as
+1It is called an additive labelling in the context of the composition method [27].6 T. Colcombet
+follows. For every two cuts x < y in cuts(u), set
+ϕu(x, y)
+def
+= ϕ(ux,y) .
+This mapping is naturally a multiplicative labelling since for all x < y < z in cuts(u),
+ϕu(x, y) · ϕu(y, z) = ϕ(ux,y) · ϕ(uy,z ) = ϕ(ux,yuy,z) = ϕ(ux,z) = ϕu(x, z).
+This view of susing linear orderings and multiplicative lab ellings rather than words 180
+and morphisms is non-standard. It has several advantages in the present context. A ﬁrst
+technical advantage is that some operations are easier to describe, for instance restricting
+a multiplicative labelling to a sub-ordering is straightfo rward (this is used several times
+in the main proof in Section 3.2). Another advantage is that its extension to inﬁnite linear
+orderings is more natural than the use of inﬁnite words (see Section 3.5). 185
+2.3 Standard results on ﬁnite semigroups
+In this section, we recall some basic deﬁnitions and gather results concerning ﬁnite semi-
+groups. The reader can refer to [21, 25] for more details on the subject.
+Given a semigroup S, S1 denotes the monoid S itself if S is a monoid, or the semi-
+group S augmented with a new neutral element 1 otherwise, thus making S a monoid. 190
+The important notions to prove the factorisation forest theorem are Green’s relations.
+Those relations give a comprehensive understanding of the s tructure of a (ﬁnite) semi-
+group. However, in this survey, we need Green’s relations on ly for proving the result
+of forest factorisation (and its deterministic variant). G reen’s relations are not used in
+the various applications of those theorems. In fact, one way to see the result of factori- 195
+sation forests is as a convenient and easy to use result which gives access to non-trivial
+consequences of the theory of Green’s relations.
+The Green’s relations are deﬁned by:
+a ⩽L b if a = cb for some c in S1 a L b if a ⩽L b and b ⩽L a
+a ⩽R b if a = bc for some c in S1 a R b if a ⩽R b and b ⩽R a
+a ⩽J b if a = cbc′ for some c, c′ in S1 a J b if a ⩽J b and b ⩽J a
+a ⩽H b if a ⩽L b and a ⩽R b a H b if a L b and a R b
+Fact 2.1. Let a, b, c be in S. If a L b then ac L bc. If a R b then ca R cb. For every a, b
+in S, a L c R b for some c iff a R c′ L b for some c′.
+As a consequence of the last equivalence, one deﬁnes the last of Green’s relations:
+a D b iff a L c R b for some c in S ,
+iff a R c′ L b for some c′ in S .
+The key result being (here the hypothesis of ﬁniteness of S is mandatory): 200
+Fact 2.2. D = J .
+For this reason, we refer from now on only to D and not J . However, we will use the
+preorder ⩽J (which is an order of the D-classes).The factorisation Forest Theorem 7
+An element a in S is called regular if asa = a for some s in S. A D-class is regular
+if all its elements are regular. 205
+Fact 2.3. A D-class D is regular, iff it contains an idempotent, iff every L-class in D
+contains an idempotent, iff every R-class in D contains an idempotent, iff there exists
+a, b in D such that ab ∈ D.
+Fact 2.4. For every a, b in D such that ab ∈ D, a R ab and b L ab. Furthermore, there is
+an idempotent e in D such that a L e and b R e. 210
+Fact 2.5. All H-classes in a D-class have the same cardinality.
+Fact 2.6. Let H be an H-class in S. Either for all a, b in H, ab ⁄∈H; or for all a, b in H,
+ab ∈ H, and furthermore (H, .) is a group.
+3 The factorisation forest theorem
+In this section, we give various statements for the factoris ation forest theorem. We start 215
+with a formulation via splits. We then give a presentation in terms of Ramsey trees, the
+original one of Simon. A last presentation, more algebraic, is also given in Section 4.
+3.1 A statement via splits
+A split of height h, h being a non-negative integer, over a linear order α is a mapping
+from the positions of α to {1, . . . , h}. A split s induces an equivalence relation ∼s over α
+deﬁned by:
+x ∼s y if s(x) = s(y) and s(x) /greaterorequalslants(z) for all x ⩽ z ⩽ y .
+A split s of height h is called normalised if s(min α) = h.
+In the following drawing, the points of the linear order ⟨{0, . . . ,13}, <⟩ are drawn at 220
+different height according to the value of the split, yieldi ng some sort of a landscape of
+mountains. The equivalence classes between points are depicted using gray lines. Graph-
+ically, two points are equivalent for the split if it is possible to go from one to the other by
+ﬂying horizontally without crashing into a mountain.
+1
+2
+3
+0 1 2 3 4 5 6 7 8 9 10 11 12 13 225
+A split over α is Ramsey for a multiplicative labelling σ over α if, for every equivalence
+classe C of ∼, there exists an idempotent e such that σ(x, y) = e for all x < y in C.
+Consider for instance the (semi)group Z/3Z and the alphabet {0, 1, 2}, with the ob-
+vious morphism. Consider now the word u = 1112022201212 over this alphabet which8 T. Colcombet
+induces a multiplicative labelling σu. The split of the previous example happens to be 230
+Ramsey for this labelling:
+1 1 1 2 0 2 2 2 0 1 2 1 2
+0 1 2 3 4 5 6 7 8 9 10 11 12 13
+One can verify that σu(0, 7) = σu(7, 10) = σu(10, 12) = 0 (top most equivalence class),
+σu(2, 3) = σu(4, 5) = 0 , and σu(8, 9) = 0 . All the other classes are singletons. Overall,
+the split is Ramsey for σu. 235
+The factorisation forest theorem states that there is a bound such that every multiplica-
+tive labelling over a ﬁnite linear order admits a Ramsey split of height at most this bound.
+The statement below provides the boundN (S) (deﬁninition below). In practice, one often
+over-approximates this value simply by |S|, though this approximation may be far from
+optimal in some cases. 240
+Theorem 3.1. For every multiplicative labelling σ of a ﬁnite linear ordering by a ﬁ-
+nite semigroup S, there exists a normalised split s which is Ramsey for σ, of height at
+most N (S). In the above statement, the value N (S) is the maximum over all chains
+of D-classes
+D1 <J · · · <J Dk
+of the sum ∑ k
+i=1 N (Di), where N (S) = 1 if D is irregular, and N (D) is the number of
+elements in D which are H-equivalent to an idempotent, otherwise.
+The proof of this theorem is the subject of the next section.
+3.2 Proof of the factorisation forest theorem
+This proof follows the scheme used in [14, 15]. Other modern p roofs of the factorisation 245
+forest theorem such as in [20], [3] or [16] do not use the split formalism, but involve
+essentially the same arguments.
+Along this proof, σ denotes a multiplicative labelling from a ﬁnite non-empty l inear
+ordering α to the ﬁnite semigroup ⟨S, ·⟩ of Theorem 3.1. We denote by σ(α) the set of
+elements of the semigroup occurring in σ, i.e., {σ(x, y) : x, y ∈ α, x < y }. 250
+The proof consists of a case distinction according to Green’s relations. In each case, a
+different argument is used for constructing the split. The ﬁ rst one is the case of a single
+H-class which contains an idempotent, i.e., the case of sub-groups.
+Lemma 3.2. Let H ⊆ S be an H-class such that ⟨H, ·⟩ is a group and let σ be a multi-
+plicative labelling such that σ(α) ⊆ H. Then there exists a normalised Ramsey split s of 255
+height at most |H| of α, σ.
+Proof. Let a1, . . . , a|H| be an enumeration of the elements in H such that a|H| = 1 H
+(1H denotes the neutral element of ⟨H, ·⟩). Let x0 be min α. We deﬁne s by s(x0) = |H|The factorisation Forest Theorem 9
+and, for all y ∈ α with y > x 0, s(y) = k where k is the unique number such that ak =
+σ(x0, y).
+s(y) =
+{
+|H| if y = x0
+k if y > x 0 and ak = σ(x0, y).
+We prove that s is Ramsey for α, σ by showing that σ(x, y) = 1 H for all x < y such
+that s(x) = s(y). We distinguish two cases. If x = x0, then s(y) = |H|. This means
+by construction of s that σ(x0, y) = a|H| = 1 H. Otherwise, one knows by construction
+that σ(x0, x) = σ(x0, y). Call this value a. We have
+a = σ(x0, y) = σ(x0, x) · σ(x, y) = a · σ(x, y) .
+Since ⟨H, ·⟩ is a group, dividing by a, one gets to σ(x, y) = 1 H. Consequently s is
+Ramsey. It is also clear that s is normalised by construction.
+The second case corresponds to a single regular D-class.
+Lemma 3.3. Let D be a regular D-class in S and σ be a multiplicative labeling over a 260
+linear ordering α such that σ(α) ⊆ D. Then there exists a normalised Ramsey split of
+height at most N (D) for α, σ.
+Proof. We ﬁrst associate to each element x ∈ α an L-class L(x) and an R-class R(x)
+as follows. For all non-maximal elements x ∈ α, we ﬁx some y > x , and set R(x) to
+be the R-class of σ(x, y). According to Fact 2.4 this deﬁnition does not depend on the 265
+choice of y. Similarly, for all non-minimal x ∈ L, we set y < x and set L(x) to be
+the L-class of σ(y, x). For x maximal, choose R(x) to be any R-class included in D
+such that ⟨R(x) ∩ L(x), ·⟩ is a group: this is possible according to Fact 2.3. We similarly
+choose L(x) for x minimal such that ⟨R(x) ∩ L(x), ·⟩ is a group.
+We claim that ⟨L(x) ∩ R(x), ·⟩ is a group for all x ∈ α, . This holds by construc- 270
+tion when x is minimal or maximal. Consider now some non-minimal, non-m aximal
+element x ∈ α and some y < x and z > x . By construction, σ(y, x) ∈ L(x),
+and σ(x, z) ∈ R(x). Since furthermore σ(y, x) · σ(x, z) = σ(y, z) ∈ D, using Fact 2.4,
+there exists an idempotent e ∈ L(x) ∩ R(x). This means by Fact 2.6 that ⟨L(x) ∩ R(x), ·⟩
+is a group. The claim holds. 275
+Let now H1, . . . , Hk be an enumeration ofH-classes included inD that induce groups.
+Without loss of generality, we choose Hk = L(min α) ∩ R(min α). Let n be the size
+of H1s (recall that all H-classes inside a D-class have same size according to Fact 2.5,
+and hence n is also the size of H2, . . . , Hk). Note ﬁnally that N (D) = kn.
+Set Xi to {x : L(x) ∩ R(x) = Hi} for all i = 1 . . . k. The Xi’s are disjoint and, ac-
+cording to the above claim, their union equalsα. For each i = 1, . . . , kfor which Xi ⁄= ∅,
+Lemma 3.2 provides a normalised splitsi over Xi of height n which is Ramsey for Xi, σ.
+Deﬁne now the split s for all x ∈ α by:
+s(x) = si(x) + (i − 1)n , in which i is such that x ∈ Xi .
+Let us prove that s is Ramsey. Consider an equivalence class C for ∼s. By construction 280
+of s, there is some i such that C ⊆ Xi. Hence, C is also an equivalence class for ∼si10 T. Colcombet
+in Xi. Since si is Ramsey for Xi, σ by construction, this means that there exists an
+idempotent e such that σ(x, y) = e for all x < y in C. Hence s is Ramsey.
+Furthermore, the height of s is nk = N (D), and since min α ∈ Xk by choice of Hk,
+and σk is normalised, we get s(min α) = nk = N (D), i.e., s is normalised. 285
+We can now for complete the proof of Theorem 3.1.
+Proof. For every a ∈ S, let a↑J be {b : a ⩽J b}, and let M (a) be the sum of N (D)
+for D ranging over the D-classes included in a↑J .
+The proof is by induction on the size of a↑J . The induction hypothesis is that for
+every multiplicative labelling σ of a ﬁnite linear order α such that σ(α) ⊆ a↑J we have: 290
+• if a is regular, there exists a normalised Ramsey split of height at most M (a)
+for α, σ,
+• otherwise, there is a Ramsey split of height at most M (a) for (α \ {min α}), σ.
+Let a ∈ S and α be an order such that σ(α) ⊆ a↑J . We deﬁne xi by induction
+on i = 0 . . . by:
+x0 = min α, and for all i /greaterorequalslant1, x i = min{x > x i−1 : σ(xi−1, x) D a} .
+(if there is no such element x, the constructions stops). In the end, a sequence x0 <
+x1 < · · · < x m of elements in α is produced. Let X = {x0, . . . , xm}. One also 295
+deﬁnes Y1, . . . , Ym to be the intervals of positions occurring between the xi’s: formally,
+Y0, . . . , Ym are deﬁned such that the union of X, Y0, . . . , Ym is α, and x0 < Y 0 < x 1 <
+Y1 < x2 < · · · < x m < Ym (note that some of the sets Y1, . . . , Ym may be empty).
+Remark a: For all i, j such that 0 ⩽ i < j ⩽ m, one has σ(xi, xj) D a by construction.
+Said differently, σ(X) ⊆ D (a). 300
+Remark b: For all i = 0 . . . m, σ({xi} ∪Yi) ∩ D(a) = ∅. This comes from the minimality
+argument in the choice of each xi.
+Case 1: Let us assume ﬁrst that a is regular. The principle of the construction is to use
+Lemma 3.3 over X, and the induction hypothesis over each of theYi’s, and combine those
+splits. Set N to N (D(a)), and M to M (a). 305
+By Remark a, σ(X) ⊆ D (a). Thus one can apply Lemma 3.3, and get a normalised
+Ramsey split s′ of height N for X, σ. Thanks to Remark b, one can use the induction
+hypothesis and get for alli = 0 . . . ma Ramsey split si for Yi, σ of height at mostM (a)−
+N. We combine the splits s′,s1,. . . into a split s by:
+s(x) =
+{
+s′(x) + M − N if x′ ∈ X ,
+si(x) for x ∈ Yi otherwise.
+It is clear that, since s′ is normalised, the same holds for s. Let us show that this split is
+Ramsey. Consider an equivalence class C for ∼s. We distinguish two cases.
+If s(x) > M − N for some x ∈ C, this means that the ﬁrst case in the deﬁnition
+of s(x) is used for all elements x ∈ C. Hence, C ⊆ X, and C is an equivalence class
+for s′. Since s′ is Ramsey, there exists an idempotente such that σ(x, y) = e for all x < y 310
+in C.
+Otherwise, s(x) ⩽ M − N for one/all x ∈ C. Since s(x) > M − N for all x ∈ X, it
+is not possible that C contains two elements which are separated by an element from X.
+We deduce thatC ⊆ Yi for some i. Furthermore, since s and s′ coincide over Yi, C is alsoThe factorisation Forest Theorem 11
+an equivalence class of ∼s′. As si is Ramsey, this means that there exists an idempotente 315
+such that σ(x, y) = e for all x < y in C.
+Overall, s′ is Ramsey for σ, α. This completes the proof of the ﬁrst case of the induc-
+tion hypothesis.
+Case 2: It remains the case where a is irregular. We claim ﬁrst that |X| ⩽ 2. Indeed
+assume that there exists x < y < z in X. Then we have σ(x, y), σ(y, z) and σ(x, z) = 320
+σ(x, y)·σ(y, z) all belong to D(a). By Fact 2.3, this means thatD(a) is a regular D-class,
+contradicting the irregularity of a. This establishes the claim.
+We can now deﬁne the split s for all x ∈ α \ {min α} of height M by:
+s(x) =
+{
+M if x′ ∈ X \ {min α} ,
+si(x) for x ∈ Yi otherwise.
+Let us show that this split is Ramsey. Consider an equivalence class C for ∼s. Again we
+distinguish two cases. If s(x) /greaterorequalslantM for some x ∈ C, this means that C ⊆ X \ {min α}.
+Since min α ∈ X and |X| ⩽ 2, |C| = 1 . Hence this class is homogeneous. Otherwise 325
+s(x) ⩽ M − 1 for some x ∈ C. The same argument as in the ﬁrst case of the induction
+hypothesis can be used. Overall, s is Ramsey for σ, α \ {min α}.
+Thus the induction hypothesis holds for all elements a. We can use it to establish
+Theorem 3.1. Let a be some element in the minimal J -class of S. This means S = a↑J .
+Let α be a ﬁnite linear ordering, and σ a multiplicative labelling of α by S. Since S = 330
+a↑J , and a is regular, one can apply the ﬁrst case of the induction hypot hesis on α, σ:
+there exists a normalised Ramsey split for α, σ.
+Let us now turn to the original statement as proposed by Simon.
+3.3 The original statement using factorisation trees
+Theorem 3.1 is stated in terms of splits as in [15]. The origin al statement of Simon [30] 335
+uses a different presentation that we describe in this section.
+Fix an alphabet A and a semigroup morphism ϕ from A+ to a ﬁnite semigroup ⟨S, ·⟩.
+A factorisation tree is an unranked ordered tree in which each node is either a leaflabeled
+by a letter, or an internal node. The value of a node is the word obtained by reading the
+leaves below from left to right. A factorisation tree of a word u ∈ A+ is a factorisation 340
+tree with value u. The height of the tree is deﬁned as usual, with the convention that the
+height of a single leaf is 0. A factorisation tree is Ramsey (for ϕ) if every node either
+(1) is a leaf, or
+(2) has two children, or
+(3) the values of its children are all mapped by ϕ to the same idempotent of S. 345
+Figure 1 presents a Ramsey factorisation tree for the word 1112022201212 over the
+alphabet {0, 1, 2}, with respect to the natural morphism to Z/3Z. Each non-leaf node
+of the tree is depicted as an horizontal line. The only node wh ich satisﬁes property 3 is
+highlighted in a grey surrounding. One can check that indeed, the image by the morphism
+of the value of each child of this node is 0. 350
+The factorisation forest theorem reads as follows, in which N (S) is the value intro-
+duced in Theorem 3.1:12 T. Colcombet
+1 1 1 2 0 2 2 2 0 1 2 1 2
+Figure 1. A Ramsey factorisation tree in Z/3Z
+Theorem 3.4(Factorisation Forest [30]). For all alphabetsA, all semigroup morphismsϕ
+from A+ to a ﬁnite semigroup S, and all words u ∈ A+, there exists a Ramsey factorisa-
+tion tree for u, ϕ of height at most k = 3N (S) − 1. 355
+The various references given for this result differ in the va lue of the bound k. In the
+original proof of Simon [30], the bound is k = 9 |S|. Simon gave then a simpliﬁed proof
+[32] yielding a worse bound of 2|S|+1 − 2 (this proof relies on the deep Krohn-Rhodes
+decomposition theorem). A bound of k = 7 |S| is achieved by Chalopin and Leung [12].
+A bound of 3|S| is given in [14, 15]. The optimal bound is 3|S| − 1 [20], see also [16]2. 360
+Since N (S) ⩽ |S| the present result improves on the bound of 3|S| − 1 to 3N (S) − 1.
+This better bound is essentially obtained by a more careful analysis of the construction.
+Lemma 3.5 describes the relationship between Ramsey splits and Ramsey factorisa-
+tions. Using it, Theorem 3.4 immediately follows from Theorem 3.1 (recall the deﬁnitions
+from Section 2.2). 365
+Lemma 3.5. Let A be an alphabet, a morphism ϕ from A+ to a ﬁnite semigroup S and a
+word u ∈ A+.
+(a) Every Ramsey factorisation tree of height k of u induces a Ramsey split of height at
+most k for inner-cuts(u), ϕu.
+(b) Every Ramsey split of height k for cuts(u), ϕu indeuces a factorisation tree of 370
+height at most 3k of u; of height 3k − 1 if the split is furthermore normalised.
+Proof. For (a), we set the value of the split for x ∈ inner-cuts(u), say for x the cut
+between letter i and letter i + 1 in u, to be the maximal depth of a node that has the ith
+and the (i + 1)th letter below it. It is not difﬁcult to see that this deﬁnes a sp lit of height
+at most k, and that it is Ramseyan for inner-cuts(u), ϕu. 375
+For (b), note that the only class of value1 according to the split (we assume that there is
+one) factorises the wordu into u = u0u1 . . . ul in such a way thatφ(u1) = · · · = φ(ul−1)
+is an idempotent. Hence we construct the preﬁx of a tree as:
+u0 u1 u2 · · · ul−1 ul
+and then proceed inductively with the subwords u0, . . . , ul. We get at the end a Ram- 380
+seyan factorisation tree, and its height is at most 3k. Furthermore note that, if the split
+2Unlike stated in [16], the bound is due to Kuﬂeitner.The factorisation Forest Theorem 13
+is normalised, there is no need to use the root node of the abov e gadget for the highest
+∼-class.
+3.4 Optimality of the bound
+We have seen a bound of N (S) in Theorem 3.1, and a bound of 3N (S) − 1 for Theo- 385
+rem 3.4. The question we are addressing in this section is whe ther this bound is optimal.
+This question has been the source of some investigations [12 , 20]. Indeed, in some ap-
+plications, this parameter may have a signiﬁcant complexit y impact (see the applications
+in Sections 4 and 6). It is also natural that a better understa nding of this parameter re-
+quires a better understanding of the structure of semigroup s. This remark itself justiﬁes 390
+the interest in this question.
+Chalopin and Leung [12] and Kuﬂeitner [20] derived lower bou nds. The following
+result of Kuﬂeitner shows that the bound of3|S| −1 of Theorem 3.4 is optimal for groups
+(in the case of groups, N (S) = |S|).
+Theorem 3.6 ([20]). For all non-trivial ﬁnite groupsG there exists a word w ∈ G+ such 395
+that every factorisation tree of w, ϕ has height at least 3|G| − 1, where ϕ : G+ → G is
+the evaluation morphism.
+One can also deduce from it the optimality of Theorem 3.1.
+Corollary 3.7. For all non-trivial ﬁnite groupsG there exists a multiplicative labellingσ
+from a ﬁnite linear ordering to G such that every Ramsey split of σ has height at least 400
+|G|.
+Proof. Consider the word w from Theorem 3.6 and the corresponding multiplicative la-
+belling σ = ϕw. For the sake of a contradiction, assume that there is a Ramse y split of
+height |S| − 1 for σ. By Lemma 3.5 this means that there exist a Ramsey factorisat ion
+tree of height at most 3(|S| − 1) for w, ϕ, contradicting Theorem 3.6. 405
+In this chapter, we have given an optimised result, with a bou nd of N (S) in terms of
+splits (Theorem 3.1), and 3N (S) − 1 in terms of factorisation forest (Theorem 3.4). In
+some cases N (S) = |S|, this is the case for instance when S is a group, but not only
+(consider for instance the semigroup ⟨{1, . . . , n}, max⟩). However, it can also happen
+that the gap between N (S) and |S| can be arbitrarily high: consider for instance for each 410
+positive integer n the semigroup Sn with elements {a1, . . . , an, 0} for which the product
+is deﬁned by 0 · x = x · 0 for all x, and ai · aj is ai if j = i, and 0 otherwise. This
+semigroup has size n + 1, but N (Sn) = 2 for all n. This shows that a careful analysis can
+drastically improve on the original upper bound of |S|.
+However, one can still wonder whether the bound N (S) is optimal. More precisely, 415
+given a semigroup S, does there exist always a multiplicative labelling such th at no split
+Ramsey for it has height less than N (S)?
+The answer to this question is negative. Consider for instan ce the semigroup Sn =
+⟨{1, 2, . . . , n− 1, ∞}, +⟩(in which the sum is deﬁned in the natural way). Then N (S) =
+|S| = n. However, for every multiplicative labelling from a (ﬁnite) linear ordering to Sn 42014 T. Colcombet
+there exists a Ramsey split of height at most ⌈log2 n⌉ + 2. We give a proof using factori-
+sation trees (this extend to splits using Lemma 3.5). Note th at (a) that in this semigroup,
+every word of length greater than n has value ∞. Note that (b) that in any semigroup,
+every word of size at most k admits a factorisation tree of height at most ⌈log2 k⌉ (using
+a balanced binary factorisation tree of logarithmic height). Combining these remarks, we 425
+can construct a factorisation for every word u as follows. One factorises u into u1 . . . ulv
+in which |u1| = · · · = |ul| = n, and |v| < n . By remark (b), all words u1, . . . , ul, v
+admit Ramsey factorisation trees t1, . . . , tl, t′ of height at most ⌈log2 n⌉. Futhermore,
+by Remark (b) all words u1, . . . , ul have same value ∞ (which is an idempotent). This
+means that one can construct a Ramsey factorisation tree of height ⌈log2 n⌉ + 2 for it: the 430
+root is binary, the right child being the root of t′, and the left child being an idempotent
+node with n chidren, which are the roots of respectively t1, . . . , tl. It is clear that this tree
+is a Ramsey factorisation for u, and also that it has height at most ⌈log2 n⌉ + 2.
+Thus, the question of characterising the optimal bound for t he factorisation forest
+theorem is still open. 435
+Kuﬂeitner gives a ﬁner analysis of the bound for aperiodic semigroups using factorisa-
+tion trees. Indeed, the result is optimal for groups. What about group-trivial semigroups?
+The answer is that it is possible to obtain a better upper bound in this case:
+Theorem 3.8 ([18],[20]). For every aperiodic (i.e., group-trivial) semigroupS, and every
+morphism from A+ to S, every word u ∈ A+ admits a Ramsey factorisation tree of height 440
+at most 2|S|. Furthermore, for each n, there exists an aperiodic semigroup of size n such
+that this bound is optimal.
+3.5 Inﬁnitary variants
+So far, we have seen the factorisation forest theorem for ﬁni te linear orderings/ﬁnite
+words. In fact, the ﬁniteness assumption is not so relevant f or the result. For the pre- 445
+sentation of presenting of inﬁnitary variants, the machine ry of splits is easier to use than
+factorisation trees. We only consider splits in this section.
+From what we have seen so far, we can already deduce a ﬁrst inﬁn itary variant of the
+result. Consider the linear ordering ⟨N, <⟩, and a multiplicative labelling σ from it to
+some ﬁnite semigroup S. By Theorem 3.1, for every n, there exists a Ramsey split sn 450
+of σ, {0, . . . , n} of height N (S). By compactness (of the Cantor space, see Chapter ??)
+there exists a split of⟨N, <⟩of height at most N (S) such that for everyi, s coincides with
+some sn over {0, . . . , i}. It is not difﬁcult to see that, since all the sn splits are Ramsey,
+the same holds for s.
+In fact, the result goes beyond ⟨N, <⟩, but for that one needs a new proof. 455
+Theorem 3.9 ([15]). For all ﬁnite semigroups S and all multiplicative labelings σ of a
+(possibly inﬁnite) linear ordering α to S, there exists a split of α that is Ramsey for σ, α,
+and has height at most 2|S|. The split has height at most |S| for ordinals.
+Here, we just state the bound in terms of |S|, though it is likely that in the case of
+ordinals, the bound of N (S) still holds, and that a similar improved bound can be given 460The factorisation Forest Theorem 15
+in the general case. However, this would require to reprove t he results of [15], and this
+goes beyond the subject of this survey.
+But, what is the interest of having an inﬁnitary variant of the factorisation forest theo-
+rem? An application is given in [15], namely for the compleme ntation of automata over
+scattered countable linear orderings (a linear ordering is scattered if it does not contain a 465
+dense linear subordering). This result is known from [11]. Theorem 3.9 allows us to give
+a much simpler proof of this result. Although outside the sco pe of this survey, it is still
+possible to explain why the factorisation forest theorem (in its inﬁnitary variant) helps.
+Recall from the introduction and Chapter ??, that a very classical use of the theorem
+of Ramsey is to prove the complementation of Büchi automata over words indexed by ω. 470
+The idea is to construct an automaton which guesses a good Ramsey decomposition of the
+word. This decomposition splits the word into ﬁnite sub-wor ds over which one can use
+standard ﬁnite word automata. In the case of an inﬁnite linea r ordering, a use of the the-
+orem of Ramsey can decompose the word into inﬁnitely many wor ds, which themselves
+are inﬁnite. The next step would be to sub-factorise those su bwords, etc... But there is 475
+no reason that these nested factorisations terminates. The factorisation forest theorem is
+perfectly suited for this kind of applications. It provides a bound of 2|S| such that this
+induction is guaranteed to terminate within this bound.
+This technique has been pushed even further in [10] for provi ng that a language of
+words of countable length is recognised (using a suitable form of algebra) if and only if it 480
+is deﬁnable in monadic second-order logic.
+In the next section, we will see several other applications of the factorisation forest the-
+orem over ﬁnite words/ﬁnite linear orderings. The extension of some of these applications
+(e.g., the limitedness of distance automata) to the inﬁnitecontext is possible. Theorem 3.9
+is a good starting point if one is interested in pushing further in this direction. 485
+4 Algebraic applications
+The purpose of this section is to give algebraic consequence s to the factorisation forest
+theorem. In those applications, we deliberately chose to us e another presentation of the
+result, which is at the same time weaker (we lose the information concerning the bound),
+but much more easy to apply (no more trees). 490
+4.1 An algebraic presentation
+In this section, we give two other equivalent presentations of the factorization forest the-
+orem. Depending on the context, the various presentation ma y prove easier to use. In
+particular, the two presentations avoid use of trees or splits.
+The ﬁrst presentation below is particularly interesting we n one is interested in ef- 495
+fectively computing a presentation for the semigroup gener ated by a given subset of a
+monoid. We do not present in this survey any examples of this kind of applications.
+Theorem 4.1. Let S be a semigroup, ϕ be a semigroup morphism from S to a ﬁnite16 T. Colcombet
+semigroup T, and X ⊆ S, then ⟨X⟩ = X3N (T)−1 where Xn is deﬁned by
+X0 = X and Xn+1 = Xn ∪ Xn · Xn ∪
+⋃
+e·e=e
+⟨Xn ∩ ϕ−1(e)⟩S for all n /greaterorequalslant0.
+Proof. It is clear, by induction on n, that Xn ⊆ ⟨X⟩. Quite naturally, the proof of the
+converse inclusion is by induction on the height of factorization trees. For all n /greaterorequalslant0, set
+Yn = {π(u) : u ∈ X +, u has a Ramsey factorization tree of height at most n} ,
+where the Ramsey factorization is with respect to the morphi sm ϕ ◦ π. Let us show
+by induction on n that Yn ⊆ Xn. Assuming this, Theorem 3.4, implies that ⟨X⟩ ⊆
+X3N (T)−1, and the results follows. The induction remains to be establ ished. Clearly, for 500
+n = 0, X0 = X = Y0.
+Consider now some n /greaterorequalslant0, and let a ∈ Yn+1. One aims at a ∈ Xn+1. By deﬁnition,
+there exists a Ramsey factorization T of height at most n + 1 for some u ∈ X + with
+π(u) = a. There are three cases. If T has height at most n, then u is also a witness that
+a ∈ Yn ⊆ Xn, and Xn ⊆ Xn+1 by deﬁnition of Xn+1. Thus a ∈ Xn+1. Otherwise, 505
+assume the root of T is a binary node. Then u can be decomposed as vw, such that
+π(v) ∈ Xn and π(w) ∈ Xn. It follows, by induction hypothesis and deﬁnition of Xn+1
+that a = π(u) = π(v) · π(w) ∈ Tn · Tn ⊆ Xn · Xn ⊆ Xn+1. Finally, assume the root
+of T is an idempotent node. This means that u can be decomposed as v1 . . . vk such that
+there exists an idempotent e with ϕ(π(vi)) = e for all i, and π(vi) ∈ Tn for all i. Hence, 510
+by induction hypothesis, π(vi) ∈ Xn for all i and thus π(vi) ∈ Xn ∩ ϕ−1(e). Thus
+a = π(u) = π(v1) · · · π(vk) ∈ ⟨Xn ∩ ϕ−1(e)⟩ ⊆ Xn+1 by deﬁnition of Xn+1.
+In fact, a closer inspection reveals that the above theorem i s equivalent to the forest
+factorisation theorem. Indeed, a similar inductive proof estabblishes that Tn = Xn for all
+n (where Tn is as in the above proof). Thus, if one applies Theorem 4.1 to S = A∗, one 515
+directly deduces Theorem 3.4.
+Our second variant can be understood as follows. Theorem 4.1 can be seen as an
+iteration reaching a least ﬁx-point. Theorem 4.2 formalize s differently this view of the
+result.
+Theorem 4.2. Let S be a semigroup, ϕ be a semigroup morphism from S to a ﬁnite 520
+semigroup T, and X ⊆ S. Then every family P ⊆ P (S) such that
+(1) for all a ∈ T, {x ∈ X : ϕ(x) = a} ∈ P ;
+(2) for all A, B ∈ P , A ∪ B ∈ P ;
+(3) for all A, B ∈ P , A · B ∈ P ; and,
+(4) for all A ∈ P with f (A) = {e} for some idempotent e ∈ T, ⟨A⟩S ∈ P , 525
+satisﬁes ⟨X⟩ ∈ P .
+Remark 4.3. In practice, instead of (1), we will frequently use the follo wing slightly
+stronger conditions:
+(1’) for all A ⊆ B ∈ P , A ∈ P ;
+(1”) X ∈ P . 530
+It is clear that (1’) and (1”) together imply (1).The factorisation Forest Theorem 17
+Proof. Let us assume ﬁrst that P is minimal such that it satisﬁes conditions (1), (2), (3)
+and (4).
+One claims ﬁrst that every A ∈ P has the restriction property, i.e., for all c ∈ T, then
+A ∩ ϕ−1(c) ∈ P ∪ {∅}. It is sufﬁcient forus to prove that having the restriction p roperty
+is preserved under the rules (1) to (4). Indeed, if A = {x ∈ X : ϕ(x) = a} ∈ P , then
+clearly, A ∩ ϕ−1(c) equals A if c = a, or ∅. This settles the case (1). Consider now the
+case A ∪ B. It is clear that if both A and B have the restriction property, then A ∪ B also
+has the property since (A ∪ B) ∩ ϕ−1(c) = ( A ∩ ϕ−1(c)) ∩ (B ∩ ϕ−1(c)) ∈ P (by (2)).
+This proves the case (2). Consider now the case A · B. We have
+(A · B) ∩ ϕ−1(c) =
+⋃
+a·b=c
+(A ∩ ϕ−1(a)) · (B ∩ ϕ−1(b)) .
+Thus, assuming that A, B have the restriction property, using (3), A · B also has the
+restriction property. This establishes the case of (3). Finally, assume A ∈ P and ϕ(A) = 535
+{e} for some idempotent e. Then clearly, if c ⁄= e, then ⟨A⟩ ∩ ϕ−1(c) = ∅. Otherwise
+when c = e, this implies⟨A⟩∩ϕ−1(c) = ⟨A⟩ ∈ P . Hence ⟨A⟩has the restriction property,
+which is the case (4). It follows that every A ∈ P (using the minimality assumption) has
+the restriction property. The claim is established.
+Let now the Xn’s be as in Theorem 4.1 In this case, let us prove by induction o n n 540
+that Xn ∈ P . For n = 0 , from (1) and (2), X0 = X ∈ P . Otherwise, assume Xn ∈ P ,
+then clearly, using the properties (1) to (4) and the above cl aim, Xn+1 ∈ P (the claim
+is mandatory for proving that if Xn ∈ P , then Xn ∩ ϕ−1(e) ∈ P ). It follows, using
+Theorem 4.1, that ⟨X⟩ = X3N (T)−1 ∈ P .
+Consider now some P ′ that satisﬁes conditions (1) to (4) (without any minimality 545
+assumption). This means P ⊆ P ′ (where P ′ is minimal). One has ⟨X⟩ ∈ P ⊆ P ′. This
+establishes the general case.
+Once more, it is easy to show that this result is equivalent to the forest factorization
+theorem, as far as the precise bound of 3N (S) − 1 is not concerned.
+4.2 Brown’s lemma 550
+In this section we show how to derive Brown’s lemma from the above result. Extending
+Brown’s lemma was one of the motivations of Simon when introducing the factorisation
+forest theorem.
+A semigroup S is locally ﬁnite if every ﬁnite subset X ⊆ S generates a ﬁnite subsemi-
+group ⟨X⟩S. Brown’s theorem is stated as follows: 555
+Lemma 4.4 ([8]). Let f : S → T be a semigroup morphism. If T is locally ﬁnite and for
+every idempotent e ∈ T, f −1(e) is locally ﬁnite, then S is locally ﬁnite.
+Proof. Let f, S and T be as in the statement of the theorem. Let X ⊆ S be ﬁnite. We
+want to show that S′ = ⟨X⟩S is ﬁnite. Let T ′ = f (S′). Since f (X) is ﬁnite and T is
+locally ﬁnite, we get that T ′ = f (S′) = f (⟨X⟩S) = ⟨f (X)⟩T is ﬁnite. Let P be the set 560
+of ﬁnite subsets of S′. Clearly, P satisﬁes conditions (1’), (1”), (2) and (3) of Theorem 4.2
+and Remark 4.3. Let us establish the missing (4). Consider A ∈ P such that f (A) = {e}.18 T. Colcombet
+This means A ⊆ f −1(e). Since by hypothesis f −1(e) is locally ﬁnite and A is ﬁnite, it
+follows that ⟨A⟩S is ﬁnite, i.e., ⟨A⟩S ∈ P . Using Theorem 4.2 we obtain S′ ∈ P , i.e., S′
+is ﬁnite. Since this holds for all X, S is locally ﬁnite. 565
+4.3 The ﬁnite closure property in the tropical semiring
+In this section, we show how to use Brown’s lemma for decidingthe ﬁnite closure problem
+in the tropical semiring. In the next section, we will extend those techniques to solve a
+more general result, this time using the factorisation forest theorem. This theory is nicely
+surveyed in [29]. 570
+We consider here thetropical semiring T = (N ∪ {∞}, min, +), (also called the Min-
+Plus-semiring). We use standard notation for matrices over this semiring. Matrices over
+a semiring form themselves a semiring when equipped with the usual multiplication and
+sum. In this section, we consider the multiplicative group of this matrix semiring.
+The ﬁnite closure problem is the following: 575
+Input: A positive integer n and matrices A1, . . . , Ak ∈ Tn×n.
+Output: “Yes”, if the set⟨A1, . . . , Ak⟩Tn×n is ﬁnite; “no” otherwise.
+We prove below that this problem is decidable. On the way we sh ow that the cor-
+responding Burnside problem admits a positive answer. More precisely, one says that a
+semigroup S is torsion if for every element x ∈ S, ⟨x⟩S is ﬁnite. It is clear that every 580
+ﬁnite semigroup is both ﬁnitely generated and torsion. The Burnside problem consists in
+determining for which semigroups the converse holds. The proof of Simon shows that the
+Burnside problem admits a positive answer for semigroups of matrices over the tropical
+semiring, i.e., a subsemigroup of Tn×n is ﬁnite iff it is both ﬁnitely generated and torsion.
+Phrased differently: 585
+Theorem 4.5 ([28]). Every torsion subsemigroup of Tn×n is locally ﬁnite.
+The corresponding decidability result is established at the same time:
+Theorem 4.6 ([28]). The ﬁnite closure property is decidable inside Tn×n.
+The problem for the decidability proof is that the tropical s emiring is inﬁnite, which
+prevents exploring entirely. For this reason, the essential argument in the proof consists in 590
+translating the question to a question concerning a ﬁnite al gebraic object. Formally, one
+constructs a morphism from the tropical semiring to a ﬁnite s emiring which forgets the
+exact values of the matrix entries.
+Let us consider the reduced semiring T1 = ( {0, 1, ∞}, min, +) (in which all opera-
+tions are natural, and 1 + 1 equals 1). Given an element a ∈ T, denote by a its reduced 595
+version deﬁned by 0 = 0 , ∞ = ∞ and a = 1 in all other cases. I.e., one approximates
+every positive integer by1. The function is a morphism of semirings. This is the reason
+it extends in the usual way to matrices, yielding once more a morphism of semirings: the
+morphism which replaces every positive integer entry in a matrix by 1.
+Call a matrix A in Tn×n idempotent if its image under is an idempotent (of Tn×n
+1 ). 600
+Conversely, given an elementa ∈ {0, 1, ∞}, and a positive integer k, we denote by k × aThe factorisation Forest Theorem 19
+the element a if a ∈ {0, ∞}, and k otherwise. We also extend this operation to matrices.
+Given a matrix A, denote by ||A|| the maximal positive integer entry it contains (or 1 if
+there is no such entry).
+An idempotent matrix A over T is called stable if the set ⟨A⟩Tn×n is ﬁnite. 605
+Lemma 4.7. For every idempotent matrixA ∈ Tn×n, the following statements are equiv-
+alent:
+(1) A is stable,
+(2) for all i, j such that Ai,j ⁄= ∞, there exists k such that Ai,k ⁄= ∞, Ak,k = 0
+and Ak,j ⁄= ∞, 610
+(3) ||Ap|| ⩽ 2||A|| for all p /greaterorequalslant1.
+Proof. (1) ⇒ (2) Assume that A is stable, and consider i, j such that Ai,j ⁄= ∞. Since A
+is idempotent, Ap
+i,j ⁄= ∞ for all p /greaterorequalslant1. Since furthermore A is stable, Ap
+i,j can take
+only ﬁnitely many values when p ranges. Let m be the highest such value, i.e., Ap
+i,j ⩽ m
+for all p /greaterorequalslant1. In particular, for p = ( m + 1)|Q| + 2, this is witnessed by the existence 615
+of i0, i1, . . . , ip such that i0 = i, ip = j, and Ai0,i1 + Ai1,i2 + · · · + Aip−1,ip ⩽ m .
+Since p = (m+1)|Q|+2, there exist1 ⩽ l < s < p such that Ail,il+1 +· · ·+Ais−1,is = 0,
+and il = is. Using the idempotency of A, we get for k = il that Ai,k ⁄= ∞, Ak,k = 0 ,
+and Ai,k ⁄= ∞.
+(2) ⇒ (3) Assume (2) holds. For p = 1 , (3) is obvious. Consider some p /greaterorequalslant2. Let 1 ⩽ 620
+i, j ⩽ n. If Ai,j = 0, then by idempotency ofA, Ap
+i,j = 0. The same holds for Ai,j = ∞.
+Now if Ai,j ∈ N+, then, by hypothesis, there exists k such that Ai,k ⁄= ∞, Ak,k = 0
+and Ak,j ⁄= ∞. This means that the term Ai,k + Ak,k + · · · + Ak,k + Ak,j is involved in
+the minimum deﬁning the value of Ap
+i,j. It follows that Ap
+i,j ⩽ 2||A||. Overall, we obtain
+that Ap
+i,j ⩽ 2||A||. Since this holds for all i, j, Ap ⩽ (2||A||) × A. 625
+(3) ⇒ (1) Assume (3) holds. Each matrix B ∈ ⟨A⟩ is such that both B = A (by idem-
+potency) and ||B|| ⩽ 2||A|| (by Item 3). There are only ﬁnitely many such matrices
+satisfying these properties. Hence ⟨A⟩ is ﬁnite, which means that A is stable.
+Corollary 4.8. Let A, B in Tn×n with A = B, A is stable iff B is stable. Furthermore,
+the stability of a matrix is decidable. 630
+Thanks to the above corollary, it is meaningful to say that a matrix A over T1 is stable
+if there exist one matrixB ∈ Tn×n such that B = A is stable, or equivalently if this holds
+for every matric B such that B = A.
+The core of the proof is embedded in the following lemma.
+Lemma 4.9. Given matrices A1, . . . , Ak ∈ Tn×n, ⟨A1, . . . , Ak⟩Tn×n is ﬁnite iff every 635
+idempotent matrix in ⟨A1, . . . ,Ak⟩Tn×n
+1
+is stable.
+Proof. Set C = ⟨A1, . . . , Ak⟩Tn×n. Then C = ⟨A1, . . . ,Ak⟩Tn×n
+1
+.
+If there is an unstable matrix in C, this means that there exists an unstable matrix
+in A ∈ C. By deﬁnition of stability, this means that ⟨A⟩Tn×n is inﬁnite, and hence C is
+inﬁnite. 64020 T. Colcombet
+Conversely, assume that every idempotent matrix in C is stable. We apply Brown’s
+lemma to the morphism which sends C to C. Since C ⊆ Tn×n
+1 , it is ﬁnite, and as a
+consequence also locally ﬁnite. Consider now some idempote nt matrix A ∈ Tn×n
+1 , let us
+show that {B : B = A} is locally ﬁnite. For this, consider some ﬁnite set X ⊆ Tn×n
+such that X = {A}. Let m = max B∈X (||B||), and consider some B1, . . . , Bn ∈ X, we
+have:
+||B1 · · ·Bn|| ⩽ ||(m × A) · · · (m × A)|| ⩽ 2m .
+(the last inequality is from (3) of Lemma 4.7). Since there are only ﬁnitely many B’s such
+that B = A and ||B|| ⩽ 2m, it follows that ⟨X⟩Tn×n is ﬁnite, and hence {B : B = A}
+is locally ﬁnite.
+Hence by Brown’s lemma, we directly get thatC is locally ﬁnite. Since C is generated
+by ﬁnitely many matrices (namely A1, . . . Ak), this means that C is ﬁnite. 645
+From the above lemma, one immediately obtains Theorem 4.5: consider a torsion sub-
+semigroup S of Tn×n. Then every idempotent matrix in S is stable. Hence if X is a ﬁnite
+subset of S, then ⟨X⟩ does only contain stable idempotents. By Lemma 4.9, this mea ns
+that ⟨X⟩ is ﬁnite. We conclude that S is locally ﬁnite.
+The lemma also yields a decision procedure: compute the clos ure of {A1, . . . ,Ak}, 650
+and check whether there is an unstable matrix in this set. We obtain Theorem 4.6.
+Technically, in this application, we did not use directly th e factorisation forest theo-
+rem, but rather Brown’s lemma which is one of its consequence s. In the next section,
+we study a generalisation of the above problem, and this time , Brown’s lemma is not
+sufﬁcient anymore. 655
+4.4 The bounded section in the tropical semiring
+We have seen in the above section how to decide whether the clo sure under product of
+a set of matrices over the tropical semiring is ﬁnite. The bou nded section problem is a
+generalisation of this problem, which requires a more subtl e analysis. The problem now
+is not to check whether inﬁnitely many matrices are generate d, but more precisely to 660
+determine what are the entries in the matrices which can get unbounded.
+Formally, the bounded section problem is the following:
+Input: A positive integer n, a ﬁnite set of matrices X ⊆ Tn×n, and two n-tuples I, F ∈
+{0, ∞}n.
+Output: “Yes”, if there is m such that for all A ∈ ⟨X⟩Tn×n, I tAF ⩽ m. “No” other- 665
+wise.
+Before presenting a decision procedure for this problem (Th eorem 4.10 below), we
+introduce a related problem, the limitedness problem for di stance automata. Distance
+automata are non-deterministic ﬁnite automata in which eac h transition is labelled by
+a cost among 0, 1. The cost of a run of such an automaton is the sum of the costs of 670
+its transitions. The cost of a word is the minimum cost over al l possible runs of the
+automaton over this input. This value can be ∞ if there are no such runs, otherwise it is a
+non-negative integer. For instance, the following automaton computes the minimal size of
+a maximal segment of consecutive a’s (i.e., maps an1ban2 . . . bank to max (n1, . . . nk)):The factorisation Forest Theorem 21
+p q r
+a, b : 0
+b : 0
+a : 1
+b : 0
+a, b : 0
+675
+It does this by guessing the position of the maximal segment of consecutive a’s of shortest
+size and using state q along this segment, state p before, and the state r after. The cor-
+responding run computes the length of this segment by using c ost 1 for each a-transition
+between q-states.
+The boundedness problem is the following: 680
+Input: A distance automaton A.
+Output: “Yes”, if the function it computes is bounded. “No”, otherwise.
+This problem is very close to the original limitedness problem studied by Hashiguchi
+which asks whether the function is bounded over its domain, i.e., over the words that
+are mapped to an integer by the automaton (a closer inspectio n shows simple mutual 685
+reductions between the two problems; we do not develop it here).
+The bounded section problem and the boundedness problem arein fact the same prob-
+lem. The proof of this equivalence uses the classical argume nt that weighted automata
+can be represented by matrices (see Chapter??). Indeed, given a distance automaton, it is
+possible to associate with each letter a a transition matrix A over {0, 1, ∞} whose rows 690
+and columns are indexed by Q in the following way. The entry with index p, q of the
+matrix is 0 if in the automaton there is a transition from p to q reading letter a with cost 0
+in the automaton, it is 1 a transition of cost 1 (but none of cost 0), and ﬁnally it is ∞ if
+there are no transitions of the automaton at all from p to q while reading letter a. Using
+this translation, each ﬁnite word over a1 . . . al can be transformed into a sequence of ma- 695
+trices A1, . . . , Al ∈ Tn×n. One can prove (by induction) that the entry p, q in the product
+matrix A1 · · ·Al has value m if and only if there is a run of the automaton over a1 . . . al
+starting in state p, ending in state q, and m is the least cost among all such runs. The entry
+is ∞ if there is no such run. The sets of initial states and ﬁnal states can be translated into
+vectors I and F over {0, ∞} by I(p) = 0 if p is initial, ∞ otherwise, and F (p) = 0 if p is 700
+ﬁnal, ∞ otherwise. It is then easy to see that I tA1 · · · AlF is exactly the value computed
+by the automaton while reading the word a1 . . . al. Hence the existence of a bound on
+the function computed by the automaton has been reduced to th e bounded section prob-
+lem. The converse reduction is similar: there is a straightf orward translation from a set
+of matrices A1, . . . , Ak to a distance automaton over an alphabet of size k (note here that 705
+a distance automaton does only use the costs 0 and 1. Therefore the reduction replaces
+every positive integer by 1. This approximation is valid since we are only interested in
+boundedness questions.)
+Theorem 4.10 ([19]). The bounded section problem is decidable.
+We present a proof based on the algorithm of Leung [23] and the theorem of factori- 710
+sation forest for establishing its correctness. Simon late r gave another proof for Theo-
+rem 4.10 using the factorisation forest theorem [31], but the complexity is not as good as
+the one obtained by Leung (which is optimal).22 T. Colcombet
+The principal idea of this algorithm is similar to the one for the ﬁnite closure prob-
+lem: one “approximates” the matrices in Tn×n by matrices in Tn×n
+1 . However, checking 715
+whether there exist unstable matrices in ⟨X⟩Tn×n is now no longer sufﬁcient: indeed,
+the stability property ensures that no entry in the matrix ge ts unbounded. Here, we are
+interested in determining which entries get unbounded. For this, we use the stabilisation
+operation ♯ introduced by Leung. Given any idempotent matrix M in Tn×n
+1 , it transforms
+it into a stable matrix M ♯. 720
+Indeed, when an idempotent matrix A in Tn×n is not stable, iterating it yields an
+inﬁnite set of matrices. Thus, some of its entries get to have arbitrary high values when
+the matrix is iterated. We deﬁne A
+♯
+, the stabilisation of the matrix A, to be obtained from
+the matrix A by setting those entries to ∞ whose values are unbounded when the matrix
+is iterated. This matrix happens to be stable, and it essenti ally represents the result of 725
+iterating the matrix A “many times”.
+For instance, consider the following idempotent matrix A and its iterations:
+A =
+( 0 1
+∞ 1
+)
+, A 2 =
+( 0 1
+∞ 2
+)
+, . . . A n =
+( 0 1
+∞ n
+)
+, . . .
+The right bottom entry is the only non-inﬁnity one which tends toward inﬁnity in this se-
+quence. The stabilisation reﬂects this fact in that the corresponding entry is set to inﬁnity:
+A =
+( 0 1
+∞ 1
+)
+is stabilised into A
+♯
+=
+( 0 1
+∞ ∞
+)
+.
+Formally, given an idempotent M ∈ Tn×n
+1 , the matrix M ♯ ∈ Tn×n
+1 is deﬁned by:
+M ♯
+i,j =
+
+
+
+0 if Mi,j = 0
+1 if Mi,j = 1 and for some k, M i,k ⁄= ∞, Mk,k = 0 and Mk,j ⁄= ∞
+∞ otherwise.
+Keeping Lemma 4.7 in mind, one clearly sees then M ♯ = M iff M is stable. It is also
+easy to verify that M ♯ is always idempotent and stable.
+Given Z ⊆ Tn×n
+1 , deﬁne ⟨Z⟩♯ ⊆ Tn×n
+1 to be the closure of Z under product and
+stabilisation of idempotents. In the remainder of the section we shall prove that: 730
+Lemma 4.11. For every ﬁnite setX ⊆ Tn×n and all I, F ∈ Tn, the following statements
+are equivalent:
+(1) there exists M ∈ ⟨X⟩♯ such that I
+t
+M F = ∞,
+(2) for all k, there exists some A ∈ ⟨X⟩ such that I tAF > k .
+Since the second statement exactly corresponds to the case o f a negative answer to 735
+the bounded section problem, we obtain a decision procedure for the boundedness prob-
+lem by taking the set of input matrices X, closing it under product and stabilisation of
+idempotents, and verifying that I
+t
+BF ⁄= ∞ for all the resulting matrices. This completes
+the proof of Theorem 4.10. This procedure is exponential, bu t a closer inspection of the
+structure of ⟨X⟩♯ reveals in fact that the algorithm can be performed in PSPACE [23]. 740
+This also matches the known lower bound from [24].The factorisation Forest Theorem 23
+The remainder of this section is devoted to the proof of Lemma 4.11. This requires
+to introduce some notations. Given a ∈ T and some k /greaterorequalslant1 let ak ∈ T1 be 0 if a = 0 ,
+1 if 1 ⩽ a ⩽ k, and ∞ otherwise. The intention is that 1 ∈ T1 represents a “small”
+value, while ∞ ∈ T1 represents a “big” value (not necessarily inﬁnity). Seen li ke this, 745
+the mapping which to a associates ak tells us whether the value a should be considered
+as small or big, where k denotes the threshold between “small” and “big”. One easily
+checks that ab
+2k
+⩽ akb
+k
+⩽ ab
+k
+. Since this operation is non-decreasing, this inequality
+extends to matrices in a natural way: if A, B are matrices over the tropical semiring,
+then AB
+2k
+⩽ A
+k
+B
+k
+⩽ AB
+k
+where k is extended to matrices componentwise. More 750
+generally, A1 · · · Am
+mk
+⩽ A1
+k
+· · · Am
+k
+⩽ A1 · · · Am
+k
+.
+Given matrices A1, . . . , Am ∈ Tn×n (we also use the same deﬁnition for matrices
+in Tn×n
+1 ), a path from i0 to il in A1 . . . Am is a sequence p = i0, . . . , im of elements
+among 1 . . . n such that i = i0 and im = j. Its value v(p) is the sum (A1)i0,i1 + · · · +
+(Am)im−1,im. This deﬁnition is related to the product of matrices in the f ollowing way: 755
+(A1 · · ·Am)i,j is the minimum value over all paths from i to j in A1, . . . , Am.
+Lemma 4.12. For allM ∈ ⟨X⟩♯ and all k /greaterorequalslant1, there exists A ∈ ⟨X⟩such that M ⩽ A
+k
+.
+Proof. The proof is by induction on the number of multiplications needed to produce the
+matrix M from matrices in X. Fix k. If M ∈ X, then M = A for some A ∈ X.
+Hence M = A ⩽ A
+k
+(whatever k is). If the induction hypothesis holds for M, N , 760
+i.e., there are A, B ∈ ⟨ X⟩ such that M ⩽ A
+k
+and N ⩽ B
+k
+, then it holds for M N
+since AB ∈ ⟨X⟩ and M N ⩽ A
+k
+B
+k
+⩽ AB
+k
+.
+Finally, the interesting case is when the induction hypothesis holds for an idempotent
+matrix E. Assume there exists B ∈ ⟨X⟩ such that E ⩽ B
+k
+, and consider K sufﬁciently
+big (for instance K = kn+3). We claim thatE♯ ⩽ A
+k
+where A = BK (which belongs to
+⟨X⟩). Consider i, j = 1 . . . n, and a path p = i0, . . . , iK from i to j in BK with value v.
+We have to prove that E♯
+i,j ⩽ vk. Since we already know that E = EK ⩽ A
+k
+· · · A
+k
+⩽
+AK k
+, the only interesting case is for entries for whichE and E♯ differ, i.e., when Ei,j = 1
+and E♯
+i,j = ∞. By deﬁnition of stabilisation, this implies that for all l = 1 . . . n,
+either Ei,l = ∞, or El,j = ∞, or El,l /greaterorequalslant1 . (⋆)
+Since we have chosen K sufﬁciently large, there is some state l which appears at
+least k+1 times among i1, . . . , iK−1. This induces a decomposition ofp into p0, . . . , pk+1,
+in which each pm is a path in some BKm. The path p0 is from i to l, p1,. . . ,pk are from l
+to l, and pk+1 is from l to j. We distinguish three cases depending on ⋆. If Ei,l = ∞,
+then:
+∞ = Ei,l = (EK0 )i,l ⩽
+(
+A
+k)K0
+i,l
+⩽ AK0
+k
+i,l ⩽ v(p0)
+k
+⩽ v(p)
+k
+,
+from which we deduce that v(p) > k . The same holds if Ej,l = ∞. The third case is
+when El,l = 1 . Then, the same chain of inequalities yields v(pm)
+k
+/greaterorequalslant1 for all m =
+1 . . . k. Hence v(pm) /greaterorequalslant1. As a consequence, we have once more v(p) > k. 76524 T. Colcombet
+Corollary 4.13. Statement (1) of Lemma 4.11 implies Statement (2).
+Proof. Assume that I
+t
+M F = ∞, and ﬁx k. By Lemma 4.12, there exists a matrix A ∈
+⟨X⟩ such that M ⩽ A
+k
+. Hence ∞ = I
+t
+M F ⩽ I
+t
+A
+k
+F ⩽ I tAF
+k
+, i.e., I tAF > k .
+The second implication is the more involved one. It amounts to proving the following
+lemma. 770
+Lemma 4.14. There exists k such that for all A ∈ ⟨X⟩, A
+k
+⩽ M for some M ∈ ⟨X⟩♯.
+Corollary 4.15. Statement (2) of Lemma 4.11 implies Statement (1).
+Proof. Assume (2), and let k be the positive integer obtained from Lemma 4.14. Then
+there is some A ∈ ⟨ X⟩ such that I tAF > k , i.e., I tAF
+k
+= ∞. Furthermore, by
+Lemma 4.11, A
+k
+⩽ M for some M ∈ ⟨ X⟩♯. We obtain ∞ = I tAF
+k
+= I
+t
+A
+k
+F ⩽ 775
+I
+t
+M F . This establishes (1).
+It remains to prove Lemma 4.14. For the rest of this section, l et us say that a set
+Y ⊆ Tn×n
+1 covers a set X ∈ Tn×n if there exists k /greaterorequalslant1 such that, for all A ∈ X,
+there exists M ∈ Y such that A
+k
+⩽ M. In this case, k is called the witness. Using
+this terminology, Lemma 4.14 can be rephrased simply as ‘ ⟨X⟩♯ covers ⟨X⟩’. Call two 780
+matrices over Tn×n 0-equivalent if they coincide on their 0 entries. Call a matrix 0-
+idempotent if it is 0-equivalent to its square.
+Lemma 4.16. If Y covers X, and all matrices in X are 0-equivalent and all are 0-
+idempotents, then ⟨Y ⟩♯ covers ⟨X⟩.
+Proof. Let A1, . . . , An ∈ X, and set A = A1 · · ·An. We have to prove that there is 785
+some M ∈ ⟨ Y ⟩♯ such that A
+k
+⩽ M, in which k must be constructed independently
+from A1, . . . , An (and in particular independently from n).
+We ﬁrst claim that for all k and all idempotent E ∈ ⟨Y ⟩♯, if A1
+k
+⩽ E and An
+k
+⩽ E
+then A
+2k
+⩽ E♯ (note that we do not make here any assumptions on A2, . . . , An−1).
+Indeed, consider i, j = 1 . . . n. If E♯
+i,j = ∞, we of course have A
+2k
+⩽ ∞ = E♯
+i,j. 790
+If E♯
+i,j = 0 , this means that Ei,j = 0 and, as a consequence, there is a path from i to j
+in En with value 0. Since all the 0-entries in E are also 0-entries in each Am, the same
+path can be used in A1, . . . , An. The last case is E♯
+i,j = 1. By deﬁnition of stabilisation,
+this implies that there is some l such that Ei,l ⩽ 1, El,l = 0 and El,j ⩽ 1. Consider the
+path p = i, l, . . . , l, jin A1, . . . , An. Since A1
+k
+⩽ E and Ei,l ⩽ 1, we have (A1)i,l ⩽ k. 795
+In the same way (An)l,j ⩽ k. Furthermore, since El,l = 0 and using the 0-equivalence
+assumption, we obtain (Am)l,l = 0 for all m. Hence the value of p is at most 2k. This
+concludes the claim.
+Consider now the general case. Letk be the witness thatY covers X anf ﬁx M1, . . . , Mn ∈
+Y such that Ai
+k
+⩽ Mi for each i. 800
+We choose a sufﬁciently largeK. Given an element N ∈ ⟨Y ⟩♯, we say thatN appears
+in M1, . . . , Mn between positions m, m′ if N = Mm · · · Mm′ and m′ − m < K .The factorisation Forest Theorem 25
+The proof is by induction on the number of idempotents appear ing in M1, . . . , Mn.
+More precisely, we prove that for each i there exist a constant ki such that, if at most i
+distinct idempotents appear in M1, . . . , Mn, then A1 . . . An
+ki
+⩽ M for some M ∈ ⟨X⟩♯. 805
+For i = 0 , no idempotents appear in M1, . . . , Mn. This means that n is small, i.e.,
+n < K (indeed, by the theorem of Ramsey or the factorisation fores t theorem, every
+sufﬁciently long product has to contain an idempotent). We have:
+A1 · · · An
+Kk
+⩽ A1 · · · An
+nk
+⩽ A1
+k
+· · · An
+k
+⩽ M1 · · · Mn ∈ ⟨X⟩♯ .
+Suppose now that i /greaterorequalslant1 idempotents appear in M1, . . . , Mn. Let E be one of them.
+We ﬁrst treat the case whereE appears both at the beginning and the end ofM1, . . . , Mn,
+i.e., both between positions1, m, and between positionm′, n. There are two cases. If m+
+1 /greaterorequalslantm′, the two appearances of E overlap or are contiguous. In this case, by deﬁnition
+of appearance, n ⩽ 2K and, as in the case i = 0, we obtain that A1 · · ·An
+2Kk
+⩽ N for
+some N ∈ ⟨X⟩♯. Otherwise, we know that A1 · · · Am
+Kk
+⩽ E, and Am′ · · · An
+Kk
+⩽ E.
+Hence we can use our ﬁrst claim on the following sequence of matrices:
+(A1 · · · Am), A m+1, . . . , A m′−1, (Am′ · · · An) ,
+and we obtain A1 · · · An
+2Kk
+⩽ E♯.
+The general case is now easy. Consider a sequenceA1, . . . , An. It can be decomposed
+into three sequences
+U = (A1, . . . , Am−1), V = (Am, . . . , Am′−1), W = (Am′ , . . . , An) ,
+such that E does not appear in U nor W , but both at the beginning and the end of V .
+According to the induction hypothesis on U and W , there exists M, M ′ ∈ ⟨ X⟩♯ such
+that A1 · · ·Am−1
+ki−1
+⩽ M and Am′ · · · An
+ki−1
+⩽ M ′. Using the previous case with E
+appearing at the beginning and the end of V , we also have Am · · · Am′−1
+2Kk
+⩽ N for
+some N ∈ ⟨X⟩♯. Overall,
+A1 · · · Am
+2Kk+2ki−1
+⩽ A1 · · ·Am−1
+ki−1
+Am · · · Am′−1
+2Kk
+Am′ · · ·An)
+ki−1
+⩽ M N M′ ∈ ⟨X⟩♯ ,
+This establishes the induction hypothesis with ki = 2Kk + 2ki−1.
+We can now conclude the proof of Lemma 4.11 using the factorisation forest theorem.
+Proof of Lemma 4.11. Let P be the set of all subsets Y ⊆ ⟨X⟩ that are covered by ⟨X⟩♯.
+We also say that a set covered by⟨X⟩has porperty P . Consider the morphism f mapping 810
+each element of ⟨X⟩ to its 0-equivalence class.
+Let us show that one can apply Theorem 4.2 to ⟨X⟩, which is generated by X, the
+morphism being f and the family P :
+(1’) If Y is covered by ⟨X⟩♯, it is clear that the same holds for every subset of Y .
+(1”) Let k be the maximum over ||A|| for all A ∈ X. Then, we have A
+k
+⩽ A ∈ X for 815
+all A ∈ X. Hence X is covered by X.
+(2) If Y, Z are covered by ⟨X⟩♯ with respective witnesses kY and kZ, then Y ∪ Z is
+covered by ⟨X⟩♯, taking as witness max(kY , kZ ).26 T. Colcombet
+(3) If Y, Z are covered by ⟨X⟩♯, witnessed by kY and kZ, then AB
+kA+kB
+⩽ A
+kA
+B
+kB
+.
+Hence kA + kB is a witness that (Y · Z) is covered by ⟨X⟩♯. 820
+(4) Finally, suppose that Y is covered by ⟨X⟩♯ and that f (Y ) = {E} an idempotent E.
+Since Y is covered by ⟨X⟩♯, Lemma 4.14 implies that ⟨Y ⟩ is covered by ⟨⟨X⟩♯⟩♯,
+i.e., by ⟨X⟩♯.
+Overall, by Theorem 4.2, we conclude that ⟨X⟩♯ covers ⟨X⟩. This concludes the proof of
+Lemma 4.14, and hence of Theorem 4.10. 825
+4.5 Polynomial closure
+Our last algebraic application of the factorisation forest theorem concerns the problem of
+ﬁnding characterisations of families of regular languages . In Chapters ?? and ?? of this
+handbook, this topic is treated much more deeply.
+The factorisation forest theorem is used in this context to o btain characterisations 830
+(possibly non-effective) of the polynomial closure of a class of languages. Given a class of
+languages L, a language K belongs to its polynomial closure Pol(L) if it is a ﬁnite union
+of languages of the form L0a1L1 . . . anLn, where each Li belongs to L and the ai’s are
+letters. In general, the idea is to transform a characterisation of L (by proﬁnite equations,
+identities, . . . ) into another one for Pol(L). The ﬁrst use of this technique appear in Pin 835
+and Weil [26] for positive varieties, and the most general and recent such result treats the
+case of the polynomial closure of any lattice of regular languages [6]. A similar technique
+is used for characterising another pseudovariety of regula r languages. We present here
+the simplest among the results of this kind: the characterisation of polynomial languages.
+This corresponds to the case when L contains the languages of the form B∗ where B 840
+is any set of letters. The interest of this particular case is that the family of languages
+obtained in this way coincide with the ones deﬁnable in Σ2, i.e., the fragment of ﬁrst-
+order logic consisting of formulas which take the form of a block of existential quantiﬁers,
+followed by a block of universal quantiﬁers, followed by a quantiﬁer-free formula.
+A monomial languageis a language of the formA∗
+0a1A∗
+1 . . . anA∗
+n in which a1, . . . , an 845
+are letters, and A0, . . . , An are sets of letters. For instance {ε} is the monomial language
+deﬁned by ∅∗, and {a} is deﬁned as ∅∗a∅∗. A polynomial language is a ﬁnite union of
+monomial languages.
+Theorem 4.17 ([26]). A language is a polynomial langauge if and only if its syntact ic
+ordered monoid satisﬁes e /greaterorequalslante⟨{s : e ⩽J s}⟩e for all idempotent e. 850
+The exact content of the inequalitye /greaterorequalslante⟨{s : e ⩽J s}⟩e may be at ﬁrst sight uneasy
+to grasp. To give some more intuition, let us make the followi ng remark before entering
+the proof.
+Remark 4.18. At ﬁrst glance the constraint e /greaterorequalslante⟨{s : e ⩽J s}⟩e is quite unintuitive.
+Let us denote by alph(u) the set of letters occurring in a word u ∈ A∗. Then
+⟨{s : a ⩽J s}⟩ = {f (u) : alph(u) ⊆ alph(f −1(a))}
+for all a ∈ M, i.e., this set represents the possible values of all words that co nsists ofThe factorisation Forest Theorem 27
+letters that could appear in a word evaluating toa. Hence, the condition e /greaterorequalslante⟨{s : e ⩽J 855
+s}⟩e tests the occurring letters in an idempotent context.
+Consider now the particularly simple monomial langauge B∗ for some B ⊆ A. Then
+clearly, the membership to this language has only to do with t he occurring letters; more
+precisely, if alph(u) ⊆ alph(v) and v ∈ B∗, then u ∈ B∗. The above property e /greaterorequalslant
+e⟨{s : e ⩽J s}⟩e is a form of generalisation of this remark to polynomial lang uages: 860
+in particular it implies that whenever u is an idempotent word, if xuy is in the language,
+xuvuy is also in the language for all v such hat alph(v) ⊆ alph(u).
+Proof. From left to right. Assume that L is a polynomial language and let k be the max-
+imal degree of a monomial it contains. Consider now an idempo tent word u and as-
+sume xuy ∈ L for some words x, y, then xuk+1y ∈ L (by idempotency of u). This word 865
+belongs to one of the monomials of L, say K = A∗
+0a1 . . . alA∗
+l , with l ⩽ k. Since there
+are k + 1 occurrences of the word u in v, at least one is contained in one of the A∗
+i . This
+means that xus ∈ A∗
+0a1 . . . aiA∗
+i , u ∈ A∗
+i , and uk−s ∈ A∗
+i ai+1 . . . alA∗
+l . Let now w
+be any word such that alph(w) ⊆ alph(u). From the above decomposition, we have
+that xusuwuuk−sy also belong to K and hence to L. Using the idempotency of u, this is 870
+also the case for xuwuy.
+From right to left. This direction uses the factorisation forest theorem.
+We denote by P ⊆ P (A∗) the set
+{X ⊆ A∗ : for every a ∈ M, there exists a polynomial language Ka
+such that X ∩ f −1(a↓) ⊆ Ka ⊆ f −1(a↓)}
+We will apply Theorem 4.2 to the family P to show that A∗ ∈ P . By deﬁnitions of P ,
+this means that, for every a ∈ M there exists a polynomial Ka such that Ka = f −1(a↓).
+Since polynomial languages are closed under ﬁnite union of p olynomials, it follows that, 875
+for every ideal I ⊆ M, f −1(I) is a polynomial language. This concludes this direction
+of the proof. What needs
+to be proved
+concerning
+ordered
+monoids?
+It remains to show that Theorem 4.2 can indeed be applied toP . It is clear that A ∈ P
+since every ﬁnite language is a polynomial language. It is al so clear from the deﬁnition
+that P is closed under taking subsets, and under unions (since poly nomial languages are
+closed under unions). Consider nowA, B in P . Let us show thatA·B ∈ P . Let (Kx)x∈M
+(resp. (K ′
+x)x∈M ) be the polynomial languages witnessing the fact that A ∈ P (resp.
+B ∈ P ). Consider now the polynomial language:
+K =
+∑
+x·y⩽a
+KxK ′
+y
+By construction, f (u) ⩽ a for every word u ∈ K. Hence K ⊆ f −1(a↓). Consider
+now u ∈ (A · B) ∩ f −1(a↓). Since u ∈ A · B, u can be decomposed as u = vw
+with v ∈ A, w ∈ B. By hypothesis, v ∈ A, and hence v ∈ Kf (v). Similarly w ∈ K ′
+f (w). 880
+We get u = vw ∈ Kf (v)K ′
+f (w). Since furthermore u ∈ f −1(a↓), we have f (v) · f (w) =
+f (u) ⩽ a and, as a consequence, Kf (v)K ′
+f (w) ⊆ K. Overall u ∈ K.
+It remains to check the last condition. Assume A ∈ P and f (A) = {e} for some
+idempotent e. Let Kx for x ∈ M be the polynomial languages witnessing that A ∈ P .28 T. Colcombet
+Consider the following polynomial:
+K ′ = Ke + Kealph(f −1(e))∗Ke .
+By the above remark, we know that f (K ′) ⊆ f −1(e↓). Conversely, assume that u ∈ A+.
+Then u can be written as u1 . . . un with ui ∈ A for all i. Clearly, if n = 1, then u ∈ Ke ⊆
+K ′. Otherwise, since u2, . . . , un−1 belong to alph(f −1(e)), u ∈ K ′. Hence
+A+ ⊆ K ′ ⊆ f −1(e↓) .
+Let us prove that A+ ∈ P using the above inequalities. Consider some a ∈ M. If e ⁄∈
+f −1(a↓), set Ka = ∅ since f (A+) = {e} we have A+ ∩ f −1(a↓) = ∅ ⊆ Ka ⊆ f −1(a↓).
+Otherwise, set Ka = K ′, and we have by the above inqualities
+A+ ∩ f −1(a↓) ⊆ K ′ = Ka ⊆ f −1(e↓) ⊆ f −1(a↓) .
+Hence A+ ∈ A, and Theorem 4.2 can indeed be applied to P .
+5 A deterministic variant of the factorisation forest
+theorem 885
+The factorisation forest theorem states the existence of a factorisation (of bounded depth)
+for each word. A natural question to ask is whether a similar r esult holds for trees. We
+do not fully resolve this question, the exact formal stateme nt of which is even unclear.
+Nevertheless, we present a variant of the factorisation for est theorem which has several
+interesting consequences over trees. 890
+Given a tree, each of its branches can be seen as a word, on whic h one can apply
+the factorisation forest theorem. For each branch, this pro vides a Ramsey split (or fac-
+torisation). However, there is no reason, a priori, that two branches sharing a common
+preﬁx have a common split on this preﬁx. This property is desi rable in several applica-
+tions. In particular, it implies that a single split over the tree induces a Ramsey split over 895
+each branch. One can already have some feeling about the diff erence between the word
+approach and the tree approach by looking at the memory neede d for storing the infor-
+mation. A single split for the tree is an object of size linear in the size of the tree, since
+it amounts to providing some ﬁnite quantity of information o n every node. However,
+storing a different split for each branch requires a quadrat ic memory, since there can be 900
+linearly many branches of linear length (an extremal case consists in a string shaped tree
+of height n − 1, the deepest node of which has n children which are leaves: this results in
+n branches of height n, i.e., memory of size n2 for a tree of size 2n). Hence, constructing
+a single split for the tree means to have a signiﬁcantly more compact representation.
+The theorem described in this section provides a result whic h, given a tree, provides 905
+a single split (of bounded depth) such that on every branch it behaves (almost) like a
+Ramsey split. The proof is obtained by describing a (ﬁnite st ate) transducer, which reads
+the input and deterministically outputs the split. We will s ee below some applications of
+this result.
+To obtain the result we have to slightly weaken the conclusion of the theorem. Instead 910The factorisation Forest Theorem 29
+of constructing Ramsey splits, we construct the weaker form of “forward Ramsey” splits.
+A split s over a labelling σ is forward Ramsey if, for all x, y, x′, y′ equivalent for ∼s
+and such that x < y and x′ < y ′, we have σ(x, y) · σ(x′, y′) = σ(x, y). This is a
+weakening of the notion of Ramsey split, as described by the following remark.
+Remark 5.1. Every Ramsey split is forward Ramsey. Indeed, for every ∼s-equivalence 915
+class C of a Ramsey split, there is an idempotent e such that σ(x, y) = e for all x < y
+in C. In particular, if x < y and x′ < y ′ belong to C, then σ(x, y) · σ(x′, y′) = e · e =
+e = σ(x, y). Hence, the split is forward Ramsey.
+However, in general, not every forward Ramsey split is Ramsey. Consider for instance
+the two element semigroup over {a, b} deﬁned by a · a = a · b = a and b · a = b · b = b. 920
+Then for every two elements x, y, x · y = x. This implies that every split is forward
+Ramsey for this semigroup, but not every split is Ramsey.
+In some situations, the two notions coincide. For instance,in the case of groups, being
+Ramsey and being forward Ramsey are equivalent notions. Mor e generally, the notions
+coincide if and only if R = D. 925
+The way the notion of a forward Ramsey split is often used is by saying that for
+all x < y < z with x ∼s y ∼s z, we have σ(x, y) = σ(x, z). Indeed, we have
+σ(x, z) = σ(x, y) · σ(y, z) = σ(x, y).
+Theorem 5.2 (improvement of [13]). For all ﬁnite semigroups S = ⟨S, · ⟩, alphabets A
+and morphism ϕ from A+ to S, there exists a deterministic and complete automaton A 930
+with at most |S||S| states and a numbering of its states by{1, . . . ,|S|} such that, on every
+input word u ∈ A∗, the numbering of the states along the unique run of the autom aton
+over u deﬁnes a forward Ramsey split for ϕu.
+Without loss of generality, we assume in the sequel that A = S and ϕ is simply the
+evaluation morphism. 935
+Our proof consists in giving a direct construction of the aut omaton equipped with a
+numbering of its states. This automaton has the property tha t, when reading a word, the
+sequence of numbers assumed by the states form a forward Ramsey split for the word. In
+fact, the arguments involved in the proof are very close to th e proof given above for the
+standard factorisation forest theorem, however, this direct construction makes it different, 940
+and likely easier to implement.
+A conﬁguration is a non-empty sequence ⟨a1, . . . , an⟩ of elements of S. A conﬁgura-
+tion is called valid if furthermore:
+(1) ai · ai+1 · · · aj J ai for all i ⩽ j in 1 . . . n,
+(2) ai <J aj for all i < j in 1 . . . n. 945
+We construct the deterministic automaton A as follows:
+• the states are the valid conﬁgurations,
+• the initial state can be chosen arbitrarily,
+• the transition function δ is deﬁned for all conﬁguration ⟨a1, . . . , an⟩ and all b by:
+δ(⟨a1, . . . , an⟩, b) = ⟨a1, . . . , ak, (ak+1 · · ·an · ϕ(b))⟩
+where k is maximal such that ⟨a1, . . . , ak, (ak+1 · · · an ·b)⟩is a valid conﬁguration,30 T. Colcombet
+• each valid conﬁguration is numbered by h(a1 . . . an) = h0(an) where h0 is any 950
+injective mapping from S to {1, . . . ,|S|} such that a < J b implies h0(a) > h 0(b).
+Given two states p, q and a word u, let us write p
+u:k
+→ q to denote the fact that the
+automaton A can go from state p to state q, and k is the maximal value it outputs on the
+way. Formally, ifδ(p, a) = q then p
+a:h(q)
+→ q, and if p
+u:k
+→ q and q
+u:l
+→ r then p
+uv:max(k,l)
+→ r.
+Let us give an example of this construction on a particularly simple example: the
+syntactic semigroup which recognises over the alphabetA = {a, b} the language of words
+which contains a repetition of a letter, i.e., L = A∗aaA∗ + A∗bbA∗. This semigroup
+contains ﬁve elements: the element 0 represents the words which contain a repetition of
+a letter, and the four classes of respectively the words a, b, ab, and ba. The multiplication
+table is deﬁned by the equations aa = bb = 0 = 0 a = a0 = b0 = 0 b = 0 , aba = a
+and bab = b. In terms of J -classes, 0 <J a J b J ab J ba. To entirely deﬁne the
+automaton of the construction, we also need to deﬁne the inje ction h. We set h0(a) = 1 ,
+h0(b) = 2 , h0(ab) = 3 , h0(ba) = 4 and h0(0) = 5 . This results in the following set of
+conﬁgurations–written in vertical boxes and indexed with the corresponding value of h–:
+{
+0 5, a 1, b 2, ab 3, ba 4,
+a
+0 1,
+b
+0 2,
+ab
+0 3,
+ba
+0 4
+}
+.
+Let us see how the resulting automaton would process the word babbbabaa starting from
+conﬁguration ⟨a⟩:
+a 1
+b
+→ ab 3
+a
+→ a 1
+b
+→ ab 3
+b
+→ 0 5
+b
+→
+b
+0 2
+a
+→
+ba
+0 4
+b
+→
+b
+0 2
+a
+→
+ba
+0 4
+a
+→ 0 5
+The objective of the construction is to produce a forward Ram sey split, i.e., for all 955
+elements x < y and x′ < y ′ of the same class, σ(x, y) · σ(x′, y′) = σ(x, y). For
+b = σ(x, y) and c = σ(x′, y′), this means b · c = b. The following lemma contains the
+argument we use to obtain such an equality from the construction:
+Lemma 5.3. Let a, b, c ∈ S be such that a · b = a · c = a and a J b, then b · c = b.
+Proof. By Fact 2.4, b J a · b implies b L a · b = a. Hence b = d · a for some d. It follows 960
+that b · c = (d · a) · c = d · (a · c) = d · a = b.
+The next lemma is an analysis of what happens when two positio ns are in the same
+class (one can recognise some of the premises of Lemma 5.3 for b = ϕ(u)).
+Lemma 5.4. If ⟨v, a⟩
+u:h(a)
+→ ⟨ w, a⟩ for some non-empty word u then a · ϕ(u) = a and
+a J ϕ(u). 965
+Proof. We prove by induction on the length of u (possibly empty) the stronger property
+that whenever ⟨v, a⟩
+u:k
+→ ⟨w⟩ with k ⩽ h(a), then:
+(1) ⟨w⟩ = ⟨v, a1, . . . , am⟩ for some a1, . . . , an ∈ S, with
+(2) a1 J a,
+(3) a1 · · ·am = a · ϕ(u), 970The factorisation Forest Theorem 31
+(4) if m > 1, there is a sufﬁx u′ of u such that ϕ(u′) = a2 · · · am, and,
+(5) if u ⁄= ε, and m = 1, then a J ϕ(u).
+This clearly yields the lemma, by (3) and (5).
+One easily checks that the statement holds for u = ε. Assume now that (1),. . . ,(5)
+holds for some u such that ⟨v, a⟩
+u:k
+→ ⟨v, a1, . . . , am⟩with k ⩽ h(a). Let c be a letter such 975
+that ⟨v, a1, . . . , am⟩
+c:k′
+→ ⟨ w⟩ for some k′ ⩽ h(a). We aim at establishing the claim for
+the word uc.
+Assume that v = d1, . . . , ds is not a preﬁx of w. Then by deﬁnition of the transition
+function there is some l ⩽ s such that w = d1, . . . , dl−1, d with d = dl · · ·ds · a1 · · · am ·
+ϕ(c). In particular, this means thatd ⩽J dl. Furthermore dl <J a since ⟨d1, . . . , ds, a1, . . . am⟩980
+is a valid conﬁguration in which a1 J a by (2) of the induction hypothesis. It follows
+that k′ = h(d) > h(a), by choice of h. This contradicts k′ /greaterorequalslanth(a). Hence (1) holds.
+At this point, we know that for some b1, . . . , bn,
+⟨v, a1, . . . , am⟩
+c:k′′
+→ ⟨ w⟩ = ⟨v, b1, . . . , bn⟩ .
+According to the deﬁnition of the transition function δ, two cases can happen. Ei-
+ther n > 1 and by deﬁnition of the transition function b1 = a1. Since a1 J a by (2) of the
+induction hypothesis, we have b1 J a. Otherwise if n = 1, we have b1 = a1 · · · am · ϕ(c). 985
+This implies b1 ⩽J a1 J a. Conversely, assume that b1 <J a. This would im-
+ply k′ = h(⟨w⟩) = h(b1) > h (a). This contradicts the assumption that k′ /greaterorequalslanth(a).
+Overall, (2) holds.
+By (3) of the induction hypothesis, ϕ(u) = a1 · · ·am. By deﬁnition of δ we ob-
+tain b1 · · · bn = a1 · · · am · ϕ(c) and b1 · · ·bn = ϕ(u) · ϕ(c) = ϕ(uc). Hence (3) holds. 990
+Assume n > 1. Two cases can happen. If m = 1 , this means that n = 2 , b1 = a1,
+and b2 = ϕ(c). It follows that c is a sufﬁx of uc, i.e., a witness for (4). Otherwise m > 1.
+Let u′ be the witness of (4) obtained by induction hypothesis for u. Using the deﬁnition
+of the transition function we obtain ϕ(u′c) = ϕ(u′) · ϕ(c) = a2 · · ·am · ϕ(c) = b2 · · · bn.
+Therefore, u′c is a witness for (4). 995
+Finally, assume n = 1. Then b1 = a1 ·d with d = a2 · · · am ·ϕ(c). By deﬁnition of the
+transition function this means that ⟨v, a1, d⟩is not a valid conﬁguration while ⟨v, a1 · d⟩is
+valid. One knows further from (2) thata1 J aJ a1 ·d. This last point implies d /greaterorequalslantJ aJ a1.
+The only possible reason for ⟨v, a1, d⟩ not to be valid is that d ⁄>J a1. Hence d J a.
+Set u′ to ε if m = 1 , otherwise u′ is the sufﬁx of u obtained by (4) of the induction 1000
+hypothesis. In both case, we have ϕ(u′c) = d J a. This means that ϕ(uc) ⩽J a. Since
+furthermore ϕ(uc) /greaterorequalslantJ a by (3), we have ϕ(uc) J a, i.e., (5).
+Overall, we obtain the following statement:
+Lemma 5.5. Let q0, . . . , qn be the states successively assumed by A while reading a
+word u, then s(0) = h(q0), . . . , s(n) = h(qn) is a forward Ramsey split for ϕu. 1005
+Proof. Let s be the split deﬁned by s(i) = h(qi) for i = 0 . . . n. Let x < y , and x′ < y ′
+be ∼s-equivalent elements among 1, . . . , m.
+Since x, y, x′, and y′ are ∼s-equivalent, h(qx) = h(qy) = h(qx′) = h(qy′ ). Let k
+be this value. Since h is injective on S, there exists a single a such that h(a) = k. By32 T. Colcombet
+deﬁnition of h on conﬁgurations, qx = ⟨v, a⟩, qy = ⟨w, a⟩, qx′ = ⟨v′, a⟩ and qy′ = 1010
+⟨w′, a⟩ for some v, w, v′, w′.
+Since x ∼s y, by Lemma 5.4, a · ϕ(ux,y) = a and ϕ(ux,y) J a. The same holds
+for x′, y′. In particular, a · ϕ(ux′,y′) = a. Applying Lemma 5.3 to b = ϕ(ux,y) and c =
+ϕ(ux′,y′), we obtain ϕ(ux,y) · ϕ(ux′,y′) = b · c = b = ϕ(ux,y). Hence, s is forward-
+Ramsey. 1015
+6 Applications as an accelerating structure
+In this last section, we provide applications of the factorisation forest theorem of a differ-
+ent kind. The principle of these applications is that, once c omputed, a (forward) Ramsey
+split (or a factorisation tree) can be used as a data structur e which allows us to perform
+some computations in an efﬁcient way. We refer to this use as f actorisations as an accel- 1020
+eration structure.
+6.1 Fast inﬁx evaluation
+The canonical example of such an application is a solution to the following question:
+Given a regular languageL and a wordu, is it possible to efﬁcitently compute
+a data structure (meaning here in time linear in u, possibly more complex in 1025
+the presentation of L) such that every request of the form ui,j ∈ L can be
+answered very efﬁciently (meaning here in time independentfrom u, i, j, i.e.,
+dependent only on the presentation of L)?
+Since we are not interested in the exact complexity in terms o f L (which depends on the
+way the language is described, and would require a long and careful analysis), we consider 1030
+L to be ﬁxed. This means that every parameter depending only on L is considered as a
+constant. With this convention, the statement boils down to computing a data structure
+in time linear in u, and answering every request in constant time. In what follo ws, ϕ is
+assumed to be some morphism which recognises L, and S = ⟨S, · ⟩ is the corresponding
+semigroup. The goal is to efﬁciently compute ϕ(ui,j). 1035
+There are two straightforward approaches to this problem. T he ﬁrst consists in not
+performing any pre-computation. In this case, the pre-proc essing time in constant, how-
+ever, answering to each request of the formui,j ∈ L requires a time in O(j − i), which in
+the worth case is O(|u|). Another solution would be to pre-compute the answer to ever y
+request, and store it in a table. This requires quadratic tim e (and space), but reaches the 1040
+constant time objective for query evaluation. These two sol utions have the advantage of
+making weak assumptions on L, namely that it is computable in linear time, for ensuring
+the bounds given above. None of those solutions does provide a solution to our problem.
+A third attempt would be a simple divide and conquer algorith m. The data structure
+consists of a binary tree, the leaves of which yield the input word when read from left to
+right. Furthermore, one enriches each node of this tree with the value ϕ(v) in which v
+is the word obtained by reading the leaves below the node from left to right. For i a leafThe factorisation Forest Theorem 33
+below a node n, we deﬁne suﬀ(i, n) to be ϕ(v) where v is the node obtained by reading
+the leaves below n from left to right, starting from leaf i. This function can be computed
+using the following formula:
+suﬀ(i, n) =
+
+
+
+ϕ(i) if n = i
+suﬀ(i, m) if i appears below the right child m of n,
+suﬀ(i, m) · ϕ(m′) if i appears below the left child m of n,
+and m′ is the right child of n.
+The correctness of this equation follows from the deﬁnition . Using this equation we can
+compute suﬀ(i, n) in at most h recursion steps, where h is the height of the tree. The 1045
+same argument gives an algorithm for computing pref(j, m) which computes the image
+under ϕ of the word below m up to letter j. Given i < j , one computes the value ϕ(ui,j)
+as suﬀ(i, m) · pref(j, n) where m, n are two sibling nodes such that i appears below m
+and j below n. Overall, we obtain an algorithm which is linear in h. Since it is clear that
+we can use an almost balanced tree as data structure, this mea ns that computing ui,j is 1050
+logarithmic in the length of the word. It is also easy to verify that the tree can be computed
+in linear time.
+If one uses a Ramsey factorisation tree as data structure ins tead of a binary tree, then
+one obtains a similar result, but this time the height of the tree being bounded by 3|S| −1,
+answering a single query becomes constant time. Note that, f or this to work, we have to 1055
+be able to compute a factorisation tree in linear time, and th is is possible. We then reach
+the following theorem:
+Theorem 6.1. There exists an algorithm which, given a language of ﬁnite wo rds L, and
+a word u,
+• pre-processes u in time linear in |u|, and then; 1060
+• is able to answer each query of the form “does the factor of u between position i
+and position j belong to L?” in constant time (constant wrt. |u|, but not L).
+When replacing the binary tree of the above algorithm by a Ram sey factorisation
+tree we have to explain how to compute suﬀ(i, n) when n is a node of arity at least 3,
+i.e, a node such that ϕ(n) = e is an idempotent, and ϕ(n1) = · · · = ϕ(nk) = e
+where n1, . . . , nk are the children of n read from left to right. In this case, we evalu-
+ate suﬀ(i, n) using:
+suﬀ(i, n) =
+{
+suﬀ(i, nk) if i is below nk ,
+suﬀ(i, nl) · e if i is below nl for some l < k.
+Indeed, if i appears below nl for some l < k , then
+suﬀ(i, n) = suﬀ( i, nl) · ϕ(nl+1) · · · ϕ(nk) = suﬀ( i, nl) · e · · ·e = suﬀ( i, n) · e .
+In fact, forward Ramsey splits are as good as Ramsey splits fo r this kind of applica-
+tions, and, in this case, it is obvious how to construct the st ructure in linear time: simply
+by evaluating the deterministic transducer of Theorem 5.2. This is clearly linear in the 1065
+length of the word.34 T. Colcombet
+This use of Ramsey factorisations has been employed in several papers of Bojanczyk
+and Parys [3, 5, 4], improving on the complexity in terms of the input language, and using
+the technique for solving XPath queries.
+6.2 Acceleration in monadic second-order logic 1070
+TODO: Is there a reference to MSO in another chapter?
+Let us recall here that Π1 is the fragment of ﬁrst-order logic consisting of formulas
+which, do only contain universal quantiﬁers (no existentia l ones) when transformed into
+prenex normal form. The fragment Σ2 consists of formulas for which no existential quan-
+tiﬁer is in the scope of a universal one. In general, and even o n words, Σ2 is strictly less 1075
+expressive than full ﬁrst-order logic, which is itself strictly less expressive than MSO.
+The following result was the ﬁrst use of Ramsey factorisations as an acceleration struc-
+ture:
+Theorem 6.2 (Theorem 2 in [13]3). Given an MSO formulaΨ(x1, . . . , xn) with free ﬁrst-
+order variables, there effectively exists a Σ2-formula Ψ∗(x1, . . . , xn) which uses MSO- 1080
+deﬁnable unary predicates, such that Ψ and Ψ∗ are equivalent over trees equipped with
+the ancestor relation ⊑ and unary predicates.
+This result shows that, in some sense, the gab in expressive power between MSO and
+Σ2, which is a weak fragment of ﬁrst-order logic, can be collapsed by simply adding some
+extra local (i.e., unary) information. 1085
+Below, we give a high level presentation of this proof. It is d ecomposed into two
+steps. For simplicity, we assume a ﬁxed tree for the explanat ions, though of course, the
+construction is uniform, i.e., the same construction works for all trees.
+During the ﬁrst step, we establishe the result for a binary fo rmula Ψ(x, y) such that
+Ψ(x, y) implies x ⊑ y. In this case, using the standard relationship between MSO a nd 1090
+recognizable languages, we can construct a semigroup M = ⟨M, ·⟩ (this semigroup de-
+pends on the formula, but not on the tree), and an additive lab elling σ over the tree, such
+that it is sufﬁcient to know σ(x, y) to determine whether Ψ(x, y) holds. Furthermore,
+this additive labelling is MSO-deﬁnable in the sense that fo r each a ∈ M, there is an
+MSO-formula Φa(x, y) which holds if and only if x ⊑ y and σ(x, y) = a. This can be 1095
+established either using tree automata, or directly using t he composition method ([27]).
+Both approaches would go beyond the scope of this chapter.
+Our goal is to enhance the tree with suitable MSO-deﬁnable un ary predicates such
+that σ(x, y) can be reconstructed based on those extra predicates. This w ould clearly
+complete the ﬁrst step. The main extra information we use is a forward Ramsey split s 1100
+for σ obtained from Theorem 5.2. According to Theorem 5.2, this fo rward Ramsey split
+can be computed by a transducer. This means in the present case that the unary predicates
+“s(x) = k” for each ﬁxed k = 1 , . . . ,|M | are deﬁnable in MSO, using this time the
+standard translation from automata to logic. Let us deﬁne fo r each k = 1 . . .|M | and
+each node y, parentk(y) to be, if it exists, the (unique) ancestorx of y such that s(x) = k, 1105
+and s(z) < k for all z such that x < z < y . We label for each k = 1 . . .|M | and each a ∈
+3The statement in [13] does only mention ﬁrst-order rather than Σ2. The proof is the same.The factorisation Forest Theorem 35
+M, the tree with the MSO-deﬁnable unary predicate “ σk(x) = a” which expresses that
+parentk(x) exists and σ(parentk(x), x) = a.
+What remains to be done is to prove that, using only the new pre dicates “s(x) = k”
+and “σk(z) = a”, as well as the ancestor relation, it is possible to reconst ruct the value 1110
+of σ(x, y) for any x ⊑ y. More formally, we need to provide for each a ∈ M a Σ2-
+formula φa(x, y) which can use the above predicates, and such that φa(x, y) holds if and
+only if σ(x, y) = a.
+Note at this point that givenx and y, we can express in Π1 whether x ∼s y, simply by
+implementing the deﬁnition of∼s (⋆). In the same way, we can express inΠ1 whether x = 1115
+parentk(y) (⋆⋆). It is also very easy, given some x ⊑ y such that x ∼s y, to check using
+a Σ2-formula the value of σ(x, y) (⋆ ⋆ ⋆). Indeed, either x = y, and the result is 1 (the unit
+of the monoid M). Or there exist k and z such that s(z) = k and parentk(z) = x, and in
+this case the value is simply σk(z), and we have introduced the suitable unary predicate
+for testing this. 1120
+To conclude the argument, it is sufﬁcient to note that given a ny two nodes x ⊑ y,
+there exists a sequence x = z1 ⊑ · · · ⊑ zn = y of length at most 4|M| such that for
+all i = 1 . . . n − 1, either zi = parentk(zi+1) for some k, or zi ∼s zi+1 (♮).
+Consider now the following Σ2-formula:
+⋁
+a1·a2···an−1=a, n ⩽4|M|
+∃z1 . . . zn.
+⋀
+i=1...n−1
+
+zi ∼s zi+1/bracehtipupleft /bracehtipdownright/bracehtipdownleft /bracehtipupright
+in Π1 by (⋆)
+∧ σ(zi, zi+1) = ai/bracehtipupleft /bracehtipdownright/bracehtipdownleft /bracehtipupright
+in Σ2 by (⋆ ⋆ ⋆ ) since zi ∼s zi+1
+
+∨
+
+
+⋁
+k
+parentk(zi, zi+1)/bracehtipupleft /bracehtipdownright/bracehtipdownleft /bracehtipupright
+in Π1 by (⋆⋆)
+∧ σk(zi+1) = a/bracehtipupleft /bracehtipdownright/bracehtipdownleft /bracehtipupright
+new unary predicate
+
+
+This formulas holds if and only if σ(x, y) = a. Indeed, by construction, whenever
+this formula holds, σ(x, y) = a. For the converse, assume σ(x, y) = a. Then the formula 1125
+holds for the choice of z1, . . . , zn obtained from remark (♮).
+The goal of the second step is to generalise the ﬁrst step to any formula Ψ(x1, . . . , xn).
+We do not develop this part further. It consists in separatin g the cases depending on the
+relationship between xi’s with respect to ⊑. For instance, if n = 2 , and x1 and x2 are
+incomparable, one chooses y to be the least common ancestor of x1 and x2, and y1 (resp 1130
+y2) to be the child of y ancestor of x1 (resp. x2). This yields the following picture.
+y
+y1 y2
+x1 x2
+Using syntactic transformations of the formula, e.g., usin g once more the composition
+method, it follows that whetherΨ(x1, x2) holds depends solely on some local information
+concerning y, y1 and y2, and some formulas involving either y1, x1 or y2, x2. Those two 1135
+last cases can be treated using the ﬁrst step sincey1 ⊑ x1, and y2 ⊑ x2. Since furthermore
+x, y1, y2 are deﬁnable in Σ2 from x1 and y2, one can construct a Σ2-formula equivalent36 T. Colcombet
+to Ψ(x1, x2).
+A consequence in graph theory. The analysis of the structure of graphs is also related
+to deﬁnability questions. There exists a parameter for grap hs (and more generally struc- 1140
+tures) called the clique-width [17] – which we do not develop here – such that a lot of
+graph problems admit solutions with better complexities when this parameter is bounded
+(more precisely when the decomposition witnessing the bounded clique-width is known).
+In this paper, the following fact concerning clique-width is sufﬁcient:
+Fact 6.3. A family of graphs has bounded clique-width if and only if it is MSO-deﬁnable 1145
+in a family of trees.
+In other words, graphs of bounded-clique width consist in some sense of a tree skele-
+ton on which the graph can be reconstructed, using solely MSO-deﬁnable relations. Since
+our result applies to trees we directly obtain the corollary:
+Corollary 6.4. A family of graphs/structure is of bounded clique width if and only if it is 1150
+Σ2-deﬁnable in a family of trees.
+We redirect the reader to [2] for more pointers in this direction.
+Acknowledgments
+I am very grateful to Achim Blumensath and Laure Daviaud for their help in the prepara-
+tion of this document. 1155
+References
+[1] J. Almeida and O. Klíma. New decidable upper bound of the s econd level in the straubing-
+thérien concatenation hierarchy of star-free languages. Discrete Mathematics & Theoretical
+Computer Science, 12(4):41–58, 2010.
+[2] A. Blumensath, T. Colcombet, and C. Löding. Logical theo ries and compatible operations. In 1160
+Logic and automata, volume 2 of Texts Log. Games, pages 73–106. Amsterdam Univ. Press,
+Amsterdam, 2008.
+[3] M. Bojanczyk. Factorization forests. In Developments in Language Theory , volume 5583,
+pages 1–17, 2009.
+[4] M. Bojanczyk and P. Parys. Efﬁcient evaluation of nondet erministic automata using factor- 1165
+ization forests. In ICALP (1), volume 6198 of Lecture Notes in Computer Science , pages
+515–526. Springer, 2010.
+[5] M. Bojanczyk and P. Parys. Xpath evaluation in linear tim e. J. ACM, 58(4):17, 2011.
+[6] M. J. J. Branco and J.-E. Pin. Equations deﬁning the polyn omial closure of a lattice of regular
+languages. In ICALP (2), pages 115–126, 2009. 1170
+[7] T. C. Brown. On van der waerden’s theorem on arithmetic progressions. Notices Amer. Math.
+Soc., 16:245, 1969.The factorisation Forest Theorem 37
+[8] T. C. Brown. An interesting combinatorial method in the t heory of locally ﬁnite semigroups.
+Paciﬁc J. Math., 36:285–289, 1971.
+[9] J. R. Büchi. On a decision method in restricted second ord er arithmetic. In Proceedings of 1175
+the International Congress on Logic, Methodology and Philo sophy of Science , pages 1–11.
+Stanford Univ. Press, 1962.
+[10] O. Carton, T. Colcombet, and G. Puppis. Regular languag es of words over countable linear
+orderings. In L. Aceto, M. Henzinger, and J. Sgall, editors,ICALP (2), volume 6756 ofLecture
+Notes in Computer Science, pages 125–136. Springer, 2011. 1180
+[11] O. Carton and C. Rispal. Complementation of rational se ts on scattered linear orderings of
+ﬁnite rank. Theoretical Computer Science, 382(2):109–119, 2007.
+[12] J. Chalopin and H. Leung. On factorization forests of ﬁn ite height. Theoretical Computer
+Science, 310(1–3):489–499, jan 2004.
+[13] T. Colcombet. A combinatorial theorem for trees: appli cations to monadic logic and inﬁ- 1185
+nite structures. In Automata, languages and programming, volume 4596 of Lecture Notes in
+Comput. Sci., pages 901–912. Springer, Berlin, 2007.
+[14] T. Colcombet. Factorisation forests for inﬁnite words . In FCT 07, number 4639 in Lecture
+Notes in Computer Science, pages 226–237. Springer, 2007.
+[15] T. Colcombet. Factorization forests for inﬁnite words and applications to countable scattered 1190
+linear orderings. Theoret. Comput. Sci., 411(4-5):751–764, 2010.
+[16] T. Colcombet. Green’s relations and their use in automata theory. In A. H. Dediu, S. Inenaga,
+and C. Martín-Vide, editors,LATA, volume 6638 ofLecture Notes in Computer Science, pages
+1–21. Springer, 2011. Invited lecture.
+[17] B. Courcelle, J. A. Makowsky, and U. Rotics. Linear time solvable optimization problems on 1195
+graphs of bounded clique-width. Theory Comput. Syst., 33(2):125–150, 2000.
+[18] V . Diekert, P. Gastin, and M. Kuﬂeitner. A survey on small fragments of ﬁrst-order logic over
+ﬁnite words. Int. J. Found. Comput. Sci., 19(3):513–548, 2008.
+[19] K. Hashiguchi. Limitedness theorem on ﬁnite automata w ith distance functions. J. Comput.
+Syst. Sci., 24(2):233–244, 1982. 1200
+[20] M. Kuﬂeitner. The height of factorization forests. In MFCS, volume 5162, pages 443–454,
+2008.
+[21] G. Lallement. Semigroups and Combinatorial Applications. Wiley, 1979.
+[22] H. Leung. An Algebraic Method for Solving Decision Problems in Finite Automata Theory.
+PhD thesis, Pennsylvania State University, Department of Computer Science, 1987. 1205
+[23] H. Leung. Limitedness theorem on ﬁnite automata with di stance functions: An algebraic
+proof. Theoretical Computer Science, 81(1):137–145, 1991.
+[24] H. Leung and V . Podolskiy. The limitedness problem on di stance automata: Hashiguchi’s
+method revisited. Theoretical Computer Science, 310(1-3):147–158, 2004.
+[25] J.-E. Pin. Varieties of Formal Languages. North Oxford Academic, London and Plenum, New 1210
+York, 1986.
+[26] J.-E. Pin and P. Weil. Polynomial closure and unambiguo us product. Theory Comput. Syst.,
+30(4):383–422, 1997.
+[27] S. Shelah. The monadic theory of order. Annals of Math., 102:379–419, 1975.
+[28] I. Simon. Limited subsets of a free monoid. In FOCS, pages 143–150. IEEE, 1978. 1215
+[29] I. Simon. Recognizable sets with multiplicities in the tropical semiring. In MFCS, volume
+324 of Lecture Notes in Computer Science, pages 107–120. Springer, 1988.
+[30] I. Simon. Factorization forests of ﬁnite height. Theoretical Computer Science , 72:65–94,
+1990.
+[31] I. Simon. On semigroups of matrices over the tropical semiring. RAIRO ITA, 28(3-4):277–294, 1220
+1994.
+[32] I. Simon. A short proof of the factorization forest theo rem. Tree Automata and Languages,
+pages 433–438, 92.
