@@ -103,15 +103,15 @@ lemma irregularSplits_props {α S : Type*}
       rcases List.mem_iff_get.mp hy with ⟨⟨iy, hiy⟩, rfl⟩
       rcases List.mem_iff_get.mp hz with ⟨⟨iz, hiz⟩, rfl⟩
       have h_ix_lt_iy : ix < iy := by
-        rcases lt_trichotomy ix iy with h | rfl | h
-        · exact h
-        · exact False.elim (lt_irrefl _ hlt_xy)
-        · exact False.elim (lt_irrefl _ (hlt_xy.trans (h_xs_mono iy ix hiy hix h)))
+        contrapose! hlt_xy
+        rcases hlt_xy.eq_or_lt with rfl | h
+        · exact le_rfl
+        · exact (h_xs_mono iy ix hiy hix h).le
       have h_iy_lt_iz : iy < iz := by
-        rcases lt_trichotomy iy iz with h | rfl | h
-        · exact h
-        · exact False.elim (lt_irrefl _ hlt_yz)
-        · exact False.elim (lt_irrefl _ (hlt_yz.trans (h_xs_mono iz iy hiz hiy h)))
+        contrapose! hlt_yz
+        rcases hlt_yz.eq_or_lt with rfl | h
+        · exact le_rfl
+        · exact (h_xs_mono iz iy hiz hiy h).le
       omega)
     (h_X_ramsey_2 := fun x y u v hx hy hu hv hlt_xy hlt_uv _ _ _ ↦ by
       rcases List.mem_iff_get.mp hx with ⟨⟨ix, hix⟩, rfl⟩
@@ -119,21 +119,19 @@ lemma irregularSplits_props {α S : Type*}
       rcases List.mem_iff_get.mp hu with ⟨⟨iu, hiu⟩, rfl⟩
       rcases List.mem_iff_get.mp hv with ⟨⟨iv, hiv⟩, rfl⟩
       have h_ix_lt_iy : ix < iy := by
-        rcases lt_trichotomy ix iy with h | rfl | h
-        · exact h
-        · exact False.elim (lt_irrefl _ hlt_xy)
-        · exact False.elim (lt_irrefl _ (hlt_xy.trans (h_xs_mono iy ix hiy hix h)))
+        contrapose! hlt_xy
+        rcases hlt_xy.eq_or_lt with rfl | h
+        · exact le_rfl
+        · exact (h_xs_mono iy ix hiy hix h).le
       have h_iu_lt_iv : iu < iv := by
-        rcases lt_trichotomy iu iv with h | rfl | h
-        · exact h
-        · exact False.elim (lt_irrefl _ hlt_uv)
-        · exact False.elim (lt_irrefl _ (hlt_uv.trans (h_xs_mono iv iu hiv hiu h)))
-      have e1 : ix = 0 := by omega
-      have e2 : iy = 1 := by omega
-      have e3 : iu = 0 := by omega
-      have e4 : iv = 1 := by omega
-      subst e1 e2 e3 e4
-      rfl)
+        contrapose! hlt_uv
+        rcases hlt_uv.eq_or_lt with rfl | h
+        · exact le_rfl
+        · exact (h_xs_mono iv iu hiv hiu h).le
+      have h_ix : ix = iu := by omega
+      have h_iy : iy = iv := by omega
+      exact congrArg₂ σ.σ (congrArg xs.get (Fin.ext h_ix))
+        (congrArg xs.get (Fin.ext h_iy)))
     (h_min_norm := by
       have h_min_in : (Finset.min' (Finset.univ : Finset α) Finset.univ_nonempty) ∈ xs := by
         cases xs with
@@ -172,7 +170,7 @@ lemma simon_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
         buildXSeq a σ (Finset.min' _ h) else [x₀] := by rw [buildXSeq]
     have h_c0 : (Finset.univ.filter (fun z ↦ x₀ < z ∧ IsGreenD (σ.σ x₀ z) a)).Nonempty := by
       by_contra hn
-      have h_len_eq_one : xs.length = 1 := by
+      have : xs.length = 1 := by
         change (buildXSeq a σ x₀).length = 1
         rw [h_eval0, dif_neg hn]
         rfl
@@ -188,7 +186,7 @@ lemma simon_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
         buildXSeq a σ (Finset.min' _ h) else [x1] := by rw [buildXSeq]
     have h_c1 : (Finset.univ.filter (fun z ↦ x1 < z ∧ IsGreenD (σ.σ x1 z) a)).Nonempty := by
       by_contra hn
-      have h_len_eq_two : xs.length = 2 := by rw [h_bw1, h_eval1, dif_neg hn]; rfl
+      have : xs.length = 2 := by rw [h_bw1, h_eval1, dif_neg hn]; rfl
       omega
     let x2 := Finset.min' _ h_c1
     have h_x2_p : x1 < x2 ∧ IsGreenD (σ.σ x1 x2) a :=

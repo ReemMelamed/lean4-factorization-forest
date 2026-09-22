@@ -35,13 +35,6 @@ def IsAperiodic (S : Type u) [Semigroup S] : Prop :=
   ∀ {G : Type u} [Group G] (f : G → S),
     (∀ a b, f (a * b) = f a * f b) → Function.Injective f → Subsingleton G
 
-/-- In an aperiodic semigroup, the only group that can embed into `S` has cardinality at most 1. -/
-lemma isAperiodic_subsingleton {S : Type u} [Semigroup S] (h_ap : IsAperiodic S)
-    {G : Type u} [Group G] (f : G → S)
-    (hf_mul : ∀ a b, f (a * b) = f a * f b) (hf_inj : Function.Injective f) :
-    Subsingleton G :=
-  h_ap f hf_mul hf_inj
-
 /-- For any finite semigroup of size at least 2, the aperiodic bound `2 * |S|`
 is strictly smaller than the general bound `3 * |S| - 1`. -/
 theorem aperiodic_bound_strictly_better {S : Type*} [Fintype S]

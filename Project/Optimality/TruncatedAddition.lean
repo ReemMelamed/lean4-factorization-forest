@@ -34,9 +34,7 @@ lemma log2Ceil_monotone {a b : ℕ} (h : a ≤ b) : log2Ceil a ≤ log2Ceil b :=
   Nat.clog_mono_right 2 h
 
 /-- `log2Ceil 1 = 0`. -/
-lemma log2Ceil_one : log2Ceil 1 = 0 := by
-  dsimp [log2Ceil]
-  exact Nat.clog_one_right 2
+lemma log2Ceil_one : log2Ceil 1 = 0 := Nat.clog_one_right 2
 
 /-- Recurrence relation for `log2Ceil` when `n ≥ 2`. -/
 lemma log2Ceil_of_two_le {n : ℕ} (hn : 2 ≤ n) :
@@ -228,17 +226,6 @@ lemma top_mul_self (hn : 0 < n) : top hn * top hn = top hn := by
   simp only [mul_val, top_val]
   omega
 
-/-- In `TruncatedAdd n`, `top` is the unique idempotent element. -/
-lemma idempotent_eq_top (hn : 0 < n) (e : TruncatedAdd n) (he : e * e = e) :
-    e = top hn := by
-  ext
-  have hval : (e * e).val = e.val := congrArg TruncatedAdd.val he
-  rw [mul_val] at hval
-  simp only [top_val]
-  have := e.pos
-  have := e.le
-  omega
-
 /-- Evaluator mapping lists of elements to their truncated sum in `TruncatedAdd n`. -/
 def evalTrunc (hn : 0 < n) (u : List (TruncatedAdd n)) : TruncatedAdd n :=
   ⟨if u = [] then n else min (u.map TruncatedAdd.val).sum n, by
@@ -263,24 +250,6 @@ lemma evalTrunc_val (hn : 0 < n) {u : List (TruncatedAdd n)} (hu : u ≠ []) :
     (evalTrunc hn u).val = min (u.map TruncatedAdd.val).sum n := by
   dsimp [evalTrunc]
   rw [if_neg hu]
-
-/-- `evalTrunc` is a semigroup morphism on non-empty lists. -/
-lemma evalTrunc_mul (hn : 0 < n) (u v : List (TruncatedAdd n))
-    (hu : u ≠ []) (hv : v ≠ []) :
-    evalTrunc hn (u ++ v) = evalTrunc hn u * evalTrunc hn v := by
-  ext
-  have huv : u ++ v ≠ [] := by
-    intro h
-    have := congrArg List.length h
-    rw [List.length_append, List.length_nil] at this
-    cases u <;> cases v <;> contradiction
-  rw [evalTrunc_val hn huv, mul_val, evalTrunc_val hn hu, evalTrunc_val hn hv]
-  obtain ⟨a, rest_u, rfl⟩ := List.exists_cons_of_ne_nil hu
-  obtain ⟨b, rest_v, rfl⟩ := List.exists_cons_of_ne_nil hv
-  simp only [List.map_cons, List.sum_cons, List.map_append, List.sum_append]
-  have ha : 1 ≤ a.val := a.pos
-  have hb : 1 ≤ b.val := b.pos
-  omega
 
 /-- The length of a list in `TruncatedAdd n` is bounded by the sum of its values. -/
 lemma length_le_sum_val (u : List (TruncatedAdd n)) :
@@ -379,9 +348,8 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
         rw [balancedTree_val d (u.take n) htake_ne,
             balancedTree_val d (u.drop n) hdrop_ne,
             List.take_append_drop]
-      have ht_ramsey : t.IsRamsey eval := by
-        dsimp [t]
-        exact FactorizationTree.binary_isRamsey eval
+      have ht_ramsey : t.IsRamsey eval :=
+        FactorizationTree.binary_isRamsey eval
           (balancedTree_isRamsey eval d _ htake_ne)
           (balancedTree_isRamsey eval d _ hdrop_ne)
       have ht_height : t.height ≤ log2Ceil n + 2 := by
@@ -497,9 +465,8 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
         have ht_val : t.value = u := by
           dsimp [t, FactorizationTree.value]
           rw [h_trees_val, htrem_val, List.take_append_drop]
-        have ht_ramsey : t.IsRamsey eval := by
-          dsimp [t]
-          exact FactorizationTree.binary_isRamsey eval h_idem_ramsey htrem_ramsey
+        have ht_ramsey : t.IsRamsey eval :=
+          FactorizationTree.binary_isRamsey eval h_idem_ramsey htrem_ramsey
         have ht_height : t.height ≤ log2Ceil n + 2 := by
           have ht_eq : t.height =
               1 + max (FactorizationTree.idempotent trees).height trem.height := rfl

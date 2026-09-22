@@ -35,24 +35,6 @@ variable {S T : Type*} [Semigroup S] [Semigroup T]
 
 section ClosureSequence
 
-/-- The Simon complexity `nS S` of any non-empty finite semigroup `S` is strictly positive. -/
-lemma nS_pos {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] : 0 < nS S := by
-  dsimp [nS]
-  have h_ne : (Finset.univ.image (fun (x : S) ↦ nSElement x)).Nonempty := by
-    obtain ⟨x⟩ : Nonempty S := inferInstance
-    exact ⟨_, Finset.mem_image_of_mem _ (Finset.mem_univ x)⟩
-  rw [dif_pos h_ne]
-  obtain ⟨x⟩ : Nonempty S := inferInstance
-  have h_pos : 0 < nSElement x := nSElement_pos x
-  have h_mem : nSElement x ∈ Finset.univ.image (fun (x : S) ↦ nSElement x) :=
-    Finset.mem_image_of_mem _ (Finset.mem_univ x)
-  exact h_pos.trans_le (Finset.le_max' _ _ h_mem)
-
-/-- `Fin (nS S)` is non-empty for any non-empty finite semigroup `S`. -/
-instance instNonemptyFin_nS {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] :
-    Nonempty (Fin (nS S)) :=
-  Fin.pos_iff_nonempty.mp nS_pos
-
 /-- The inductive sequence of subsets `X_seq ϕ X n ⊆ S`:
 `X_seq ϕ X 0 = X`.
 `X_seq ϕ X (n + 1) = X_seq ϕ X n ∪ (X_seq ϕ X n * X_seq ϕ X n) ∪`
@@ -65,9 +47,8 @@ def X_seq (ϕ : S →ₙ* T) (X : Set S) : ℕ → Set S
 
 /-- Xₙ ⊆ Xₙ₊₁ for all n. -/
 lemma X_seq_succ_self (ϕ : S →ₙ* T) (X : Set S) (n : ℕ) :
-    X_seq ϕ X n ⊆ X_seq ϕ X (n + 1) := by
-  dsimp [X_seq]
-  exact subset_union_left.trans subset_union_left
+    X_seq ϕ X n ⊆ X_seq ϕ X (n + 1) :=
+  subset_union_left.trans subset_union_left
 
 /-- Xₘ ⊆ Xₙ whenever m ≤ n. -/
 lemma X_seq_mono (ϕ : S →ₙ* T) (X : Set S) {m n : ℕ} (h : m ≤ n) :
@@ -168,7 +149,7 @@ lemma mem_closure_iff_exists_list (X : Set S) (s : S) :
 /-- Well-definedness of `listProdNE` with respect to list equality. -/
 lemma listProdNE_eq (u v : List S) (hu : u ≠ []) (hv : v ≠ []) (h : u = v) :
     listProdNE u hu = listProdNE v hv := by
-  cases h
+  subst h
   rfl
 
 end ListProduct
@@ -388,7 +369,7 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
       exact listProdNE_eq _ _ _ _ ht_val
     rw [h_val_eq] at h_in_3n
     exact h_in_3n
-  · exact fun hs => X_seq_subset_closure ϕ X (3 * nS T) hs
+  · exact fun hs ↦ X_seq_subset_closure ϕ X (3 * nS T) hs
 
 end AlgebraicPresentation
 
@@ -428,10 +409,8 @@ def Cond4 (ϕ : S →ₙ* T) (P : Set (Set S)) : Prop :=
 
 /-- `Cond1'` (down-closed) and `Cond1''` (X ∈ P) together imply `Cond1`. -/
 lemma cond1_of_cond1'_and_cond1'' (ϕ : S →ₙ* T) (X : Set S) (P : Set (Set S))
-    (h1' : Cond1' P) (h1'' : Cond1'' X P) : Cond1 ϕ X P := by
-  intro a
-  have h_sub : {x ∈ X | ϕ x = a} ⊆ X := fun x hx ↦ hx.1
-  exact h1' h_sub h1''
+    (h1' : Cond1' P) (h1'' : Cond1'' X P) : Cond1 ϕ X P :=
+  fun _ ↦ h1' (fun _ hx ↦ hx.1) h1''
 
 omit [Semigroup S] in
 /-- Finite union closure under `Cond2`:

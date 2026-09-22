@@ -399,6 +399,31 @@ lemma regularSplits_props {α S : Type*}
   let rankX (x : {x // x ∈ xs}) : Fin (nSElement a) :=
     ⟨(sX x).val + (nSElement a - nD (IsGreenD.eqvClass a)), by
       have h_lt := (sX x).isLt; rw [nSElement]; omega⟩
+  have convert_sr_X : ∀ (p q : α) (hp : p ∈ xs) (hq : q ∈ xs) (hpq : p < q),
+      SplitRelation (regularSplits a xs sX sY) p q →
+      SplitRelation sX ⟨p, hp⟩ ⟨q, hq⟩ := by
+    intro p q hp hq hpq hsr_pq
+    constructor
+    · apply Fin.ext
+      have h_eq := congrArg Fin.val hsr_pq.left
+      simp only [regularSplits, combineSplits, hp, hq, ↓reduceDIte] at h_eq
+      omega
+    · intro z hz_ge hz_le
+      have h_pq_le : (⟨p, hp⟩ : {x // x ∈ xs}) ≤ ⟨q, hq⟩ := le_of_lt hpq
+      have h_min_eq : min (⟨p, hp⟩ : {x // x ∈ xs}) ⟨q, hq⟩ = ⟨p, hp⟩ := min_eq_left h_pq_le
+      have h_max_eq : max (⟨p, hp⟩ : {x // x ∈ xs}) ⟨q, hq⟩ = ⟨q, hq⟩ := max_eq_right h_pq_le
+      rw [h_min_eq] at hz_ge
+      rw [h_max_eq] at hz_le
+      have hz1_val : min p q ≤ z.val := (min_eq_left (le_of_lt hpq)).symm ▸ hz_ge
+      have hz2_val : z.val ≤ max p q := (max_eq_right (le_of_lt hpq)).symm ▸ hz_le
+      have hsr_right_eval := hsr_pq.right z.val hz1_val hz2_val
+      rw [min_eq_left (le_of_lt hpq)] at hsr_right_eval
+      have hz_prop := z.property
+      simp only [regularSplits, combineSplits, hp, hz_prop, ↓reduceDIte] at hsr_right_eval
+      have h_ineq := Fin.le_iff_val_le_val.mp hsr_right_eval
+      rw [h_min_eq]
+      apply Fin.le_iff_val_le_val.mpr
+      grind
   apply combineSplits_props a xs (nSElement a - nD (IsGreenD.eqvClass a))
     σ σ_Y rankX sY hsY_ramsey h_σ_Y h_cov hsY_strict
   · intro x hx
@@ -406,63 +431,9 @@ lemma regularSplits_props {α S : Type*}
   · exact h_xs_mono
   · exact h_interval_ramsey
   · intro x y z hx hy hz hlt_xy hlt_yz hsr_xy hsr_yz
-    have convert_sr_X : ∀ (p q : α) (hp : p ∈ xs) (hq : q ∈ xs) (hpq : p < q),
-        SplitRelation (regularSplits a xs sX sY) p q →
-        SplitRelation sX ⟨p, hp⟩ ⟨q, hq⟩ := by
-      intro p q hp hq hpq hsr_pq
-      constructor
-      · apply Fin.ext
-        have h_eq := congrArg Fin.val hsr_pq.left
-        simp only [regularSplits, combineSplits, hp, hq, ↓reduceDIte] at h_eq
-        omega
-      · intro z hz_ge hz_le
-        have h_pq_le : (⟨p, hp⟩ : {x // x ∈ xs}) ≤ ⟨q, hq⟩ := le_of_lt hpq
-        have h_min_eq : min (⟨p, hp⟩ : {x // x ∈ xs}) ⟨q, hq⟩ = ⟨p, hp⟩ := min_eq_left h_pq_le
-        have h_max_eq : max (⟨p, hp⟩ : {x // x ∈ xs}) ⟨q, hq⟩ = ⟨q, hq⟩ := max_eq_right h_pq_le
-        rw [h_min_eq] at hz_ge
-        rw [h_max_eq] at hz_le
-        have hz1_val : min p q ≤ z.val := (min_eq_left (le_of_lt hpq)).symm ▸ hz_ge
-        have hz2_val : z.val ≤ max p q := (max_eq_right (le_of_lt hpq)).symm ▸ hz_le
-        have hsr_right_eval := hsr_pq.right z.val hz1_val hz2_val
-        rw [min_eq_left (le_of_lt hpq)] at hsr_right_eval
-        have hz_prop := z.property
-        simp only [regularSplits, combineSplits, hp, hz_prop, ↓reduceDIte] at hsr_right_eval
-        have h_ineq := Fin.le_iff_val_le_val.mp hsr_right_eval
-        rw [h_min_eq]
-        apply Fin.le_iff_val_le_val.mpr
-        grind
     simpa only [h_σ_X] using hsX_ramsey.1 ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩ hlt_xy hlt_yz
       (convert_sr_X x y hx hy hlt_xy hsr_xy) (convert_sr_X y z hy hz hlt_yz hsr_yz)
   · intro x y u v hx hy hu hv hlt_xy hlt_uv hsr_xy hsr_uv hsr_xu
-    have convert_sr_X : ∀ (p q : α) (hp : p ∈ xs) (hq : q ∈ xs) (hpq : p < q),
-        SplitRelation (regularSplits a xs sX sY) p q →
-        SplitRelation sX ⟨p, hp⟩ ⟨q, hq⟩ := by
-      intro p q hp hq hpq hsr_pq
-      constructor
-      · apply Fin.ext
-        have h_eq := congrArg Fin.val hsr_pq.left
-        simp only [regularSplits, combineSplits, hp, hq, ↓reduceDIte] at h_eq
-        omega
-      · intro z hz_ge hz_le
-        have h_pq_le : (⟨p, hp⟩ : {x // x ∈ xs}) ≤ ⟨q, hq⟩ := le_of_lt hpq
-        have h_min_eq : min (⟨p, hp⟩ : {x // x ∈ xs}) ⟨q, hq⟩ = ⟨p, hp⟩ := min_eq_left h_pq_le
-        have h_max_eq : max (⟨p, hp⟩ : {x // x ∈ xs}) ⟨q, hq⟩ = ⟨q, hq⟩ := max_eq_right h_pq_le
-        rw [h_min_eq] at hz_ge
-        rw [h_max_eq] at hz_le
-        have hz1_val : min p q ≤ z.val := by
-          rw [min_eq_left (le_of_lt hpq)]
-          exact hz_ge
-        have hz2_val : z.val ≤ max p q := by
-          rw [max_eq_right (le_of_lt hpq)]
-          exact hz_le
-        have hsr_right_eval := hsr_pq.right z.val hz1_val hz2_val
-        rw [min_eq_left (le_of_lt hpq)] at hsr_right_eval
-        have hz_prop := z.property
-        simp only [regularSplits, combineSplits, hp, hz_prop, ↓reduceDIte] at hsr_right_eval
-        have h_ineq := Fin.le_iff_val_le_val.mp hsr_right_eval
-        rw [h_min_eq]
-        apply Fin.le_iff_val_le_val.mpr
-        grind
     have hsr_X_xu : SplitRelation sX ⟨x, hx⟩ ⟨u, hu⟩ := by
       constructor
       · apply Fin.ext

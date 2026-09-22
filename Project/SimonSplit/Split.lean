@@ -68,47 +68,39 @@ theorem simon_split {S α : Type*} [Semigroup S] [Fintype S]
     change IsGreenJRel (σ.σ x₀ y₀) (σ.σ x y)
     rcases h_x0_le.eq_or_lt with rfl | h_x0_lt
     · rcases h_le_y0.eq_or_lt with rfl | h_lt_y0
-      · exact IsGreenJRel.refl _
-      · exact IsGreenJRel.mul_right (σ.σ y y₀) (σ.prop _ y y₀ hlt h_lt_y0).symm
+      · exact .of_eq rfl
+      · exact .mul_right (σ.σ y y₀) (σ.prop _ y y₀ hlt h_lt_y0).symm
     · rcases h_le_y0.eq_or_lt with rfl | h_lt_y0
-      · exact IsGreenJRel.mul_left (σ.σ x₀ x) (σ.prop x₀ x _ h_x0_lt hlt).symm
-      · exact IsGreenJRel.mul_both (σ.σ x₀ x) (σ.σ y y₀)
+      · exact .mul_left (σ.σ x₀ x) (σ.prop x₀ x _ h_x0_lt hlt).symm
+      · exact .mul_both (σ.σ x₀ x) (σ.σ y y₀)
           (by rw [← σ.prop x₀ y y₀ (h_x0_lt.trans hlt) h_lt_y0, ← σ.prop x₀ x y h_x0_lt hlt])
   obtain ⟨s_a, h_norm, h_ramsey⟩ := simon_split_induction a σ ha
   have h_le : nSElement a ≤ nS S := by
-    unfold nS
+    dsimp [nS]
     have h_ne : (Finset.univ.image (fun (x : S) ↦ nSElement x)).Nonempty :=
       ⟨nSElement a, Finset.mem_image_of_mem _ (Finset.mem_univ a)⟩
-    exact (dif_pos h_ne).symm ▸ Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ a))
+    rw [dif_pos h_ne]
+    exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ a))
   let Δ := nS S - nSElement a
-  let s : Split α (nS S) := fun x ↦ ⟨(s_a x).val + Δ, by have h_bound := (s_a x).isLt; omega⟩
-  have hsr_iff : ∀ u v, SplitRelation s u v ↔ SplitRelation s_a u v := by
-    intro u v
-    have h_eq : s u = s v ↔ s_a u = s_a v := by
-      rw [Fin.ext_iff, Fin.ext_iff]
-      change (s_a u).val + Δ = (s_a v).val + Δ ↔ (s_a u).val = (s_a v).val
-      exact ⟨fun h ↦ by omega, fun h ↦ by omega⟩
-    have h_le : ∀ z, s z ≤ s (min u v) ↔ s_a z ≤ s_a (min u v) := by
-      intro z
-      rw [Fin.le_iff_val_le_val, Fin.le_iff_val_le_val]
-      change (s_a z).val + Δ ≤ (s_a (min u v)).val + Δ ↔ (s_a z).val ≤ (s_a (min u v)).val
-      exact ⟨fun h ↦ by omega, fun h ↦ by omega⟩
-    exact ⟨fun h ↦ ⟨h_eq.mp h.1, fun z hz_ge hz_le ↦ (h_le z).mp (h.2 z hz_ge hz_le)⟩,
-           fun h ↦ ⟨h_eq.mpr h.1, fun z hz_ge hz_le ↦ (h_le z).mpr (h.2 z hz_ge hz_le)⟩⟩
+  let s : Split α (nS S) := fun x ↦ ⟨(s_a x).val + Δ, by have := (s_a x).isLt; omega⟩
+  have hsr_iff : ∀ u v, SplitRelation s u v ↔ SplitRelation s_a u v := fun u v ↦ by
+    simp only [SplitRelation, Fin.ext_iff, Fin.le_iff_val_le_val, s]
+    exact ⟨fun ⟨h1, h2⟩ ↦ ⟨by omega, fun z hz1 hz2 ↦ by have := h2 z hz1 hz2; omega⟩,
+      fun ⟨h1, h2⟩ ↦ ⟨by omega, fun z hz1 hz2 ↦ by have := h2 z hz1 hz2; omega⟩⟩
   exact ⟨s, by
-      ext; simp only [h_norm, s]
+      ext
+      simp only [h_norm, s]
       have h_max_a : (Finset.max' Finset.univ Finset.univ_nonempty : Fin (nSElement a)).val
           = nSElement a - 1 :=
         congrArg Fin.val ((Finset.max'_eq_iff _ _
-          (⟨nSElement a - 1, by have h_pos : 0 < nSElement a := nSElement_pos a; omega⟩ :
-          Fin (nSElement a))).mpr ⟨Finset.mem_univ _, fun w _ ↦ Fin.le_iff_val_le_val.mpr
-          (Nat.le_pred_of_lt w.isLt)⟩)
+          (⟨nSElement a - 1, by have := nSElement_pos a; omega⟩ : Fin (nSElement a))).mpr
+          ⟨Finset.mem_univ _, fun w _ ↦ Fin.le_iff_val_le_val.mpr (Nat.le_pred_of_lt w.isLt)⟩)
       have h_max_S : (Finset.max' Finset.univ Finset.univ_nonempty : Fin (nS S)).val = nS S - 1 :=
         congrArg Fin.val ((Finset.max'_eq_iff _ _
-          (⟨nS S - 1, by have h_pos : 0 < nS S := Fin.pos_iff_nonempty.mpr inferInstance; omega⟩ :
-          Fin (nS S))).mpr ⟨Finset.mem_univ _, fun w _ ↦ Fin.le_iff_val_le_val.mpr
-          (Nat.le_pred_of_lt w.isLt)⟩)
-      have h_pos_a : 0 < nSElement a := nSElement_pos a
+          (⟨nS S - 1, by have : 0 < nS S := Fin.pos_iff_nonempty.mpr inferInstance; omega⟩ :
+          Fin (nS S))).mpr ⟨Finset.mem_univ _, fun w _ ↦
+          Fin.le_iff_val_le_val.mpr (Nat.le_pred_of_lt w.isLt)⟩)
+      have : 0 < nSElement a := nSElement_pos a
       omega,
     fun x y z hxy hyz hsr_xy hsr_yz ↦
       h_ramsey.1 x y z hxy hyz ((hsr_iff x y).mp hsr_xy) ((hsr_iff y z).mp hsr_yz),

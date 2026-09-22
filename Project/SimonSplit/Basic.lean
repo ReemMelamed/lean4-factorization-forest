@@ -75,21 +75,22 @@ abbrev wordLabeling {A S : Type*} [Semigroup S]
   σ := fun i j => eval ((u.drop i.val).take (j.val - i.val))
   prop := by
     intros x y z hxy hyz
-    let u_xy := (u.drop x.val).take (y.val - x.val)
-    let u_yz := (u.drop y.val).take (z.val - y.val)
-    let u_xz := (u.drop x.val).take (z.val - x.val)
-    have not_empty_xy_yz : u_xy ≠ [] ∧ u_yz ≠ [] := by
-      simp [u_xy, u_yz]
+    have h_ne1 : (u.drop x.val).take (y.val - x.val) ≠ [] := by
+      simp [List.take_eq_nil_iff]
       omega
-    have concat_xy_yz_eq_xz : u_xy ++ u_yz = u_xz := by
-      have index_diff_eq : z.val - x.val = (y.val - x.val) + (z.val - y.val) := by
+    have h_ne2 : (u.drop y.val).take (z.val - y.val) ≠ [] := by
+      simp [List.take_eq_nil_iff]
+      omega
+    have h_cat : (u.drop x.val).take (y.val - x.val) ++ (u.drop y.val).take (z.val - y.val) =
+        (u.drop x.val).take (z.val - x.val) := by
+      have hd : u.drop y.val = (u.drop x.val).drop (y.val - x.val) := by
+        rw [List.drop_drop]
+        congr 1
         omega
-      have drop_eq_nested_drop :
-          u.drop y.val = (u.drop x.val).drop (y.val - x.val) := by
-        simp
-        grind
-      grind
-    grind
+      rw [hd, ← List.take_add]
+      congr 1
+      omega
+    rw [← hmul _ _ h_ne1 h_ne2, h_cat]
 
 end WordDefinitions
 
@@ -112,8 +113,7 @@ open Classical in
 theorem nD_pos (D : Set S) (hD : ∃ x, D = IsGreenD.eqvClass x) : 0 < nD D := by
   dsimp [nD]
   split_ifs with hReg
-  · obtain ⟨e, heD, he_idem⟩ :=
-        (isRegularDClass_iff_exists_idempotent D hD).mp hReg
+  · obtain ⟨e, heD, he_idem⟩ := (isRegularDClass_iff_exists_idempotent D hD).mp hReg
     exact Finset.card_pos.mpr ⟨e, Finset.mem_filter.mpr
       ⟨Finset.mem_univ _, heD, e, heD, he_idem, IsGreenH.refl _⟩⟩
   · decide
@@ -141,19 +141,15 @@ lemma labeling_factor_le_J {α : Type*} [LinearOrder α]
     (σ : MultiplicativeLabeling S α) (u v w x : α)
     (huv : u ≤ v) (hvw : v < w) (hwx : w ≤ x) :
     GreenJClass.mk (σ.σ u x) ≤ GreenJClass.mk (σ.σ v w) := by
-  rcases huv.eq_or_lt with rfl | h_uv
-  · rcases hwx.eq_or_lt with rfl | h_wx
+  have h1 : GreenJClass.mk (σ.σ u x) ≤ GreenJClass.mk (σ.σ v x) := by
+    rcases huv.eq_or_lt with rfl | h
     · exact le_rfl
-    · exact (σ.prop u w x hvw h_wx).symm ▸
-        (IsGreenJRel.mul_right (σ.σ w x) rfl : GreenJClass.mk _ ≤ _)
-  · rcases hwx.eq_or_lt with rfl | h_wx
-    · exact (σ.prop u v w h_uv hvw).symm ▸
-        (IsGreenJRel.mul_left (σ.σ u v) rfl : GreenJClass.mk _ ≤ _)
-    · exact (σ.prop u v x h_uv (hvw.trans h_wx)).symm ▸
-          (σ.prop v w x hvw h_wx).symm ▸
-          le_trans
-            (IsGreenJRel.mul_left (σ.σ u v) rfl : GreenJClass.mk _ ≤ _)
-            (IsGreenJRel.mul_right (σ.σ w x) rfl : GreenJClass.mk _ ≤ _)
+    · exact (σ.prop u v x h (hvw.trans_le hwx)).symm ▸ IsGreenJRel.mul_left _ rfl
+  have h2 : GreenJClass.mk (σ.σ v x) ≤ GreenJClass.mk (σ.σ v w) := by
+    rcases hwx.eq_or_lt with rfl | h
+    · exact le_rfl
+    · exact (σ.prop v w x hvw h).symm ▸ IsGreenJRel.mul_right _ rfl
+  exact h1.trans h2
 
 variable [Finite S]
 
@@ -173,152 +169,6 @@ end LabelingProperties
 
 section GeneralUtility
 
-/-- Taking the first `x` elements and then `y` elements from the remainder
-gives the same result as taking the first `x + y` elements. -/
-lemma take_append_take_drop {A : Type*} : (L : List A) → (x y : ℕ) →
-    L.take x ++ (L.drop x).take y = L.take (x + y)
-  | [], _, _ => by simp
-  | _ :: _, 0, _ => by simp
-  | _ :: l, x' + 1, y => by
-    simp only [List.take_succ_cons, List.drop_succ_cons,
-      List.cons_append, Nat.succ_add]
-    rw [take_append_take_drop l x' y]
-
-/-- In a sorted non-empty list, every element is at most the last element. -/
-lemma idxs_le_getLast {n : ℕ} (L : List (Fin (n + 1)))
-    (hL : L ≠ []) (h_sort : List.Pairwise (· < ·) L) :
-    ∀ x ∈ L, x.val ≤ (L.getLast hL).val := fun x hx ↦ by
-  obtain ⟨i, rfl⟩ := List.mem_iff_get.mp hx
-  have h_last_eq : L.getLast hL = L.get ⟨L.length - 1, by grind⟩ := by
-    grind
-  rw [h_last_eq]
-  have h_pw := List.pairwise_iff_get.mp h_sort
-  if h_eq : i.val = L.length - 1 then
-    have h_i_eq : i = ⟨L.length - 1, by omega⟩ := Fin.ext h_eq
-    grind
-  else
-    have h_lt : i.val < L.length - 1 := by omega
-    have h_get_lt : L.get i < L.get ⟨L.length - 1, by omega⟩ :=
-      h_pw i ⟨L.length - 1, by omega⟩ h_lt
-    have h_val_lt : (L.get i).val <
-        (L.get ⟨L.length - 1, by omega⟩).val := h_get_lt
-    omega
-
-/-- In a sorted non-empty list, the head is at most every element. -/
-lemma head_le_idxs {n : ℕ} (L : List (Fin (n + 1)))
-    (hL : L ≠ []) (h_sort : List.Pairwise (· < ·) L) :
-    ∀ x ∈ L, (L.head hL).val ≤ x.val := fun x hx ↦ by
-  cases L with
-  | nil => contradiction
-  | cons a l =>
-    simp only [List.head_cons]
-    simp only [List.mem_cons] at hx
-    rcases hx with rfl | hx
-    · omega
-    · have h_all : ∀ y ∈ l, a < y := List.pairwise_cons.1 h_sort |>.1
-      have h_lt := h_all x hx
-      omega
-
-/-- Helper: `u.drop (u.length - 1) = [u.getLast hu]`. -/
-lemma list_drop_length_sub_one {A} (u : List A) (hu : u ≠ []) :
-    u.drop (u.length - 1) = [u.getLast hu] := by
-  induction u with
-  | nil => contradiction
-  | cons head tail ih =>
-    match tail with
-    | [] => rfl
-    | head2 :: tail2 =>
-      have h_tail_ne : head2 :: tail2 ≠ [] := by simp
-      exact ih h_tail_ne
-
-/-- Decomposition of a word of length > 2 into head + middle + last. -/
-lemma word_decomp {A} (u : List A) (hu : u ≠ []) (h_len : 2 < u.length) :
-    u = [u.head hu] ++ (u.drop 1).take (u.length - 2) ++
-    [u.getLast hu] := by
-  have h3 : u.drop 1 =
-      (u.drop 1).take (u.length - 2) ++ (u.drop 1).drop (u.length - 2) :=
-    (List.take_append_drop (u.length - 2) (u.drop 1)).symm
-  have h4 : (u.drop 1).drop (u.length - 2) = [u.getLast hu] := by
-    rw [List.drop_drop]
-    have hd2 : 1 + (u.length - 2) = u.length - 1 := by omega
-    rw [hd2]
-    exact list_drop_length_sub_one u hu
-  calc u
-    _ = u.take 1 ++ u.drop 1 := (List.take_append_drop 1 u).symm
-    _ = [u.head hu] ++ u.drop 1 := by
-        have h2 : u.take 1 = [u.head hu] := by
-          match u with
-          | [] => contradiction
-          | a :: tl => rfl
-        rw [h2]
-    _ = [u.head hu] ++ ((u.drop 1).take (u.length - 2) ++
-          (u.drop 1).drop (u.length - 2)) := by
-        exact congrArg (fun x => [u.head hu] ++ x) h3
-    _ = [u.head hu] ++ (u.drop 1).take (u.length - 2) ++
-          (u.drop 1).drop (u.length - 2) := by rw [List.append_assoc]
-    _ = [u.head hu] ++ (u.drop 1).take (u.length - 2) ++
-          [u.getLast hu] := by rw [h4]
-
-/-- A sub-word extracted as `(u.drop i).take (j - i)` has the same evaluation
-as the corresponding sublist of `u`. -/
-lemma chunk_eq {A : Type*} {u w : List A} {i : ℕ}
-    (hw : ∃ j, w = (u.drop i).take (j - i))
-    (x y : Fin (w.length + 1)) (hxy : x ≤ y) :
-    (w.drop x.val).take (y.val - x.val) =
-    (u.drop (i + x.val)).take (y.val - x.val) := by
-  rcases hw with ⟨j, rfl⟩
-  have h_ylt := y.isLt
-  have h_len : ((u.drop i).take (j - i)).length =
-      min (j - i) (u.drop i).length := List.length_take
-  have h_min : min (y.val - x.val) (j - i - x.val) = y.val - x.val := by
-    omega
-  simp only [List.drop_take, List.drop_drop, List.take_take, h_min]
-
-/-- If every element of a list of natural numbers is ≤ k and the accumulator
-is ≤ k, then `foldl max acc l ≤ k`. -/
-lemma foldl_max_le (l : List ℕ) (acc k : ℕ) (h_acc : acc ≤ k)
-    (h_le : ∀ x ∈ l, x ≤ k) :
-    List.foldl max acc l ≤ k := by
-  induction l generalizing acc with
-  | nil => exact h_acc
-  | cons x xs ih =>
-    apply ih
-    · exact max_le h_acc (h_le x List.mem_cons_self)
-    · intro y hy
-      exact h_le y (List.mem_cons_of_mem x hy)
-
-/-- `foldl max` is monotone in the initial accumulator. -/
-private lemma foldl_max_mono (l : List ℕ) (a b : ℕ) (hab : a ≤ b) :
-    l.foldl max a ≤ l.foldl max b := by
-  induction l generalizing a b with
-  | nil => exact hab
-  | cons hd tl ih => exact ih (max a hd) (max b hd) (by omega)
-
-/-- The initial accumulator is at most `foldl max init l`. -/
-private lemma le_foldl_max_init (l : List ℕ) (init : ℕ) :
-    init ≤ l.foldl max init := by
-  induction l generalizing init with
-  | nil => exact le_refl init
-  | cons hd tl ih =>
-    calc init ≤ max init hd := le_max_left _ _
-    _ ≤ List.foldl max (max init hd) tl := ih (max init hd)
-
-/-- Any element of a list is at most `foldl max 0` of that list. -/
-lemma foldl_max_mem (l : List ℕ) (x : ℕ) (hx : x ∈ l) :
-    x ≤ l.foldl max 0 := by
-  induction l with
-  | nil => contradiction
-  | cons hd tl ih =>
-    simp only [List.foldl_cons]
-    cases List.mem_cons.mp hx with
-    | inl h_eq =>
-      rw [h_eq]
-      exact le_trans (by omega : hd ≤ max 0 hd)
-        (le_foldl_max_init tl (max 0 hd))
-    | inr h_mem =>
-      exact le_trans (ih h_mem)
-        (foldl_max_mono tl 0 (max 0 hd) (by omega))
-
 /-- A subtype of `α` representing elements strictly between `xs[i]` and
 `xs[i+1]` (or between `xs[i]` and +∞ if `i` is the last index).
 Used to restrict the inductive hypothesis to proper sub-intervals. -/
@@ -336,13 +186,13 @@ lemma list_interval_covers {α : Type*} [LinearOrder α] (x : α) :
     ∃ (i : ℕ) (hi_lt : i < xs.length),
       xs.get ⟨i, hi_lt⟩ < x ∧
       ∀ (hi_succ_lt : i + 1 < xs.length), x < xs.get ⟨i + 1, hi_succ_lt⟩
-| [], _, ⟨_, hy, _⟩ => nomatch hy
-| a :: tail, h_not_in, h_lb => by
-  by_cases h_tail : ∃ y ∈ tail, y < x
-  · obtain ⟨i, hi, hlt, hgt⟩ :=
+  | [], _, ⟨_, hy, _⟩ => nomatch hy
+  | a :: tail, h_not_in, h_lb => by
+    by_cases h_tail : ∃ y ∈ tail, y < x
+    · obtain ⟨i, hi, hlt, hgt⟩ :=
         list_interval_covers x tail (fun h => h_not_in (List.Mem.tail _ h)) h_tail
-    exact ⟨i + 1, by simp; omega, hlt, fun h => hgt (by simp at h; omega)⟩
-  · grind
+      exact ⟨i + 1, by simp; omega, hlt, fun h => hgt (by simp at h; omega)⟩
+    · grind
 
 /-- An element in an open interval `OpenIntervalType xs i` is never a member
 of the sequence `xs` itself (since it is strictly between two consecutive

@@ -74,12 +74,7 @@ end
 lemma listHeight_le {H : ℕ} : ∀ (ts : List (FactorizationTree A)),
     (∀ t ∈ ts, height t ≤ H) → listHeight ts ≤ H
   | [], _ => Nat.zero_le H
-  | t :: ts, h => by
-    dsimp [listHeight]
-    have ht : height t ≤ H := h t (by simp)
-    have hts : listHeight ts ≤ H :=
-      listHeight_le ts (fun x hx => h x (List.mem_cons_of_mem t hx))
-    exact max_le ht hts
+  | t :: ts, h => max_le (h t (.head _)) (listHeight_le ts fun x hx ↦ h x (.tail _ hx))
 
 variable {S : Type*} [Semigroup S]
 
@@ -100,51 +95,30 @@ mutual
 end
 
 /-- A leaf node is unconditionally Ramsey for any evaluation map. -/
-lemma leaf_isRamsey (eval : List A → S) (a : A) : (leaf a).IsRamsey eval := by
-  simp [IsRamsey]
+lemma leaf_isRamsey (eval : List A → S) (a : A) : (leaf a).IsRamsey eval := trivial
 
 /-- A binary node is Ramsey if and only if both children are Ramsey. -/
 lemma binary_isRamsey (eval : List A → S) {l r : FactorizationTree A}
     (hl : l.IsRamsey eval) (hr : r.IsRamsey eval) :
-    (binary l r).IsRamsey eval := by
-  simp [IsRamsey, hl, hr]
+    (binary l r).IsRamsey eval := ⟨hl, hr⟩
 
 /-- An idempotent node is Ramsey if it has at least two children, all children are Ramsey,
 and all children evaluate to the same idempotent. -/
 lemma idempotent_isRamsey (eval : List A → S) {children : List (FactorizationTree A)}
     (hlen : 2 ≤ children.length) (hlist : listIsRamsey eval children)
     {e : S} (he : e * e = e) (he_eval : ∀ t ∈ children, eval (value t) = e) :
-    (idempotent children).IsRamsey eval := by grind [IsRamsey]
+    (idempotent children).IsRamsey eval := ⟨hlen, hlist, e, he, he_eval⟩
 
 /-- Decomposition of `listIsRamsey` on a `cons` list. -/
 lemma listIsRamsey_cons (eval : List A → S) (t : FactorizationTree A)
     (ts : List (FactorizationTree A)) :
-    listIsRamsey eval (t :: ts) ↔ (t.IsRamsey eval ∧ listIsRamsey eval ts) := by
-  simp [listIsRamsey]
+    listIsRamsey eval (t :: ts) ↔ (t.IsRamsey eval ∧ listIsRamsey eval ts) := Iff.rfl
 
 end TreeDefinitions
 
 end FactorizationTree
 
 section ListSlices
-
-/-- The Simon complexity `nS S` of any non-empty finite semigroup `S` is strictly positive. -/
-lemma nS_pos {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] : 0 < nS S := by
-  dsimp [nS]
-  have h_ne : (Finset.univ.image (fun (x : S) ↦ nSElement x)).Nonempty := by
-    obtain ⟨x⟩ : Nonempty S := inferInstance
-    exact ⟨_, Finset.mem_image_of_mem _ (Finset.mem_univ x)⟩
-  rw [dif_pos h_ne]
-  obtain ⟨x⟩ : Nonempty S := inferInstance
-  have h_pos : 0 < nSElement x := nSElement_pos x
-  have h_mem : nSElement x ∈ Finset.univ.image (fun (x : S) ↦ nSElement x) :=
-    Finset.mem_image_of_mem _ (Finset.mem_univ x)
-  exact h_pos.trans_le (Finset.le_max' _ _ h_mem)
-
-/-- `Fin (nS S)` is non-empty for any non-empty finite semigroup `S`. -/
-instance instNonemptyFin_nS {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] :
-    Nonempty (Fin (nS S)) :=
-  Fin.pos_iff_nonempty.mp nS_pos
 
 /-- Concatenating consecutive slices of a list yields the merged slice. -/
 lemma list_drop_take_append {A : Type*} (u : List A) (i k j : ℕ) (hik : i ≤ k) (hkj : k ≤ j) :
@@ -162,25 +136,8 @@ lemma list_drop_take_append {A : Type*} (u : List A) (i k j : ℕ) (hik : i ≤ 
 /-- Slicing a single element from index `i` yields `[u[i]]`. -/
 lemma list_drop_take_one {A : Type*} (u : List A) (i : ℕ) (hi : i < u.length) :
     (u.drop i).take 1 = [u[i]] := by
-  cases h_drop : u.drop i with
-  | nil =>
-    have : (u.drop i).length = 0 := by rw [h_drop, List.length_nil]
-    rw [List.length_drop] at this
-    omega
-  | cons head tail =>
-    have h_take : (head :: tail).take 1 = [head] := rfl
-    have h_get : head = u[i] := by
-      have h0 : (u.drop i)[0]? = some head := by rw [h_drop]; rfl
-      have h1 : (u.drop i)[0]? = some u[i] := by
-        rw [List.getElem?_drop, Nat.add_zero, List.getElem?_eq_getElem hi]
-      simp_all
-    grind
-
-/-- A non-empty slice of a list is non-empty. -/
-lemma list_drop_take_ne_nil {A : Type*} (u : List A) (i j : ℕ) (hij : i < j) (hj : j ≤ u.length) :
-    (u.drop i).take (j - i) ≠ [] := by
-  simp
-  grind
+  rw [List.drop_eq_getElem_cons hi]
+  rfl
 
 end ListSlices
 
@@ -323,23 +280,14 @@ lemma split_to_tree_inner {n : ℕ} (m : ℕ) (_ : m < n)
           rw [FactorizationTree.listIsRamsey_cons]
           exact ⟨ht_outer_ramsey, h_inner_ramsey⟩
         have h_trees_eval_all :
-          ∀ t ∈ (t_outer :: trees_inner), eval (t.value) = (wordLabeling eval hmul u).σ i j := by
-          intro t ht
-          simp only [List.mem_cons] at ht
-          rcases ht with rfl | ht
-          · rw [ht_outer_val]
-            exact h_eval_ik_eq_ij
-          · rw [h_inner_eval t ht, h_eval_kj_eq_ij]
-        have h_height : ∀ t ∈ t_outer :: trees_inner, t.height ≤ 3 * m := by
-          intro t ht
-          simp only [List.mem_cons] at ht
-          rcases ht with rfl | ht
-          · exact ht_outer_height
-          · exact h_inner_height t ht
+            ∀ t ∈ (t_outer :: trees_inner), eval (t.value) = (wordLabeling eval hmul u).σ i j :=
+          List.forall_mem_cons.2 ⟨ht_outer_val.symm ▸ h_eval_ik_eq_ij,
+            fun t ht ↦ (h_inner_eval t ht).trans h_eval_kj_eq_ij⟩
+        have h_height : ∀ t ∈ t_outer :: trees_inner, t.height ≤ 3 * m :=
+          List.forall_mem_cons.2 ⟨ht_outer_height, h_inner_height⟩
         have h_two_le :
             (∃ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m) →
             2 ≤ (t_outer :: trees_inner).length := by
-          intro _
           cases trees_inner with
           | nil => contradiction
           | cons _ _ => simp
@@ -352,18 +300,13 @@ lemma split_to_tree_inner {n : ℕ} (m : ℕ) (_ : m < n)
           have h2 : ¬ ((s x : ℕ) = m) := fun hc ↦ h_cut ⟨x, hix, hxj, hc⟩
           omega
         obtain ⟨t_outer, ht_outer_val, ht_outer_ramsey, ht_outer_height⟩ := ih i j hij h_less
-        have h_eval : ∀ t ∈ [t_outer], eval (t.value) = (wordLabeling eval hmul u).σ i j := by
-          intro t ht
-          rw [List.mem_singleton.mp ht, ht_outer_val]
-        have h_height : ∀ t ∈ [t_outer], t.height ≤ 3 * m := by
-          intro t ht
-          rw [List.mem_singleton.mp ht]
-          exact ht_outer_height
+        have h_eval : ∀ t ∈ [t_outer], eval (t.value) = (wordLabeling eval hmul u).σ i j :=
+          List.forall_mem_singleton.2 (ht_outer_val.symm ▸ rfl)
+        have h_height : ∀ t ∈ [t_outer], t.height ≤ 3 * m :=
+          List.forall_mem_singleton.2 ht_outer_height
         have h_len :
             (∃ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m) →
-            2 ≤ [t_outer].length := by
-          intro hc
-          exact False.elim (h_cut hc)
+            2 ≤ [t_outer].length := fun hc ↦ (h_cut hc).elim
         exact ⟨[t_outer], by simp, by simp [FactorizationTree.listValue, ht_outer_val],
                by simp [FactorizationTree.listIsRamsey, ht_outer_ramsey], h_eval, h_height, h_len⟩
   intro hij hsi hsj h_between
@@ -488,117 +431,106 @@ lemma split_to_tree_outer {n : ℕ}
           have hle : k_1 ≤ k_r := Finset.min'_le S_cuts k_r hkr_mem
           omega
         have hk1j : (k_1 : ℕ) < (j : ℕ) := hk1kr.trans hkrj
-        by_cases h_no_mid : ∀ x :
-          Fin (u.length + 1), (k_1 : ℕ) < (x : ℕ) → (x : ℕ) < (k_r : ℕ) → (s x : ℕ) < m'
-        · obtain ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩ :=
-            ih_m' (by omega) k_1 k_r hk1kr h_no_mid
-          let t_right := FactorizationTree.binary t_mid t_krj
-          let t := FactorizationTree.binary t_ik1 t_right
-          have ht_right_val : t_right.value = (u.drop k_1).take (j - k_1) := by
-            dsimp [t_right, FactorizationTree.value]
-            rw [ht_mid_val, ht_krj_val]
-            exact list_drop_take_append u k_1.val k_r.val j.val hk1kr.le hkrj.le
-          have ht_val : t.value = (u.drop i).take (j - i) := by
-            dsimp [t, FactorizationTree.value]
-            rw [ht_ik1_val, ht_right_val]
-            exact list_drop_take_append u i.val k_1.val j.val hik1.le hk1j.le
-          have ht_right_ramsey : t_right.IsRamsey eval :=
-            FactorizationTree.binary_isRamsey eval ht_mid_ramsey ht_krj_ramsey
-          have ht_ramsey : t.IsRamsey eval :=
-            FactorizationTree.binary_isRamsey eval ht_ik1_ramsey ht_right_ramsey
-          have ht_height : t.height ≤ 3 * (m' + 1) := by
-            dsimp [t, t_right, FactorizationTree.height]
-            omega
-          exact ⟨t, ht_val, ht_ramsey, ht_height⟩
-        · push Not at h_no_mid
-          rcases h_no_mid with ⟨k_2, hk12, hk2r, h_not_less⟩
-          have hk2_prop : (s k_2 : ℕ) = m' := by
-            have h_bound := h_less k_2 (hik1.trans hk12) (hk2r.trans hkrj)
-            omega
-          have heq1 : (s k_1 : ℕ) = m' := hk1_prop.2.2
-          have heq2 : (s k_2 : ℕ) = m' := hk2_prop
-          have heqr : (s k_r : ℕ) = m' := hkr_prop.2.2
-          have h_rel_12 : SplitRelation s k_1 k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
-            have hmin : min k_1 k_2 = k_1 := min_eq_left (le_of_lt hk12)
-            have hmax : max k_1 k_2 = k_2 := max_eq_right (le_of_lt hk12)
-            rw [hmin] at hx1 ⊢
-            rw [hmax] at hx2
-            change (s x : ℕ) ≤ (s k_1 : ℕ)
-            rw [hk1_prop.2.2]
-            have hx1_nat : (k_1 : ℕ) ≤ (x : ℕ) := hx1
-            have hx2_nat : (x : ℕ) ≤ (k_2 : ℕ) := hx2
-            have h_bound := h_less x (by omega) (by omega)
-            omega⟩
-          have h_rel_2r : SplitRelation s k_2 k_r := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
-            have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
-            have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
-            rw [hmin] at hx1 ⊢
-            rw [hmax] at hx2
-            change (s x : ℕ) ≤ (s k_2 : ℕ)
-            rw [hk2_prop]
-            have hx1_nat : (k_2 : ℕ) ≤ (x : ℕ) := hx1
-            have hx2_nat : (x : ℕ) ≤ (k_r : ℕ) := hx2
-            have h_bound := h_less x (by omega) (by omega)
-            omega⟩
-          have h_color_idem : (wordLabeling eval hmul u).σ k_1 k_2
-            * (wordLabeling eval hmul u).σ k_1 k_2 = (wordLabeling eval hmul u).σ k_1 k_2 :=
-            h_ramsey.1 k_1 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r
-          have h_color_eq :
-            (wordLabeling eval hmul u).σ k_1 k_2 = (wordLabeling eval hmul u).σ k_2 k_r :=
-            h_ramsey.2 k_1 k_2 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r h_rel_12
-          have h_color_total : (wordLabeling eval hmul u).σ k_1 k_2
-            * (wordLabeling eval hmul u).σ k_2 k_r = (wordLabeling eval hmul u).σ k_1 k_r :=
-            (wordLabeling eval hmul u).prop k_1 k_2 k_r hk12 hk2r
-          have h_color_1r_eq_12 : (wordLabeling eval hmul u).σ k_1 k_r =
-            (wordLabeling eval hmul u).σ k_1 k_2 := by
-            rw [← h_color_total, ← h_color_eq, h_color_idem]
-          have h_idem_1r : (wordLabeling eval hmul u).σ k_1 k_r
-            * (wordLabeling eval hmul u).σ k_1 k_r =
-            (wordLabeling eval hmul u).σ k_1 k_r := by
-            rw [h_color_1r_eq_12, h_color_idem]
-          let e := (wordLabeling eval hmul u).σ k_1 k_r
-          have h_inner := split_to_tree_inner eval hmul u m' (by omega) s h_ramsey
-            (fun i j hij hless => ih_m' (by omega) i j hij hless)
-            k_1 k_r hk1kr hk1_prop.2.2 hkr_prop.2.2 (by
-              intro x hk1x hxkr
-              have _ := h_less x (by omega) (by omega)
+        have h_mid : ∃ t_mid : FactorizationTree A,
+            t_mid.value = (u.drop k_1).take (k_r - k_1) ∧
+            t_mid.IsRamsey eval ∧
+            t_mid.height ≤ 1 + 3 * m' := by
+          by_cases h_no_mid : ∀ x :
+            Fin (u.length + 1), (k_1 : ℕ) < (x : ℕ) → (x : ℕ) < (k_r : ℕ) → (s x : ℕ) < m'
+          · obtain ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩ :=
+              ih_m' (by omega) k_1 k_r hk1kr h_no_mid
+            exact ⟨t_mid, ht_mid_val, ht_mid_ramsey, by omega⟩
+          · push Not at h_no_mid
+            rcases h_no_mid with ⟨k_2, hk12, hk2r, h_not_less⟩
+            have hk2_prop : (s k_2 : ℕ) = m' := by
+              have h_bound := h_less k_2 (hik1.trans hk12) (hk2r.trans hkrj)
               omega
-            )
-          obtain ⟨trees, _, h_trees_val, h_trees_ramsey, h_trees_eval,
-                  h_trees_height, h_trees_len⟩ := h_inner
-          have h_k2_exists : ∃ x : Fin (u.length + 1),
-            (k_1 : ℕ) < (x : ℕ) ∧ (x : ℕ) < (k_r : ℕ) ∧ (s x : ℕ) = m' :=
-            ⟨k_2, hk12, hk2r, hk2_prop⟩
-          have h_len2 : 2 ≤ trees.length := h_trees_len h_k2_exists
-          let t_mid := FactorizationTree.idempotent trees
-          have ht_mid_val : t_mid.value = (u.drop k_1).take (k_r - k_1) := by
-            dsimp [t_mid, FactorizationTree.value]
-            exact h_trees_val
-          have ht_mid_ramsey : t_mid.IsRamsey eval :=
-            FactorizationTree.idempotent_isRamsey
-              eval h_len2 h_trees_ramsey h_idem_1r h_trees_eval
-          have ht_mid_height : t_mid.height ≤ 1 + 3 * m' := by
-            dsimp [t_mid, FactorizationTree.height]
-            have h_list := FactorizationTree.listHeight_le trees h_trees_height
-            omega
-          let t_right := FactorizationTree.binary t_mid t_krj
-          let t := FactorizationTree.binary t_ik1 t_right
-          have ht_right_val : t_right.value = (u.drop k_1).take (j - k_1) := by
-            dsimp [t_right, FactorizationTree.value]
-            rw [ht_mid_val, ht_krj_val]
-            exact list_drop_take_append u k_1.val k_r.val j.val hk1kr.le hkrj.le
-          have ht_val : t.value = (u.drop i).take (j - i) := by
-            dsimp [t, FactorizationTree.value]
-            rw [ht_ik1_val, ht_right_val]
-            exact list_drop_take_append u i.val k_1.val j.val hik1.le hk1j.le
-          have ht_right_ramsey : t_right.IsRamsey eval :=
-            FactorizationTree.binary_isRamsey eval ht_mid_ramsey ht_krj_ramsey
-          have ht_ramsey : t.IsRamsey eval :=
-            FactorizationTree.binary_isRamsey eval ht_ik1_ramsey ht_right_ramsey
-          have ht_height : t.height ≤ 3 * (m' + 1) := by
-            dsimp [t, t_right, FactorizationTree.height]
-            omega
-          exact ⟨t, ht_val, ht_ramsey, ht_height⟩
+            have heq1 : (s k_1 : ℕ) = m' := hk1_prop.2.2
+            have heq2 : (s k_2 : ℕ) = m' := hk2_prop
+            have heqr : (s k_r : ℕ) = m' := hkr_prop.2.2
+            have h_rel_12 : SplitRelation s k_1 k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
+              have hmin : min k_1 k_2 = k_1 := min_eq_left (le_of_lt hk12)
+              have hmax : max k_1 k_2 = k_2 := max_eq_right (le_of_lt hk12)
+              rw [hmin] at hx1 ⊢
+              rw [hmax] at hx2
+              change (s x : ℕ) ≤ (s k_1 : ℕ)
+              rw [hk1_prop.2.2]
+              have hx1_nat : (k_1 : ℕ) ≤ (x : ℕ) := hx1
+              have hx2_nat : (x : ℕ) ≤ (k_2 : ℕ) := hx2
+              have h_bound := h_less x (by omega) (by omega)
+              omega⟩
+            have h_rel_2r : SplitRelation s k_2 k_r := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
+              have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
+              have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
+              rw [hmin] at hx1 ⊢
+              rw [hmax] at hx2
+              change (s x : ℕ) ≤ (s k_2 : ℕ)
+              rw [hk2_prop]
+              have hx1_nat : (k_2 : ℕ) ≤ (x : ℕ) := hx1
+              have hx2_nat : (x : ℕ) ≤ (k_r : ℕ) := hx2
+              have h_bound := h_less x (by omega) (by omega)
+              omega⟩
+            have h_color_idem : (wordLabeling eval hmul u).σ k_1 k_2
+              * (wordLabeling eval hmul u).σ k_1 k_2 = (wordLabeling eval hmul u).σ k_1 k_2 :=
+              h_ramsey.1 k_1 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r
+            have h_color_eq :
+              (wordLabeling eval hmul u).σ k_1 k_2 = (wordLabeling eval hmul u).σ k_2 k_r :=
+              h_ramsey.2 k_1 k_2 k_2 k_r hk12 hk2r h_rel_12 h_rel_2r h_rel_12
+            have h_color_total : (wordLabeling eval hmul u).σ k_1 k_2
+              * (wordLabeling eval hmul u).σ k_2 k_r = (wordLabeling eval hmul u).σ k_1 k_r :=
+              (wordLabeling eval hmul u).prop k_1 k_2 k_r hk12 hk2r
+            have h_color_1r_eq_12 : (wordLabeling eval hmul u).σ k_1 k_r =
+              (wordLabeling eval hmul u).σ k_1 k_2 := by
+              rw [← h_color_total, ← h_color_eq, h_color_idem]
+            have h_idem_1r : (wordLabeling eval hmul u).σ k_1 k_r
+              * (wordLabeling eval hmul u).σ k_1 k_r =
+              (wordLabeling eval hmul u).σ k_1 k_r := by
+              rw [h_color_1r_eq_12, h_color_idem]
+            let e := (wordLabeling eval hmul u).σ k_1 k_r
+            have h_inner := split_to_tree_inner eval hmul u m' (by omega) s h_ramsey
+              (fun i j hij hless => ih_m' (by omega) i j hij hless)
+              k_1 k_r hk1kr hk1_prop.2.2 hkr_prop.2.2 (by
+                intro x hk1x hxkr
+                have _ := h_less x (by omega) (by omega)
+                omega
+              )
+            obtain ⟨trees, _, h_trees_val, h_trees_ramsey, h_trees_eval,
+                    h_trees_height, h_trees_len⟩ := h_inner
+            have h_k2_exists : ∃ x : Fin (u.length + 1),
+              (k_1 : ℕ) < (x : ℕ) ∧ (x : ℕ) < (k_r : ℕ) ∧ (s x : ℕ) = m' :=
+              ⟨k_2, hk12, hk2r, hk2_prop⟩
+            have h_len2 : 2 ≤ trees.length := h_trees_len h_k2_exists
+            let t_mid := FactorizationTree.idempotent trees
+            have ht_mid_val : t_mid.value = (u.drop k_1).take (k_r - k_1) := by
+              dsimp [t_mid, FactorizationTree.value]
+              exact h_trees_val
+            have ht_mid_ramsey : t_mid.IsRamsey eval :=
+              FactorizationTree.idempotent_isRamsey
+                eval h_len2 h_trees_ramsey h_idem_1r h_trees_eval
+            have ht_mid_height : t_mid.height ≤ 1 + 3 * m' := by
+              dsimp [t_mid, FactorizationTree.height]
+              have h_list := FactorizationTree.listHeight_le trees h_trees_height
+              omega
+            exact ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩
+        obtain ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩ := h_mid
+        let t_right := FactorizationTree.binary t_mid t_krj
+        let t := FactorizationTree.binary t_ik1 t_right
+        have ht_right_val : t_right.value = (u.drop k_1).take (j - k_1) := by
+          dsimp [t_right, FactorizationTree.value]
+          rw [ht_mid_val, ht_krj_val]
+          exact list_drop_take_append u k_1.val k_r.val j.val hk1kr.le hkrj.le
+        have ht_val : t.value = (u.drop i).take (j - i) := by
+          dsimp [t, FactorizationTree.value]
+          rw [ht_ik1_val, ht_right_val]
+          exact list_drop_take_append u i.val k_1.val j.val hik1.le hk1j.le
+        have ht_right_ramsey : t_right.IsRamsey eval :=
+          FactorizationTree.binary_isRamsey eval ht_mid_ramsey ht_krj_ramsey
+        have ht_ramsey : t.IsRamsey eval :=
+          FactorizationTree.binary_isRamsey eval ht_ik1_ramsey ht_right_ramsey
+        have ht_height : t.height ≤ 3 * (m' + 1) := by
+          dsimp [t, t_right, FactorizationTree.height]
+          omega
+        exact ⟨t, ht_val, ht_ramsey, ht_height⟩
 
 end SplitToTree
 
@@ -688,92 +620,87 @@ theorem factorization_forest_theorem {A S : Type*} [Semigroup S] [Fintype S]
       omega
     obtain ⟨t_krj, ht_krj_val, ht_krj_ramsey, ht_krj_height⟩ :=
       split_to_tree_outer eval hmul u s h_ramsey m hm_lt.le k_r j hkrj h_less_krj
-    by_cases h_no_mid : ∀ x :
-      Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (k_r : ℕ) → (s x : ℕ) < m
-    · obtain ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩ :=
-        split_to_tree_outer eval hmul u s h_ramsey m hm_lt.le i k_r hikr h_no_mid
-      let t := FactorizationTree.binary t_mid t_krj
-      have ht_val : t.value = u := by
-        dsimp [t, FactorizationTree.value]
-        rw [ht_mid_val, ht_krj_val]
-        rw [list_drop_take_append u i.val k_r.val j.val hikr.le hkrj.le]
-        exact h_u_val
-      have ht_ramsey : t.IsRamsey eval :=
-        FactorizationTree.binary_isRamsey eval ht_mid_ramsey ht_krj_ramsey
-      have ht_height : t.height ≤ 3 * nS S - 1 := by
-        dsimp [t, FactorizationTree.height]
-        omega
-      exact ⟨t, ht_val, ht_ramsey, ht_height⟩
-    · push Not at h_no_mid
-      rcases h_no_mid with ⟨k_2, hik2, hk2r, h_not_less⟩
-      have hk2_prop : (s k_2 : ℕ) = m := by
-        have _ := h_bound_all k_2
-        omega
-      have heqi : (s i : ℕ) = m := hsi
-      have heq2 : (s k_2 : ℕ) = m := hk2_prop
-      have heqr : (s k_r : ℕ) = m := hskr
-      have h_rel_i2 : SplitRelation s i k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
-        have hmin : min i k_2 = i := min_eq_left (le_of_lt hik2)
-        have hmax : max i k_2 = k_2 := max_eq_right (le_of_lt hik2)
-        rw [hmin] at hx1 ⊢
-        rw [hmax] at hx2
-        change (s x : ℕ) ≤ (s i : ℕ)
-        rw [hsi]
-        exact h_bound_all x⟩
-      have h_rel_2r : SplitRelation s k_2 k_r := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
-        have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
-        have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
-        rw [hmin] at hx1 ⊢
-        rw [hmax] at hx2
-        change (s x : ℕ) ≤ (s k_2 : ℕ)
-        rw [hk2_prop]
-        exact h_bound_all x⟩
-      have h_color_idem : (wordLabeling eval hmul u).σ i k_2
-        * (wordLabeling eval hmul u).σ i k_2 = (wordLabeling eval hmul u).σ i k_2 :=
-        h_ramsey.1 i k_2 k_r hik2 hk2r h_rel_i2 h_rel_2r
-      have h_color_eq :
-        (wordLabeling eval hmul u).σ i k_2 = (wordLabeling eval hmul u).σ k_2 k_r :=
-        h_ramsey.2 i k_2 k_2 k_r hik2 hk2r h_rel_i2 h_rel_2r h_rel_i2
-      have h_color_total : (wordLabeling eval hmul u).σ i k_2
-        * (wordLabeling eval hmul u).σ k_2 k_r = (wordLabeling eval hmul u).σ i k_r :=
-        (wordLabeling eval hmul u).prop i k_2 k_r hik2 hk2r
-      have h_color_ir_eq_i2 : (wordLabeling eval hmul u).σ i k_r =
-        (wordLabeling eval hmul u).σ i k_2 := by
-        rw [← h_color_total, ← h_color_eq, h_color_idem]
-      have h_idem_ir : (wordLabeling eval hmul u).σ i k_r
-        * (wordLabeling eval hmul u).σ i k_r =
-        (wordLabeling eval hmul u).σ i k_r := by
-        rw [h_color_ir_eq_i2, h_color_idem]
-      have h_inner := split_to_tree_inner eval hmul u m hm_lt s h_ramsey
-        (fun a b hab hless => split_to_tree_outer eval hmul u s h_ramsey m hm_lt.le a b hab hless)
-        i k_r hikr hsi hskr (fun x _ _ => h_bound_all x)
-      obtain ⟨trees, _, h_trees_val, h_trees_ramsey, h_trees_eval,
-              h_trees_height, h_trees_len⟩ := h_inner
-      have h_k2_exists : ∃ x : Fin (u.length + 1),
-        (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (k_r : ℕ) ∧ (s x : ℕ) = m := ⟨k_2, hik2, hk2r, hk2_prop⟩
-      have h_len2 : 2 ≤ trees.length := h_trees_len h_k2_exists
-      let t_mid := FactorizationTree.idempotent trees
-      have ht_mid_val : t_mid.value = (u.drop i).take (k_r - i) := by
-        dsimp [t_mid, FactorizationTree.value]
-        exact h_trees_val
-      have ht_mid_ramsey : t_mid.IsRamsey eval :=
-        FactorizationTree.idempotent_isRamsey eval h_len2 h_trees_ramsey h_idem_ir h_trees_eval
-      have ht_mid_height : t_mid.height ≤ 1 + 3 * m := by
-        dsimp [t_mid, FactorizationTree.height]
-        have h_list := FactorizationTree.listHeight_le trees h_trees_height
-        omega
-      let t := FactorizationTree.binary t_mid t_krj
-      have ht_val : t.value = u := by
-        dsimp [t, FactorizationTree.value]
-        rw [ht_mid_val, ht_krj_val]
-        rw [list_drop_take_append u i.val k_r.val j.val hikr.le hkrj.le]
-        exact h_u_val
-      have ht_ramsey : t.IsRamsey eval :=
-        FactorizationTree.binary_isRamsey eval ht_mid_ramsey ht_krj_ramsey
-      have ht_height : t.height ≤ 3 * nS S - 1 := by
-        dsimp [t, FactorizationTree.height]
-        omega
-      exact ⟨t, ht_val, ht_ramsey, ht_height⟩
+    have h_mid : ∃ t_mid : FactorizationTree A,
+        t_mid.value = (u.drop i).take (k_r - i) ∧
+        t_mid.IsRamsey eval ∧
+        t_mid.height ≤ 1 + 3 * m := by
+      by_cases h_no_mid : ∀ x :
+        Fin (u.length + 1), (i : ℕ) < (x : ℕ) → (x : ℕ) < (k_r : ℕ) → (s x : ℕ) < m
+      · obtain ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩ :=
+          split_to_tree_outer eval hmul u s h_ramsey m hm_lt.le i k_r hikr h_no_mid
+        exact ⟨t_mid, ht_mid_val, ht_mid_ramsey, by omega⟩
+      · push Not at h_no_mid
+        rcases h_no_mid with ⟨k_2, hik2, hk2r, h_not_less⟩
+        have hk2_prop : (s k_2 : ℕ) = m := by
+          have _ := h_bound_all k_2
+          omega
+        have heqi : (s i : ℕ) = m := hsi
+        have heq2 : (s k_2 : ℕ) = m := hk2_prop
+        have heqr : (s k_r : ℕ) = m := hskr
+        have h_rel_i2 : SplitRelation s i k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
+          have hmin : min i k_2 = i := min_eq_left (le_of_lt hik2)
+          have hmax : max i k_2 = k_2 := max_eq_right (le_of_lt hik2)
+          rw [hmin] at hx1 ⊢
+          rw [hmax] at hx2
+          change (s x : ℕ) ≤ (s i : ℕ)
+          rw [hsi]
+          exact h_bound_all x⟩
+        have h_rel_2r : SplitRelation s k_2 k_r := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
+          have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
+          have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
+          rw [hmin] at hx1 ⊢
+          rw [hmax] at hx2
+          change (s x : ℕ) ≤ (s k_2 : ℕ)
+          rw [hk2_prop]
+          exact h_bound_all x⟩
+        have h_color_idem : (wordLabeling eval hmul u).σ i k_2
+          * (wordLabeling eval hmul u).σ i k_2 = (wordLabeling eval hmul u).σ i k_2 :=
+          h_ramsey.1 i k_2 k_r hik2 hk2r h_rel_i2 h_rel_2r
+        have h_color_eq :
+          (wordLabeling eval hmul u).σ i k_2 = (wordLabeling eval hmul u).σ k_2 k_r :=
+          h_ramsey.2 i k_2 k_2 k_r hik2 hk2r h_rel_i2 h_rel_2r h_rel_i2
+        have h_color_total : (wordLabeling eval hmul u).σ i k_2
+          * (wordLabeling eval hmul u).σ k_2 k_r = (wordLabeling eval hmul u).σ i k_r :=
+          (wordLabeling eval hmul u).prop i k_2 k_r hik2 hk2r
+        have h_color_ir_eq_i2 : (wordLabeling eval hmul u).σ i k_r =
+          (wordLabeling eval hmul u).σ i k_2 := by
+          rw [← h_color_total, ← h_color_eq, h_color_idem]
+        have h_idem_ir : (wordLabeling eval hmul u).σ i k_r
+          * (wordLabeling eval hmul u).σ i k_r =
+          (wordLabeling eval hmul u).σ i k_r := by
+          rw [h_color_ir_eq_i2, h_color_idem]
+        have h_inner := split_to_tree_inner eval hmul u m hm_lt s h_ramsey
+          (fun a b hab hless => split_to_tree_outer eval hmul u s h_ramsey m hm_lt.le a b hab hless)
+          i k_r hikr hsi hskr (fun x _ _ => h_bound_all x)
+        obtain ⟨trees, _, h_trees_val, h_trees_ramsey, h_trees_eval,
+                h_trees_height, h_trees_len⟩ := h_inner
+        have h_k2_exists : ∃ x : Fin (u.length + 1),
+          (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (k_r : ℕ) ∧ (s x : ℕ) = m := ⟨k_2, hik2, hk2r, hk2_prop⟩
+        have h_len2 : 2 ≤ trees.length := h_trees_len h_k2_exists
+        let t_mid := FactorizationTree.idempotent trees
+        have ht_mid_val : t_mid.value = (u.drop i).take (k_r - i) := by
+          dsimp [t_mid, FactorizationTree.value]
+          exact h_trees_val
+        have ht_mid_ramsey : t_mid.IsRamsey eval :=
+          FactorizationTree.idempotent_isRamsey eval h_len2 h_trees_ramsey h_idem_ir h_trees_eval
+        have ht_mid_height : t_mid.height ≤ 1 + 3 * m := by
+          dsimp [t_mid, FactorizationTree.height]
+          have h_list := FactorizationTree.listHeight_le trees h_trees_height
+          omega
+        exact ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩
+    obtain ⟨t_mid, ht_mid_val, ht_mid_ramsey, ht_mid_height⟩ := h_mid
+    let t := FactorizationTree.binary t_mid t_krj
+    have ht_val : t.value = u := by
+      dsimp [t, FactorizationTree.value]
+      rw [ht_mid_val, ht_krj_val]
+      rw [list_drop_take_append u i.val k_r.val j.val hikr.le hkrj.le]
+      exact h_u_val
+    have ht_ramsey : t.IsRamsey eval :=
+      FactorizationTree.binary_isRamsey eval ht_mid_ramsey ht_krj_ramsey
+    have ht_height : t.height ≤ 3 * nS S - 1 := by
+      dsimp [t, FactorizationTree.height]
+      omega
+    exact ⟨t, ht_val, ht_ramsey, ht_height⟩
 
 end ForestTheorem
 

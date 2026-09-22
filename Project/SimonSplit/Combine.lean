@@ -68,6 +68,20 @@ instance instNonemptyFin_nSElement (x : S) :
     Nonempty (Fin (nSElement x)) :=
   Fin.pos_iff_nonempty.mp (nSElement_pos x)
 
+/-- The Simon complexity `nS S` of any non-empty finite semigroup `S` is strictly positive. -/
+lemma nS_pos {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] : 0 < nS S := by
+  dsimp [nS]
+  obtain ⟨x⟩ : Nonempty S := inferInstance
+  have h_mem : nSElement x ∈ Finset.univ.image (nSElement : S → ℕ) :=
+    Finset.mem_image_of_mem _ (Finset.mem_univ x)
+  rw [dif_pos ⟨_, h_mem⟩]
+  exact (nSElement_pos x).trans_le (Finset.le_max' _ _ h_mem)
+
+/-- `Fin (nS S)` is non-empty for any non-empty finite semigroup `S`. -/
+instance instNonemptyFin_nS {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] :
+    Nonempty (Fin (nS S)) :=
+  Fin.pos_iff_nonempty.mp nS_pos
+
 open Classical in
 /-- Constructs jump points partitioning the domain, stepping to the minimal `y > x`
 with `IsGreenD (σ(x, y)) a`. -/
@@ -292,12 +306,15 @@ lemma buildXSeq_same_interval_of_splitRelation {α : Type*} [LinearOrder α]
     (p_oi : OpenIntervalType xs i) (q_oi : OpenIntervalType xs j)
     (hp_eq : p_oi.val = p) (hq_eq : q_oi.val = q) :
     i = j := by
-  obtain ⟨hi_lt, h_lt_pi, h_gt_pi⟩ := p_oi.prop
-  obtain ⟨hj_lt, h_lt_qj, h_gt_qj⟩ := q_oi.prop
-  rw [hp_eq] at h_lt_pi h_gt_pi
-  rw [hq_eq] at h_lt_qj h_gt_qj
-  rcases lt_trichotomy i j with h_ij | rfl | h_ji
-  · exfalso
+  have h_not_lt : ∀ (i j : ℕ) (p q : α) (hp : p ∉ xs)
+      (p_oi : OpenIntervalType xs i) (q_oi : OpenIntervalType xs j)
+      (hp_eq : p_oi.val = p) (hq_eq : q_oi.val = q)
+      (hsr_pq : SplitRelation s p q), i < j → False := by
+    intro i j p q hp p_oi q_oi hp_eq hq_eq hsr_pq h_ij
+    obtain ⟨_, _, h_gt_pi⟩ := p_oi.prop
+    obtain ⟨hj_lt, h_lt_qj, _⟩ := q_oi.prop
+    rw [hp_eq] at h_gt_pi
+    rw [hq_eq] at h_lt_qj
     have hi_succ_lt : i + 1 < xs.length := by omega
     have h_px : p < xs.get ⟨i + 1, hi_succ_lt⟩ := h_gt_pi hi_succ_lt
     have h_xj : xs.get ⟨i + 1, hi_succ_lt⟩ ≤ xs.get ⟨j, hj_lt⟩ :=
@@ -312,22 +329,14 @@ lemma buildXSeq_same_interval_of_splitRelation {α : Type*} [LinearOrder α]
     rw [min_eq_left (le_of_lt h_pq)] at hb
     have h_le_val := Fin.le_iff_val_le_val.mp hb
     omega
+  have hsr_qp : SplitRelation s q p := ⟨hsr_pq.1.symm, fun z hz1 hz2 ↦ by
+    rw [min_comm] at hz1 ⊢
+    rw [max_comm] at hz2
+    exact hsr_pq.2 z hz1 hz2⟩
+  rcases lt_trichotomy i j with h | rfl | h
+  · exact (h_not_lt i j p q hp p_oi q_oi hp_eq hq_eq hsr_pq h).elim
   · rfl
-  · exfalso
-    have hj_succ_lt : j + 1 < xs.length := by omega
-    have h_qx : q < xs.get ⟨j + 1, hj_succ_lt⟩ := h_gt_qj hj_succ_lt
-    have h_xi : xs.get ⟨j + 1, hj_succ_lt⟩ ≤ xs.get ⟨i, hi_lt⟩ :=
-      (Nat.succ_le_of_lt h_ji).eq_or_lt.elim
-        (fun e => le_of_eq (congrArg xs.get (Fin.ext e)))
-        (fun h => le_of_lt (h_xs_mono _ _ _ _ h))
-    have h_qp : q < p := lt_trans h_qx (lt_of_le_of_lt h_xi h_lt_pi)
-    have hb := hsr_pq.right _ ((min_eq_right (le_of_lt h_qp)).symm ▸ le_of_lt h_qx)
-      ((max_eq_left (le_of_lt h_qp)).symm ▸ le_trans h_xi (le_of_lt h_lt_pi))
-    have h_ge := rank_ge_diff_of_mem _ (xs.get_mem ⟨_, hj_succ_lt⟩)
-    have h_lt := rank_lt_diff_of_not_mem q hq
-    rw [min_eq_right (le_of_lt h_qp)] at hb
-    have h_le_val := Fin.le_iff_val_le_val.mp hb
-    omega
+  · exact (h_not_lt j i q p hq q_oi p_oi hq_eq hp_eq hsr_qp h).elim
 
 /-- Applies induction to each open interval of `xs` to obtain local Ramsey splits. -/
 lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
