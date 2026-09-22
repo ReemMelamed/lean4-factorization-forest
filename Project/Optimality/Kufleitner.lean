@@ -11,8 +11,9 @@ import Project.SimonSplit.Split
 /-!
 # Optimality of the Bounds for Groups: Kufleitner's Lower Bound
 
-Lower bounds for groups from Section 3.4 of Colcombet (2008): Kufleitner's lower bound of
-`3|G| - 1` for factorization trees (Theorem 3.6) and `|G|` for Ramsey splits (Corollary 3.7).
+Lower bounds for groups from Section 3.4 of Colcombet (2008): the Chalopin--Leung-style
+`|G|` lower bound for factorization trees, and its corresponding consequence for Ramsey
+splits.
 
 ## References
 
@@ -57,35 +58,41 @@ end GroupProperties
 
 section LowerBound
 
-/-- Kufleitner's lower bound (Theorem 3.6): for any non-trivial finite group `G`, there exists
-a non-empty word whose Ramsey trees have height at least `3 * |G| - 1`. -/
+/-- Chalopin--Leung-style lower bound: for any non-trivial finite group `G`, and any
+multiplicative evaluation which evaluates singleton words canonically, there exists a
+non-empty word whose Ramsey trees have height at least `|G|`.
+
+The singleton hypothesis is essential: the multiplicativity condition only constrains
+non-empty concatenations and does not determine the values of singleton words. -/
 axiom kufleitner_lower_bound (G : Type*) [Group G] [Fintype G] (hG : 1 < Fintype.card G)
-    (eval : List G → G) (hmul : ∀ u v, u ≠ [] → v ≠ [] → eval (u ++ v) = eval u * eval v) :
+    (eval : List G → G) (hmul : ∀ u v, u ≠ [] → v ≠ [] → eval (u ++ v) = eval u * eval v)
+    (hcanon : ∀ g : G, eval [g] = g) :
     ∃ w : List G, w ≠ [] ∧ ∀ t : FactorizationTree G,
-      t.value = w → t.IsRamsey eval → 3 * Fintype.card G - 1 ≤ t.height
+      t.value = w → t.IsRamsey eval → Fintype.card G ≤ t.height
 
 end LowerBound
 
 section RamseySplitBound
 
-/-- Optimality of Ramsey splits (Corollary 3.7): for any non-trivial finite group `G`,
-there exists a word whose Ramsey splits have height at least `|G|`. -/
+/-- A factorization-tree lower bound gives the corresponding bound for Ramsey splits.
+
+The factorization tree produced from a split has height at most `3 * h`, so the
+correct consequence of the `|G|` tree bound is `|G| ≤ 3 * h`; a bound of `|G| ≤ h`
+does not follow from the available conversion. -/
 theorem ramsey_split_lower_bound (G : Type*) [Group G] [Fintype G] (hG : 1 < Fintype.card G)
-    (eval : List G → G) (hmul : ∀ u v, u ≠ [] → v ≠ [] → eval (u ++ v) = eval u * eval v) :
+    (eval : List G → G) (hmul : ∀ u v, u ≠ [] → v ≠ [] → eval (u ++ v) = eval u * eval v)
+    (hcanon : ∀ g : G, eval [g] = g) :
     ∃ w : List G, w ≠ [] ∧
       ∀ (_split_to_tree : ∀ (h : ℕ), (∃ s : Split (Fin (w.length + 1)) h,
         IsRamsey (wordLabeling eval hmul w) s) →
         ∃ t : FactorizationTree G, t.value = w ∧ t.IsRamsey eval ∧ t.height ≤ 3 * h),
       ∀ (h : ℕ), (∃ s : Split (Fin (w.length + 1)) h,
         IsRamsey (wordLabeling eval hmul w) s) →
-      Fintype.card G ≤ h := by
-  obtain ⟨w, hw_ne, hw_tree⟩ := kufleitner_lower_bound G hG eval hmul
+      Fintype.card G ≤ 3 * h := by
+  obtain ⟨w, hw_ne, hw_tree⟩ := kufleitner_lower_bound G hG eval hmul hcanon
   exact ⟨w, hw_ne, fun split_to_tree h hs ↦ by
-    by_contra h_lt
-    push Not at h_lt
     obtain ⟨t, ht_val, ht_ramsey, ht_height⟩ := split_to_tree h hs
     have h_tree_ge := hw_tree t ht_val ht_ramsey
-    have : 3 * h ≤ 3 * (Fintype.card G - 1) := by omega
     omega⟩
 
 end RamseySplitBound
