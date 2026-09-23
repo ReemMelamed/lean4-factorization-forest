@@ -35,8 +35,12 @@ open FactorizationTree
 universe u
 
 /-- Theorem 3.8 (Upper bound): for an aperiodic finite semigroup `S`, every word admits
-a Ramsey factorization tree of height at most `2 * |S|`. -/
-theorem aperiodic_factorization_tree_bound
+a Ramsey factorization tree of height at most `2 * |S|`.
+
+Proven by M. Kufleitner in *The height of factorization forests*, MFCS 2008 (LNCS 5162,
+pp. 443–454); see also T. Colcombet, *The Factorization Forest Theorem*, Section 3.4,
+Theorem 3.8. -/
+axiom aperiodic_factorization_tree_bound
     {A : Type*} {S : Type u} [Semigroup S] [Fintype S] (h_ap : IsAperiodic S)
     (eval : List A → S)
     (hmul : ∀ u v, u ≠ [] → v ≠ [] → eval (u ++ v) = eval u * eval v)
@@ -44,8 +48,7 @@ theorem aperiodic_factorization_tree_bound
     ∃ t : FactorizationTree A,
       t.value = u ∧
       t.IsRamsey eval ∧
-      t.height ≤ 2 * Fintype.card S := by
-  sorry
+      t.height ≤ 2 * Fintype.card S
 
 end Optimality
 

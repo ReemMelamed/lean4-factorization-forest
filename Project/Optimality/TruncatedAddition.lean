@@ -11,10 +11,6 @@ import Project.FactorizationTree.FactorizationTree
 /-!
 # Sub-linear Ramsey Factorization Trees: The Truncated Addition Semigroup
 
-Formalization of Colcombet (2008, Section 3.4): for the truncated addition semigroup `S_n`,
-every word admits a Ramsey tree of height at most `ceil(log2 n) + 2`, showing that the
-linear bound `3 * N(S) - 1` is not tight for all semigroups.
-
 ## References
 
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
@@ -312,8 +308,8 @@ lemma flatten_map_range_take_drop {A : Type*} (u : List A) (n : ℕ) :
       rw [Nat.succ_mul]
     rw [← h_add, ← List.take_add]
 
-/-- Sub-linear bound for truncated addition (Colcombet Section 3.4): every non-empty word in
-`TruncatedAdd n` admits a Ramsey tree of height at most `log2Ceil n + 2`. -/
+/-- Every non-empty word in `TruncatedAdd n` admits a
+Ramsey tree of height at most `log2Ceil n + 2`. -/
 theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
     (u : List (TruncatedAdd n)) (hu : u ≠ []) :
     ∃ t : FactorizationTree (TruncatedAdd n),

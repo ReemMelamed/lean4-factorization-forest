@@ -8,9 +8,14 @@ import Mathlib.Data.Finset.Basic
 import Project.FactorizationTree.FactorizationTree
 
 /-!
-# Aperiodic Semigroups — Basic Definitions
+# Aperiodic Semigroups, Basic Definitions
 
 Definitions of aperiodicity and properties of $\mathcal{H}$-classes in aperiodic semigroups.
+
+## References
+
+* [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
+
 -/
 
 namespace SimonSplit

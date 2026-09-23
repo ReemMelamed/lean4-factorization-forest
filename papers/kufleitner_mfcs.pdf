@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js"> <!--<![endif]-->
+
+<head>
+
+<!-- start metadata (_metadata.hbs) -->
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="creator" content="TIK" />
+	<meta name="Publisher" content="Universität Stuttgart - TIK" />
+	<meta name="Copyright" content="Universität Stuttgart" />
+	<meta name="Content-language" content="en" />
+	<meta name="Page-type" content="Bildungseinrichtung" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"/>
+	<meta name="robots" content="index, follow" />
+	<meta name="template" content="3.0" />
+	<meta name="Description" content="Theoretical Computer Science / Algorithmics"/>	
+	<meta name="og:title" content="Institute for Formal Methods of Computer Science | University of Stuttgart" />
+	<meta name="og:description" content="Theoretical Computer Science / Algorithmics "/>
+	<title>Institute for Formal Methods of Computer Science | University of Stuttgart</title><!-- Ende metadata -->
+
+
+<!-- Styles-Einbindung (_styles.hbs) -->
+	<link rel="apple-touch-icon" sizes="180x180" href="/system/modules/de.stuttgart.uni.v3.basics/resources/favicons/apple-touch-icon.png">
+            <link rel="icon" type="image/png" sizes="32x32" href="/system/modules/de.stuttgart.uni.v3.basics/resources/favicons/favicon-32x32.png">
+            <link rel="icon" type="image/png" sizes="16x16" href="/system/modules/de.stuttgart.uni.v3.basics/resources/favicons/favicon-16x16.png">
+            <link rel="manifest" href="/system/modules/de.stuttgart.uni.v3.basics/resources/favicons/site.webmanifest">
+            <link rel="mask-icon" href="/system/modules/de.stuttgart.uni.v3.basics/resources/favicons/safari-pinned-tab.svg" color="#ffffff">
+            <meta name="msapplication-TileColor" content="#ffffff">
+            <meta name="theme-color" content="#ffffff">
+		
+<link rel="stylesheet" href="/system/modules/de.stuttgart.uni.v3.basics/resources/css/styles.css" type="text/css" >
+<link rel="stylesheet" href="/system/modules/de.stuttgart.uni.v3.basics/resources/css/tik.css" type="text/css" >
+<link rel="stylesheet" href="/system/modules/de.stuttgart.uni.v3.basics/resources/css/jquery-ui/jquery-ui-1.11.4.min.css" type="text/css" >
+<link rel="stylesheet" href="/system/modules/de.stuttgart.uni.v3.basics/resources/css/fancybox/jquery.fancybox357.min.css" type="text/css" >
+<link rel="stylesheet" href="/system/modules/de.stuttgart.uni.v3.basics/resources/css/footer/footer.css" type="text/css" >
+<link rel="stylesheet" href="/system/modules/de.stuttgart.uni.v3.basics/resources/css/audio/player.css" type="text/css" ><!-- Ende Styles-Einbindung -->
+
+	<!-- Scripts
+	================================================== --> 
+	
+	
+<script src="/system/modules/de.stuttgart.uni.v3.basics/resources/js/bootstrap.js"></script>
+<script src="/system/modules/de.stuttgart.uni.v3.basics/resources/js/aperto-bootstrap-ie-workaround.js"></script>
+<script src="/system/modules/de.stuttgart.uni.v3.basics/resources/js/tik.js"></script>
+<script src="/system/modules/de.stuttgart.uni.v3.basics/resources/js/jquery-ui/jquery-ui-1.11.4.min.js"></script>
+<script src="/system/modules/de.stuttgart.uni.filters/resources/js/filters.js"></script>
+<script src="/system/modules/de.stuttgart.uni.v3.basics/resources/js/fancybox/jquery.fancybox357.min.js"></script>
+<script src="/system/modules/de.stuttgart.uni.v3.basics/resources/js/tippy-popper/popper.min.js"></script>
+<script src="/system/modules/de.stuttgart.uni.v3.basics/resources/js/tippy-popper/tippy.min.js"></script>
+<script src="/system/modules/de.stuttgart.uni.v3.zsb/resources/videointerview/js/dash.all.min.js"></script><style>
+		.page-wrap > #page-complete > .container-fluid > .row > div > .row > .col-xs-12,
+		.page-wrap > #page-complete > .container-fluid > .row > div > .row > .col-sm-12,
+		.page-wrap > #page-complete > .container-fluid > .row > div > .row > .col-md-12,
+		.page-wrap > #page-complete > .container-fluid > .row > div > .row > .col-lg-12,
+		.page-wrap > #page-complete > .container > .row > div > .row > .col-xs-12,
+		.page-wrap > #page-complete > .container > .row > div > .row > .col-sm-12,
+		.page-wrap > #page-complete > .container > .row > div > .row > .col-md-12,
+		.page-wrap > #page-complete > .container > .row > div > .row > .col-lg-12 {
+			padding: 0;
+		}
+	</style>
+</head>
+
+<body class=" is-no-detailpage  is-not-editmode  lang-en ">
+
+<!--googleoff: snippet-->
+	
+	<!-- start skiplinks (_skiplinks.hbs)-->
+	<div class="skip">
+		<ul>
+			<li><a href="#main">jump to content</a></li>
+			<li><a href="#footer">jump to footer</a></li>
+		</ul>
+	</div>
+	<!-- end skiplinks -->
+
+	<!--googleon: snippet-->
+	<div  id="header" ><div class="header" data-id="id-0166727e">
+      <span data-anchor id="id-0166727e"></span>
+              <!-- start header (_header.hbs) -->
+              <header class="b-page-header is-subidentity" data-headercontroller="">
+                <div class="container">
+                  <div class="container-inner">
+                    <div class="row">
+                      <a class="b-logo" href="https://www.fmi.uni-stuttgart.de/">
+                        <!--[if gt IE 8]><!-->
+                          <img class="logo-rectangle" src="/system/modules/de.stuttgart.uni.v3.basics/resources/img/svg/logo-en.svg" alt="Logo: Universität Stuttgart - zur Startseite" />
+                        <img class="logo-rectangle-inverted" src="/system/modules/de.stuttgart.uni.v3.basics/resources/img/svg/logo-inverted-en.svg" alt="Logo: Universität Stuttgart - zur Startseite" />
+                        <!--<![endif]-->
+                        <!--[if lt IE 9]>
+                        <img class="logo-rectangle" src="/system/modules/de.stuttgart.uni.v3.basics/resources/img/png/logo-en.png" alt="Logo: Universität Stuttgart - zur Startseite" />
+                        <img class="logo-rectangle-inverted" src="/system/modules/de.stuttgart.uni.v3.basics/resources/img/svg/logo-inverted-en.png" alt="Logo: Universität Stuttgart - zur Startseite" />
+                        <![endif]-->
+
+                        <span  class="subidentity fontsize-xs">Institute for Formal Methods of Computer Science</span>
+                        </a>
+                      <div class="header-box">
+
+                        <div class="mainidentity">
+                              <div class="container-inner">
+                                <a href="https://www.uni-stuttgart.de/en/">Uni<span class="hideonmobile">versity of Stuttgart </span></a>
+                                <a href="https://www.f05.uni-stuttgart.de/">F<span class="hideonmobile">aculty </span>05</a></div>
+                            </div>
+                            <div class="language">
+                          <div class="language-box">
+                            <span id="language-menu-title" data-tippy-content="Language of this page" data-tippy-placement="left">Language of this page</span>
+
+                            <ul id="language-menu-options" aria-labelledby="language-menu-title" role="menu">
+                                <li><a id="localelink" href="https://www.fmi.uni-stuttgart.de/de/" lang="de"><abbr data-tippy-content="Sprache wechseln:Deutsch" data-tippy-placement="left">de</abbr></a></li>
+                                              <li class="current-language"><strong><abbr data-tippy-content="Current language: AmericanEnglish" data-tippy-placement="left">en</abbr></strong></li></ul>
+                            </div>
+                        </div>
+                        <div id="search" class="search">
+                          <button aria-controls="search-box" aria-expanded="false" data-href="#search-box" data-tippy-content="Search" data-tippy-placement="left"><span>Search</span>
+                          </button>
+                        </div>
+                        <div class="nav-button">
+								<button class="lines-button" aria-controls="main-nav" aria-expanded="false" data-href="#b-page-nav" data-tippy-content="Main navigation" data-tippy-placement="left">
+									<span class="lines">Main navigation</span>
+								</button>
+							</div>
+						<div class="login-main-desktop"></div>
+						</div>
+				</div>
+			</div>
+                </div>
+                <!-- Start Suche (_search.hbs) -->
+                <div class="search-box js-visible" id="search-box" aria-hidden="true">
+                  <h2>Search</h2>
+                  <div class="container" role="tabpanel">
+                    <div class="search-box-inner">
+                      <form action="https://www.fmi.uni-stuttgart.de/search/">
+                        <fieldset>
+                          <div class="form-label col-sm-12">
+                            <label for="global-search">Suche</label>
+                            <input type="search" name="q" placeholder="Search for topics, people, ..." id="global-search" class="autosuggest" />
+                          </div>
+                          <div class="button">
+                            <input aria-label="Start search" type="submit" value="search">
+                          </div>
+                        </fieldset>
+                        <input type="hidden" name="lq" value="" />
+                        <input type="hidden" name="reloaded" value=""/>
+                        <input type="hidden" name="restriction" value=""/>
+                        </form>
+                    </div>
+                  </div>
+                </div>
+                <!-- Ende Suche -->
+                <div class="login-main-mobile js-visible" aria-hidden="false"></div>
+                <!-- Ende Login -->
+              </header>
+              <!-- Ende header -->
+
+              <div class="b-page-nav is-subidentity" id="main-nav" aria-hidden="true">
+                <div class="container">
+                  <div class="container-inner">
+                    <div class="fixed-wrapper">
+                      <a class="backto" href="#">back</a>
+                      <div class="location" aria-hidden="true">
+                        <ul>
+                          <li class="on"><span></span></li>
+                            <li><span></span></li>
+                          <li><span></span></li>
+                          <li><span></span></li>
+                          <li><span></span></li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div class="scroll-wrapper">
+                      <nav class="main-navigation" aria-label="Main navigation">
+                        <div class="menu-group-box" >
+                          <div class="menu-box" data-level="show-level-0">
+                            <div class="viewbox" style="position:relative;">
+                              <div class="wrapper" style="width: 100%; height: 100%;">
+                                <ul class="menu level-0 active-list" id="level-0-0" style="display: block;" aria-expanded="true">
+	<li class="has-menu"><a href="#level-1-0">Algorithmik</a></li>
+	<li class="has-menu"><a href="#level-1-1">Theoretical Computer Science</a></li>
+</ul>
+	<ul class="menu level-1 " id="level-1-0" data-parent="#level-0-0" >
+		<li class="overview"><a href="https://www.fmi.uni-stuttgart.de/alg/">Algorithmik</a></li>
+		<li><a href="https://www.fmi.uni-stuttgart.de/alg/team/">Team</a></li>
+		<li><a href="https://www.fmi.uni-stuttgart.de/alg/teaching/">Teaching</a></li>
+		<li><a href="https://www.fmi.uni-stuttgart.de/alg/research/">Research</a></li>
+	</ul>
+	<ul class="menu level-1 " id="level-1-1" data-parent="#level-0-0" >
+		<li class="overview"><a href="https://www.fmi.uni-stuttgart.de/ti/">Theoretical Computer Science</a></li>
+		<li><a href="https://www.fmi.uni-stuttgart.de/ti/team/">Team</a></li>
+		<li><a href="https://www.fmi.uni-stuttgart.de/ti/teaching/">Teaching</a></li>
+		<li><a href="https://www.fmi.uni-stuttgart.de/ti/research/">Research</a></li>
+	</ul>
+<!-- Navigation: 10 µs --></div>
+
+                            </div>
+                          </div>
+                        </div>
+                      </nav>
+                      <a href="#closeNavigation" class="close-nav">close navigation</a>
+                      </div>
+
+                  </div><!-- container-inner -->
+                </div><!--  container -->
+              </div></div>
+    <script type="module">
+      
+      import Login from '/system/modules/de.stuttgart.uni.v3.basics/resources/js/login.mjs'
+      new Login("en", "", "", "", "", "", "", "", "", true).init()
+    </script>
+  </div><div id="wrapper" class="is-subidentity">
+		<div id="content">
+			<main id="main" class="r-main">
+				<div class="main__wrapper" data-js-id="container">
+                    <noscript>
+                        <div class="alert alert-danger">For full functionality of this site it is necessary to enable JavaScript. Here are the <a href="https://enablejavascript.co/" target="_blank">instructions how to enable JavaScript in your web browser</a>.</div></noscript>
+					<!-- Start Segment -->
+					<div class="segment is-border-top">
+							<div class="container">
+								<div class="container-inner">
+									<div class="row">
+										<div class="col-md-12">
+											<!-- Start Breadcrumb (_breadcrumb.hbs) -->
+											<!-- Breadcrumb: 23 µs --></div>
+									</div>
+								</div><!--  container-inner -->
+							</div><!-- container -->
+						</div>
+					<!-- End Segment -->
+
+					<div  id="intro" ><div class="introbox pgelement image-element" style="margin-bottom: 30px;" data-id="id-0174ca60">
+            <span data-anchor id="id-0174ca60"></span>
+
+                            <div class="segment is-bg-blue  ">
+                                <div class="container">
+                                    <div class="container-inner">
+                                        <div class="row">
+                                            <div class="c-intro-teaser--default  " data-css="c-intro-teaser">
+                                                <div class="intro-teaser__wrapper">
+                                                    <div class="intro-teaser__content col-md-9 col-sm-8 col-xs-12">
+                                                        <div class="reverse-order">
+                                                            <h1  class="intro-teaser__headline">Institute for Formal Methods of Computer Science</h1>
+                                                            </div>
+                                                        <p >
+                                                                    Theoretical Computer Science / Algorithmics</p>
+                                                        </div>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div></div>
+    </div><div  id="page-complete" ><div>
+		<div class="segment  ">
+   <div class="container ">
+       <div class="container-inner">
+          <div class="row "><div class="oc-container-column col-sm-4 col-md-3 col-sm-push-7 col-md-push-6 col-md-offset-2" ><div class="linklist pgelement" style="margin-bottom: 30px;" data-id="id-38e79325">
+			<span data-anchor id="id-38e79325"></span>
+			
+			<h5 >Links to</h5>
+									<ul class="linklist_standard" style="">
+										<li><a  href="https://www.fmi.uni-stuttgart.de/institute/">Institute</a><br /><span class="desc"></span></li>
+										<li><a  href="https://www.fmi.uni-stuttgart.de/institute/team/">The FMI Team</a><br /><span class="desc"></span></li>
+										</ul></div>
+	</div><div class="oc-container-column col-sm-7 col-md-6 col-sm-pull-4 col-md-pull-3" ><div class="flexblocks_v3 pgelement" style="margin-bottom: 30px;" data-id="id-014618a6">
+					<span data-anchor id="id-014618a6"></span>
+						<div class="flexblocks">
+        <div>
+                                <span data-anchor id="id-014618a6-0"></span>
+                                <div class="absatz">
+                                    <div >
+                                                <p>The Institute for Formal Methods of Computer Science (FMI) belongs to the <a title="IvI" href="http://www.ivi.uni-stuttgart.de/">Institutsverbund Informatik (IvI)</a> (internal only) and was spun off on 27.11.2002 from the former <a title="IFI" href="http://pcbs13.informatik.uni-stuttgart.de/ifi/ifiold.htm">Institut für Informatik (IFI)</a>.</p>
+<h6>Note on enquiries for theses and study projects</h6>
+<p>Requests for theses or study projects at our institute are generally welcome. However, a prerequisite for meaningful academic supervision is that you have already attended advanced courses at our institute or are familiar with our research focus areas through work as a tutor or research assistant (Hiwi).<br /><br />If your request does not indicate any relevant academic connection to our teaching offerings or research topics, we reserve the right to decline supervision; in such cases, no response should be expected.</p>
+<p>Further information about research and teaching activities of the institute can be found on the sub-webpages of the individual groups below.</p>
+<p>&nbsp;</p></div>
+                                    </div>
+                                </div></div>
+</div></div>         </div>
+      </div>
+   </div>
+</div></div>	
+<div>
+		<div class="segment  ">
+   <div class="container ">
+       <div class="container-inner">
+          <div class="row ">
+  <div class="col-md-8 oc-container-column col-md-offset-2" ><div class="flexblocks_v3 pgelement" style="margin-bottom: 30px;" data-id="id-1e2d2309">
+					<span data-anchor id="id-1e2d2309"></span>
+						<div class="flexblocks">
+        <div>
+                                <span data-anchor id="id-1e2d2309-0"></span>
+                                <div class="absatz">
+                                    <div >
+                                                <p class="alert alert-danger">Content before SS 2020 can be found on the <a title="old website" href="http://fmi.uni-stuttgart.de/">old website</a>.</p></div>
+                                    </div>
+                                </div></div>
+</div></div>         </div>
+      </div>
+   </div>
+</div></div>	
+<div>
+		<div class="segment colsfullwidth  ">
+  <div class="container "><div class="col-md-12 oc-container-column" ><div class="areateaser_v3 pgelement image-element" style="margin-bottom: 30px;" data-id="id-014221be">
+            <div class="segment is-bg-blue-gradient is-container-padding ">
+	<div class="container">
+		<div class="container-inner">
+<div class="row">
+                                            <div class="col-md-12">
+                                                <span data-anchor id="id-014221be"></span>
+
+                                                <h2  class="page-teaser-area__headline">Working groups</h2>
+                                                </div>
+                                        </div>
+
+                                        <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="c-area-teaser--generic child-odd" data-css="c-area-teaser">
+                                                                        <a href="https://www.fmi.uni-stuttgart.de/alg/">
+                                                                            <div class="area-teaser__wrapper">
+                                                                                <div class="area-teaser__text">
+                                                                                    <div class="area-teaser__heading-wrapper">
+                                                                                        <h3 class="area-teaser__heading">Algorithmik Group</h3>
+                                                                                        </div>
+                                                                                    <p class="area-teaser__intro">
+                                                                                        Algorithmics, Computational Geometry, Discrete Optimization, Algorithm Engineering</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                    </div>
+                                                                </div><div class="col-md-6">
+                                                                    <div class="c-area-teaser--generic child-even" data-css="c-area-teaser">
+                                                                        <a href="https://www.fmi.uni-stuttgart.de/ti/">
+                                                                            <div class="area-teaser__wrapper">
+                                                                                <div class="area-teaser__text">
+                                                                                    <div class="area-teaser__heading-wrapper">
+                                                                                        <h3 class="area-teaser__heading">Theoretical Computer Science</h3>
+                                                                                        </div>
+                                                                                    <p class="area-teaser__intro">
+                                                                                        Formal Languages, Complexity Theory</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                    </div>
+                                                                </div></div>
+
+                                                            		</div>
+	</div>
+</div></div>
+    </div>  </div>
+</div>
+<div style="clear:both;"></div></div>	
+</div><div  id="contact" ><div class="pgelement kontakt" data-id="id-018e9380">
+			<span data-anchor id="id-018e9380"></span>
+						
+						<div class="kontakt">
+			<div class="segment">
+	<div class="container">
+		<div class="container-inner">
+			<div class="row">
+<div class="col-md-12">
+				
+					<h3 >Contact</h3>
+					<div class="kontaktbox-outer is-grid-2">
+						<div class="">
+
+								<div class="c-box--default is-medium" data-css="c-box">
+												<div class="box__image">
+													<div class="box__image-container">
+														<div class="box__placeholder"></div>
+															</div>
+												</div>
+												<div class="box__content">
+													<div class="box__header">
+														<div class="reverse-order">
+																<h3 class="box__headline">
+																		Melika Mekic</h3>
+																<strong class="box__topline" >&nbsp;</strong>
+															</div>
+														<p class="box__subline">Secretary</p>
+														</div>
+													<div class="box__contact">
+														<ul class="box__list">
+															<li class="box__list-item">
+																<span class="box__list-text">
+																	<span class="box__item-icon is-profile" data-tippy-content="Profile page" aria-label="Profile page"></span>
+																	<span class="box__item-text">
+																		<a href="https://www.fmi.uni-stuttgart.de/institute/team/Mekic-00002/" class="box__headline-link" aria-label="To profile of employee  Melika Mekic">Profile page</a>
+																	</span>
+																</span>
+															</li>
+															<li class="box__list-item">
+																	<span class="box__list-text">
+																		<span class="box__item-icon is-fon" data-tippy-content="Phone" aria-label="Phone"></span>
+																		<span class="box__item-text">
+																			<a href="tel:+4971168588328" aria-label="Call  Melika Mekic by telephone">+49 711 685 88328</a>
+																		</span>
+																	</span>
+																</li>
+															<li class="box__list-item">
+																	<a class="box__list-text" href="H5DGOJ:H9GDF5.H9FD7@AHD.PID-NOPOOB5MO.89" data-obfuscated="true" aria-label="Write e-mail to  Melika Mekic">
+																		<span class="box__item-icon is-mail" data-tippy-content="Email" aria-label="Email"></span>
+																		<span class="box__item-text">
+																			Write e-mail</span>
+																	</a>
+																</li>
+															</ul>
+													</div>
+												</div>
+											</div>
+										</div>
+							<div class="is-last-row">
+
+								<div class="c-box--default is-medium" data-css="c-box">
+												<div class="box__image">
+													<div class="box__image-container">
+														<div class="box__placeholder"></div>
+															</div>
+												</div>
+												<div class="box__content">
+													<div class="box__header">
+														<div class="reverse-order">
+																<h3 class="box__headline">
+																		Stefan Funke</h3>
+																<strong class="box__topline" aria-label='Title / Academic Degree:'>Prof. Dr.</strong>
+															</div>
+														<p class="box__subline">Head of the Algorithmics Group</p>
+														</div>
+													<div class="box__contact">
+														<ul class="box__list">
+															<li class="box__list-item">
+																<span class="box__list-text">
+																	<span class="box__item-icon is-profile" data-tippy-content="Profile page" aria-label="Profile page"></span>
+																	<span class="box__item-text">
+																		<a href="https://www.fmi.uni-stuttgart.de/institute/team/Funke/" class="box__headline-link" aria-label="To profile of employee Prof. Dr. Stefan Funke">Profile page</a>
+																	</span>
+																</span>
+															</li>
+															<li class="box__list-item">
+																	<span class="box__list-text">
+																		<span class="box__item-icon is-fon" data-tippy-content="Phone" aria-label="Phone"></span>
+																		<span class="box__item-text">
+																			<a href="tel:+4971168588328" aria-label="Call Prof. Dr. Stefan Funke by telephone">+49 711 685 88328</a>
+																		</span>
+																	</span>
+																</li>
+															<li class="box__list-item">
+																	<a class="box__list-text" href="H5DGOJ:xO9A5I.kPIF9@AHD.PID-NOPOOB5MO.89" data-obfuscated="true" aria-label="Write e-mail to Prof. Dr. Stefan Funke">
+																		<span class="box__item-icon is-mail" data-tippy-content="Email" aria-label="Email"></span>
+																		<span class="box__item-text">
+																			Write e-mail</span>
+																	</a>
+																</li>
+															</ul>
+													</div>
+												</div>
+											</div>
+										</div>
+							</div>
+					</div>
+							</div>
+		</div>
+	</div>
+</div>
+</div></div>
+	</div></div>
+			</main><!-- end main -->
+		</div><!-- end content -->
+	</div><!-- end wrapper -->
+			
+		
+	<!-- Start Footer (_footer.hbs) -->
+	<footer class="r-page-footer">
+
+		<div  id="footer" ><div class="footer-wrapper" data-id="id-01533868">
+                    <div class="local-contact-footer">
+                                <div class="container">
+                                    <div class="container-inner">
+                                        <div class="row">
+                                            <section class="b-social-media">
+                                                <div class="col-md-3">
+                                                    <h3 class="linklist__title">Here you can reach us</h3>
+                                                </div>
+                                                <div class="col-md-9">
+                                                    <div class="c-linklist--footer-socials" data-css="c-linklist">
+                                                        <ul class="linklist__list">
+                                                            <li class="linklist__entry"><a href="https://www.fmi.uni-stuttgart.de/institute/contact/"><span class="xs-icon-white contact"></span>Contact</a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </section>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <div class="global-rich-footer">
+                        <span data-anchor id="id-01533868"></span>
+                        <div class="container">
+                            <div class="container-inner">
+                                <div class="row" style="margin-bottom:20px;">
+                                    <div class="col-md-3">
+                                        <a href="https://www.uni-stuttgart.de/en/">
+                                                <img class="logo-rectangle-inverted-footer" src="/system/modules/de.stuttgart.uni.v3.basics/resources/img/svg/logo-inverted-en.svg" alt="Logo: Universität Stuttgart - zur Startseite" />
+                                            </a>
+                                        </div>
+                                    <div class="col-md-9">
+                                        <div class="col-md-12 c-linklist--footer-socials" data-css="c-linklist">
+                                            <ul class="linklist__list">
+                                                    <li class="linklist__entry"><a href="https://www.facebook.com/Universitaet.Stuttgart"                     class="linklist__link is-facebook"  target="_blank">Icon: Facebook</a><br>Facebook</li>
+                                                    <li class="linklist__entry"><a href="https://www.instagram.com/unistuttgart/"                             class="linklist__link is-instagram" target="_blank">Icon: Instagram</a><br>Instagram</li>
+                                                        <li class="linklist__entry"><a href="https://bsky.app/profile/unistuttgart.bsky.social"                   class="linklist__link is-bluesky"   target="_blank">Icon: Bluesky</a><br>Bluesky</li>
+                                                    <li class="linklist__entry"><a href="https://bawü.social/@Uni_Stuttgart"                                  class="linklist__link is-mastodon"  target="_blank">Icon: Mastodon</a><br>Mastodon</li>
+                                                    <li class="linklist__entry"><a href="https://www.youtube.com/user/UniStuttgartTV"                         class="linklist__link is-youtube"   target="_blank">Icon: YouTube</a><br>YouTube</li>
+                                                    <li class="linklist__entry"><a href="https://www.linkedin.com/school/universit%C3%A4t-stuttgart/"         class="linklist__link is-linkedin"  target="_blank">Icon: LinkedIn</a><br>LinkedIn</li>
+                                                    <li class="linklist__entry"><a href="https://www.usus.uni-stuttgart.de/en/" class="linklist__link is-usus"                     >Icon: USUS-Blog</a><br>USUS-Blog</li>
+                                                    </ul>
+                                            </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <section class="col-md-3 col-sm-6 b-service-links">
+                                            <div class="c-linklist--footer-service-links" data-css="c-linklist">
+												<div class="linklist pgelement" style="margin-bottom: 30px;" data-id="id-25c4a5f0">
+			<span data-anchor id="id-25c4a5f0"></span>
+			
+			<h3 class="linklist__title">Audience</h3>
+									<ul class="linklist__list">
+											<li class="linklist__entry">
+														<a href="https://www.student.uni-stuttgart.de/en/" class="linklist__link">Students</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.beschaeftigte.uni-stuttgart.de/" class="linklist__link">Employees</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/alumni-supporters/" class="linklist__link">Alumni and supporters</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.traces.uni-stuttgart.de/en/about-us/business-relations/" class="linklist__link">Industry</a>
+															</li>
+												</ul></div>
+	</div>
+                                        </section>
+                                    <section class="col-md-3 col-sm-6 b-service-links">
+                                            <div class="c-linklist--footer-service-links" data-css="c-linklist">
+												<div class="linklist pgelement" style="margin-bottom: 30px;" data-id="id-25fdb752">
+			<span data-anchor id="id-25fdb752"></span>
+			
+			<h3 class="linklist__title">Formalities</h3>
+									<ul class="linklist__list">
+											<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/legal-notice/" class="linklist__link">Legal notice</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/privacy-notice/" class="linklist__link">Privacy notice</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/statement-accessibility/" class="linklist__link">Accessibility</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/university/profile/certificates/" class="linklist__link">Certificates</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/general-terms-and-conditions/" class="linklist__link">AGB</a>
+															</li>
+												</ul></div>
+	</div>
+                                        </section>
+                                    <section class="col-md-3 col-sm-6 b-service-links">
+                                            <div class="c-linklist--footer-service-links" data-css="c-linklist">
+												<div class="linklist pgelement" style="margin-bottom: 30px;" data-id="id-263b5c94">
+			<span data-anchor id="id-263b5c94"></span>
+			
+			<h3 class="linklist__title">Services</h3>
+									<ul class="linklist__list">
+											<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/university/contact/" class="linklist__link">Contact & directions</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/press/" class="linklist__link">Press</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.stellenwerk.de/stuttgart/" class="linklist__link">Jobs</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://careers.uni-stuttgart.de/?locale=en_US" class="linklist__link">Apply for a Doctorate or Postdoc</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://unishop-stuttgart.de/en/" class="linklist__link">Uni-Shop</a>
+															</li>
+												</ul></div>
+	</div>
+                                        </section>
+                                    <section class="col-md-3 col-sm-6 b-service-links">
+                                            <div class="c-linklist--footer-service-links" data-css="c-linklist">
+												<div class="linklist pgelement" style="margin-bottom: 30px;" data-id="id-267bc0f6">
+			<span data-anchor id="id-267bc0f6"></span>
+			
+			<h3 class="linklist__title">Organization</h3>
+									<ul class="linklist__list">
+											<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/university/organization/management/" class="linklist__link">Rectorate</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/university/faculties-institutes/" class="linklist__link">Faculties and Institutes</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/university/facilities/" class="linklist__link">Facilities</a>
+															</li>
+												<li class="linklist__entry">
+														<a href="https://www.uni-stuttgart.de/en/university/organization/administration/" class="linklist__link">Central Administration</a>
+															</li>
+												</ul></div>
+	</div>
+                                        </section>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div></footer>
+	<!-- Ende footer-->	
+
+	<div class="b-scroll-to-top" data-css="b-scroll-to-top" data-js-module="scroll-to-top">
+		<a href="#wrapper" class="scroll-to-top__link" data-js-atom="to-top-link">To the top of the page</a>
+	</div>
+	
+	<!-- Piwik Beginn -->
+			<script>
+			  var _paq = _paq || [];
+			  _paq.push(['disableCookies']);
+			  _paq.push(['trackPageView']);
+			  _paq.push(['enableLinkTracking']);
+			  _paq.push(['MediaAnalytics::enableDebugMode']);
+			  (function() {
+				var u="https://www.uni-stuttgart.de/piwik/";
+				_paq.push(['setTrackerUrl', u+'piwik.php']);
+				_paq.push(['setSiteId', 399]);
+				var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+				g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+			  })();
+			</script>
+			<noscript><p><img src="https://www.uni-stuttgart.de/piwik/piwik.php?idsite=399" style="border:0;" alt="" /></p></noscript>
+			<!-- End Piwik Code -->
+		</body>
+</html>
+<!-- Complete time for this page: 157 ms -->
