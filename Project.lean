@@ -12,7 +12,5 @@ import Project.GreensRelations.Finite
 import Project.BrownLemma
 import Project.FactorizationTree.FactorizationTree
 import Project.Optimality.TruncatedAddition
-import Project.Optimality.Kufleitner
 import Project.Optimality.Aperiodic.Basic
-import Project.Optimality.Aperiodic.UpperBound
 import Project.Optimality.Aperiodic.Tightness

@@ -33,12 +33,6 @@ def IsAperiodic (S : Type u) [Semigroup S] : Prop :=
   ∀ {G : Type u} [Group G] (f : G → S),
     (∀ a b, f (a * b) = f a * f b) → Function.Injective f → Subsingleton G
 
-/-- For any finite semigroup of size at least 2, the aperiodic bound `2 * |S|`
-is strictly smaller than the general bound `3 * |S| - 1`. -/
-theorem aperiodic_bound_strictly_better {S : Type*} [Fintype S]
-    (hS : 2 ≤ Fintype.card S) :
-    2 * Fintype.card S < 3 * Fintype.card S - 1 := by
-  omega
 
 end AperiodicSemigroup
 
