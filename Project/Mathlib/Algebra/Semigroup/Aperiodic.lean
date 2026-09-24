@@ -18,7 +18,7 @@ A semigroup `S` is aperiodic if every group embedding `G → S` has a subsinglet
 
 It also contains:
 * `truncatedAdd_isAperiodic`: The truncated addition semigroup `TruncatedAdd n` is aperiodic.
-* `aperiodic_bound_tight`: The `2|S|` bound is tight for aperiodic semigroups (Theorem 3.8).
+* `aperiodic_bound_tight`: The `2|S|` bound is tight for aperiodic semigroups.
 
 ## References
 
@@ -212,7 +212,7 @@ lemma no_child_infix_of_all_lt {n : ℕ} (hn : 0 < n)
   exact not_le_of_gt this hky
 
 /-- Triple repetition of a list `l ++ l ++ l`, representing $l^3$.
-In Kufleitner's construction, three copies force any binary node splitting
+Three copies force any binary node splitting
 the word to contain an entire copy of `l` in one of its subtrees. -/
 def repeatThree {α : Type*} (l : List α) : List α :=
   l ++ l ++ l
@@ -518,7 +518,7 @@ lemma height_ge_child_of_binary_right {α : Type*} (l r : FactorizationTree α) 
   have := le_max_right l.height r.height
   omega
 
-/-- Kufleitner's sequence of hard words $w_k$: constructed inductively by
+/-- Inductive sequence of hard words $w_k$: constructed inductively by
 taking 27 copies of the previous word and appending the next letter $k+1$. -/
 def w (n : ℕ) (hn : 0 < n) : ℕ → List (MaxSemigroup n)
   | 0 => repeatTwentySeven [botEl n hn]
@@ -846,11 +846,9 @@ lemma height_ge_of_w_infix {n : ℕ} (hn : 0 < n) (k : ℕ) (hk : k < n)
     have ih_g := ih (by omega) g hg_ram hg_inf
     omega
 
-/-- Theorem 3.8 (Tightness): for each `n ≥ 2`, there exists an aperiodic finite semigroup `S`
+/-- Tightness: for each `n ≥ 2`, there exists an aperiodic finite semigroup `S`
 of size `n` and a word where **all** Ramsey trees have height at least `2 * n - 1`.
-
-Following M. Kufleitner (MFCS 2008, Section 5, Theorem 4), we use the semilattice
-`MaxSemigroup n = Fin n` with `max` multiplication. -/
+We use the semilattice `MaxSemigroup n = Fin n` with `max` multiplication. -/
 theorem aperiodic_bound_tight (n : ℕ) (hn : 2 ≤ n) :
     ∃ (S : Type) (_ : Semigroup S) (_ : Fintype S) (_ : IsAperiodic S),
       Fintype.card S = n ∧

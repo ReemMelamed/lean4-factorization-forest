@@ -12,8 +12,8 @@ import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Split
 /-!
 # Simon's Factorization Forest Theorem (Tree Version)
 
-Formalization of the tree version of Simon's Factorization Forest Theorem (Colcombet 2008,
-Theorem 3.4), constructing a Ramsey factorization tree of height at most `3 * nS S - 1` from
+Formalization of the tree version of Simon's Factorization Forest Theorem,
+constructing a Ramsey factorization tree of height at most `3 * nS S - 1` from
 a Ramsey split (`simon_word`).
 
 ## References
@@ -536,7 +536,7 @@ end SplitToTree
 
 section ForestTheorem
 
-/-- Simon's Factorization Forest Theorem (Theorem 3.4): every non-empty word admits
+/-- Simon's Factorization Forest Theorem: every non-empty word admits
 a Ramsey factorization tree of height at most `3 * nS S - 1`. -/
 theorem factorization_forest_theorem {A S : Type*} [Semigroup S] [Fintype S]
     [Nonempty S]

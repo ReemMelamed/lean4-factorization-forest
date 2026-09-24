@@ -261,9 +261,9 @@ end TreeLemmas
 
 section AlgebraicPresentation
 
-/-- Algebraic Presentation Theorem (Colcombet Theorem 4.1): `⟨X⟩_S = X_{3 * nS T}`. -/
+/-- Algebraic Presentation Theorem: `⟨X⟩_S = X_{3 * nS T - 1}`. -/
 theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S) :
-    (Subsemigroup.closure X : Set S) = X_seq ϕ X (3 * nS T) := by
+    (Subsemigroup.closure X : Set S) = X_seq ϕ X (3 * nS T - 1) := by
   ext s
   constructor
   · intro hs
@@ -289,14 +289,12 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
       rw [ht_val]
       exact hu
     have h_in_height := tree_prod_in_X_seq ϕ X eval_T h_eval_eq t ht_ramsey ht_X ht_ne
-    have h_height_le : t.height ≤ 3 * nS T := by
-      omega
-    have h_in_3n := X_seq_mono ϕ X h_height_le h_in_height
+    have h_in_3n := X_seq_mono ϕ X ht_height h_in_height
     have h_val_eq : listProdNE t.value ht_ne = listProdNE u hu := by
       exact listProdNE_eq _ _ _ _ ht_val
     rw [h_val_eq] at h_in_3n
     exact h_in_3n
-  · exact fun hs ↦ X_seq_subset_closure ϕ X (3 * nS T) hs
+  · exact fun hs ↦ X_seq_subset_closure ϕ X (3 * nS T - 1) hs
 
 end AlgebraicPresentation
 
@@ -408,7 +406,7 @@ theorem closure_mem_set_family [Finite T] [Nonempty T] (ϕ : S →ₙ* T) (X : S
           exact h_empty
       exact h2 (h2 ih (h3 ih ih)) h_union
   rw [closure_eq_X_seq ϕ X]
-  exact h_Xn (3 * nS T)
+  exact h_Xn (3 * nS T - 1)
 
 end SetFamilyFixedPoint
 

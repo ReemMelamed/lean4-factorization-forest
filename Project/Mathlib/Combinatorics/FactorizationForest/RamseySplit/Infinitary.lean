@@ -24,66 +24,6 @@ open scoped Topology
 
 namespace RamseySplit
 
-/-- If a split `s_N` on `Fin (N + 1)` agrees with a split `s` on `ℕ` up to `max x y`,
-then the split relation `SplitRelation s x y` is inherited by `s_N`. -/
-lemma splitRelation_of_agree {n : ℕ} {N : ℕ} (s : Split ℕ n) (s_N : Split (Fin (N + 1)) n)
-    {x y : ℕ} (hx : x < N + 1) (hy : y < N + 1) (hmax : max x y ≤ N)
-    (h_agree : ∀ (k : ℕ) (hk : k ≤ max x y), s_N ⟨k, Nat.lt_succ_of_le (hk.trans hmax)⟩ = s k)
-    (hsr : SplitRelation s x y) :
-    SplitRelation s_N ⟨x, hx⟩ ⟨y, hy⟩ := by
-  let x' : Fin (N + 1) := ⟨x, hx⟩
-  let y' : Fin (N + 1) := ⟨y, hy⟩
-  change SplitRelation s_N x' y'
-  constructor
-  · have hx_eq : s_N x' = s x := by
-      have : x' = ⟨x, Nat.lt_succ_of_le ((le_max_left x y).trans hmax)⟩ := rfl
-      rw [this]
-      exact h_agree x (le_max_left x y)
-    have hy_eq : s_N y' = s y := by
-      have : y' = ⟨y, Nat.lt_succ_of_le ((le_max_right x y).trans hmax)⟩ := rfl
-      rw [this]
-      exact h_agree y (le_max_right x y)
-    rw [hx_eq, hy_eq, hsr.1]
-  · intro w hw1 hw2
-    have hw1_val : min x y ≤ w.val := by
-      rcases le_total x y with hle | hle
-      · rw [min_eq_left hle]
-        have : min x' y' = x' := min_eq_left (Fin.le_def.mpr hle)
-        rw [this] at hw1
-        exact Fin.le_def.mp hw1
-      · rw [min_eq_right hle]
-        have : min x' y' = y' := min_eq_right (Fin.le_def.mpr hle)
-        rw [this] at hw1
-        exact Fin.le_def.mp hw1
-    have hw2_val : w.val ≤ max x y := by
-      rcases le_total x y with hle | hle
-      · rw [max_eq_right hle]
-        have : max x' y' = y' := max_eq_right (Fin.le_def.mpr hle)
-        rw [this] at hw2
-        exact Fin.le_def.mp hw2
-      · rw [max_eq_left hle]
-        have : max x' y' = x' := max_eq_left (Fin.le_def.mpr hle)
-        rw [this] at hw2
-        exact Fin.le_def.mp hw2
-    have hw_eq : s_N w = s w.val := by
-      have hw_w : w = ⟨w.val, Nat.lt_succ_of_le (hw2_val.trans hmax)⟩ := Fin.ext rfl
-      rw [hw_w]
-      exact h_agree w.val hw2_val
-    have hmin_eq : s_N (min x' y') = s (min x y) := by
-      rcases le_total x y with hle | hle
-      · have : min x' y' = x' := min_eq_left (Fin.le_def.mpr hle)
-        rw [this, min_eq_left hle]
-        have : x' = ⟨x, Nat.lt_succ_of_le ((le_max_left x y).trans hmax)⟩ := rfl
-        rw [this]
-        exact h_agree x (le_max_left x y)
-      · have : min x' y' = y' := min_eq_right (Fin.le_def.mpr hle)
-        rw [this, min_eq_right hle]
-        have : y' = ⟨y, Nat.lt_succ_of_le ((le_max_right x y).trans hmax)⟩ := rfl
-        rw [this]
-        exact h_agree y (le_max_right x y)
-    rw [hw_eq, hmin_eq]
-    exact hsr.2 w.val hw1_val hw2_val
-
 section RamseySplitInfinitary
 
 variable {S : Type*} [Semigroup S] [Fintype S]
@@ -137,58 +77,63 @@ lemma exists_coinciding_N (s : ℕ → Fin (nS S))
   obtain ⟨N, hMN, hNmem⟩ := Filter.frequently_atTop.mp hfreq M
   exact ⟨N, hMN, fun k hk => hNmem k hk⟩
 
+/-- If a split `s_N` on `Fin (N + 1)` agrees with a split `s` on `ℕ` up to `max x y`,
+then the split relation `SplitRelation s x y` is inherited by `s_N`. -/
+lemma splitRelation_of_agree {n N : ℕ} (s : Split ℕ n) (s_N : Split (Fin (N + 1)) n)
+    (x y : Fin (N + 1))
+    (h_agree : ∀ k ≤ max x y, s_N k = s k.val)
+    (hsr : SplitRelation s x.val y.val) :
+    SplitRelation s_N x y := by
+  grind
+
 /-- The infinitary Simon's split theorem for ℕ:
 for any multiplicative labeling `σ` over ℕ into a finite semigroup `S`,
 there exists a Ramsey split of size `nS S`. -/
 theorem simon_split_infinitary_nat :
     ∃ s : Split ℕ (nS S), IsRamsey σ s := by
   obtain ⟨s, hs⟩ := exists_clusterPt σ
-  refine ⟨s, ?_, ?_⟩
+  use s
+  constructor
   · intro x y z hxy hyz hsr_xy hsr_yz
     obtain ⟨N, hMN, h_fN⟩ := exists_coinciding_N σ s hs z
-    have hxN : x < N + 1 := by omega
-    have hyN : y < N + 1 := by omega
-    have hzN : z < N + 1 := by omega
-    have h_agree : ∀ (k : ℕ) (hk : k ≤ z), s_N σ N ⟨k, Nat.lt_succ_of_le (hk.trans hMN)⟩ = s k := by
+    have h_agree (k : Fin (N + 1)) (hk : k.val ≤ z) : s_N σ N k = s k.val := by
+      have hkN : k.val ≤ N := hk.trans hMN
+      have : k = ⟨k.val, Nat.lt_succ_of_le hkN⟩ := Fin.ext rfl
+      rw [this, ← f_N_eq σ hkN]
+      exact h_fN k.val hk
+    have H (a b : ℕ) (ha : a ≤ z) (hb : b ≤ z) (h : SplitRelation s a b) :
+        SplitRelation (s_N σ N) ⟨a, by omega⟩ ⟨b, by omega⟩ := by
+      apply splitRelation_of_agree s (s_N σ N) ⟨a, by omega⟩ ⟨b, by omega⟩ _ h
       intro k hk
-      have hkN : k ≤ N := hk.trans hMN
-      have := h_fN k hk
-      rw [f_N_eq σ hkN] at this
-      exact this
-    have hsr_N_xy : SplitRelation (s_N σ N) ⟨x, hxN⟩ ⟨y, hyN⟩ :=
-      splitRelation_of_agree s (s_N σ N) hxN hyN (by omega)
-        (fun k _ ↦ h_agree k (by omega)) hsr_xy
-    have hsr_N_yz : SplitRelation (s_N σ N) ⟨y, hyN⟩ ⟨z, hzN⟩ :=
-      splitRelation_of_agree s (s_N σ N) hyN hzN (by omega)
-        (fun k _ ↦ h_agree k (by omega)) hsr_yz
-    have hram := (isRamsey_s_N σ N).1 ⟨x, hxN⟩ ⟨y, hyN⟩ ⟨z, hzN⟩
-      (Fin.lt_def.mpr hxy) (Fin.lt_def.mpr hyz) hsr_N_xy hsr_N_yz
-    exact hram
+      apply h_agree
+      rcases le_max_iff.mp hk with hle | hle
+      · exact (Fin.le_iff_val_le_val.mp hle).trans ha
+      · exact (Fin.le_iff_val_le_val.mp hle).trans hb
+    exact (isRamsey_s_N σ N).1 ⟨x, by omega⟩ ⟨y, by omega⟩ ⟨z, by omega⟩
+      (Fin.lt_def.mpr hxy) (Fin.lt_def.mpr hyz)
+      (H x y (by omega) (by omega) hsr_xy)
+      (H y z (by omega) (by omega) hsr_yz)
   · intro x y u v hxy huv hsr_xy hsr_uv hsr_xu
     let M := max y v
     obtain ⟨N, hMN, h_fN⟩ := exists_coinciding_N σ s hs M
-    have hxN : x < N + 1 := by omega
-    have hyN : y < N + 1 := by omega
-    have huN : u < N + 1 := by omega
-    have hvN : v < N + 1 := by omega
-    have h_agree : ∀ (k : ℕ) (hk : k ≤ M), s_N σ N ⟨k, Nat.lt_succ_of_le (hk.trans hMN)⟩ = s k := by
+    have h_agree (k : Fin (N + 1)) (hk : k.val ≤ M) : s_N σ N k = s k.val := by
+      have hkN : k.val ≤ N := hk.trans hMN
+      have : k = ⟨k.val, Nat.lt_succ_of_le hkN⟩ := Fin.ext rfl
+      rw [this, ← f_N_eq σ hkN]
+      exact h_fN k.val hk
+    have H (a b : ℕ) (ha : a ≤ M) (hb : b ≤ M) (h : SplitRelation s a b) :
+        SplitRelation (s_N σ N) ⟨a, by omega⟩ ⟨b, by omega⟩ := by
+      apply splitRelation_of_agree s (s_N σ N) ⟨a, by omega⟩ ⟨b, by omega⟩ _ h
       intro k hk
-      have hkN : k ≤ N := hk.trans hMN
-      have := h_fN k hk
-      rw [f_N_eq σ hkN] at this
-      exact this
-    have hsr_N_xy : SplitRelation (s_N σ N) ⟨x, hxN⟩ ⟨y, hyN⟩ :=
-      splitRelation_of_agree s (s_N σ N) hxN hyN (by omega)
-        (fun k _ ↦ h_agree k (by omega)) hsr_xy
-    have hsr_N_uv : SplitRelation (s_N σ N) ⟨u, huN⟩ ⟨v, hvN⟩ :=
-      splitRelation_of_agree s (s_N σ N) huN hvN (by omega)
-        (fun k _ ↦ h_agree k (by omega)) hsr_uv
-    have hsr_N_xu : SplitRelation (s_N σ N) ⟨x, hxN⟩ ⟨u, huN⟩ :=
-      splitRelation_of_agree s (s_N σ N) hxN huN (by omega)
-        (fun k _ ↦ h_agree k (by omega)) hsr_xu
-    have hram := (isRamsey_s_N σ N).2 ⟨x, hxN⟩ ⟨y, hyN⟩ ⟨u, huN⟩ ⟨v, hvN⟩
-      (Fin.lt_def.mpr hxy) (Fin.lt_def.mpr huv) hsr_N_xy hsr_N_uv hsr_N_xu
-    exact hram
+      apply h_agree
+      rcases le_max_iff.mp hk with hle | hle
+      · exact (Fin.le_iff_val_le_val.mp hle).trans ha
+      · exact (Fin.le_iff_val_le_val.mp hle).trans hb
+    exact (isRamsey_s_N σ N).2 ⟨x, by omega⟩ ⟨y, by omega⟩ ⟨u, by omega⟩ ⟨v, by omega⟩
+      (Fin.lt_def.mpr hxy) (Fin.lt_def.mpr huv)
+      (H x y (by omega) (by omega) hsr_xy)
+      (H u v (by omega) (by omega) hsr_uv)
+      (H x u (by omega) (by omega) hsr_xu)
 
 end RamseySplitInfinitary
 
