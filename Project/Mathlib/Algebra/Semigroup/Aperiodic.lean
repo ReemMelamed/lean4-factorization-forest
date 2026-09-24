@@ -151,11 +151,7 @@ lemma evalMax_ge_of_mem (n : ℕ) (hn : 0 < n) {x : MaxSemigroup n} {u : List (M
     have h_ev : evalMax n hn (y :: ys) = max y (evalMax n hn ys) := by
       change ys.foldl max (max (botEl n hn) y) = max y (evalMax n hn ys)
       rw [max_botEl_left, foldl_max_eq_max]
-    rw [h_ev]
-    simp only [List.mem_cons] at hx
-    rcases hx with rfl | h_tail
-    · exact le_max_left x _
-    · exact (ih h_tail).trans (le_max_right y _)
+    grind
 
 /-- If a non-bottom element `k` is bounded by the evaluation of a list,
 some element in the list is at least `k`. -/
@@ -189,7 +185,7 @@ lemma idempotent_children_mem_ge {n : ℕ} (hn : 0 < n)
   have h_ev : k ≤ evalMax n hn (value t) := hkx.trans (evalMax_ge_of_mem n hn hx)
   rw [he_eval t ht] at h_ev
   intro c hc
-  have hc_ev : k ≤ evalMax n hn (value c) := by rw [he_eval c hc]; exact h_ev
+  have hc_ev : k ≤ evalMax n hn (value c) := by grind
   exact exists_mem_ge_of_evalMax_ge n hn hk_pos hc_ev
 
 /-- No child of an idempotent node can have its yield contained in a word
@@ -208,8 +204,8 @@ lemma no_child_infix_of_all_lt {n : ℕ} (hn : 0 < n)
   obtain ⟨y, hy_mem, hky⟩ :=
     idempotent_children_mem_ge hn _h_ramsey e he_eval k hk_pos t ht x hx hkx c hc
   have hy_in_v : y ∈ v := h_inf.subset hy_mem
-  have := hv y hy_in_v
-  exact not_le_of_gt this hky
+  have h := hv y hy_in_v
+  exact not_le_of_gt h hky
 
 /-- Triple repetition of a list `l ++ l ++ l`, representing $l^3$.
 Three copies force any binary node splitting
@@ -243,11 +239,7 @@ lemma repeatTwentySeven_ne_nil {α : Type*} {l : List α} (hl : l ≠ []) : repe
 /-- Membership in `repeatThree l` implies membership in `l`. -/
 lemma mem_repeatThree {α : Type*} {l : List α} {x : α} (hx : x ∈ repeatThree l) : x ∈ l := by
   dsimp [repeatThree] at hx
-  rcases List.mem_append.mp hx with h12 | h3
-  · rcases List.mem_append.mp h12 with h1 | h2
-    · exact h1
-    · exact h2
-  · exact h3
+  grind
 
 /-- Membership in `repeatNine l` implies membership in `l`. -/
 lemma mem_repeatNine {α : Type*} {l : List α} {x : α} (hx : x ∈ repeatNine l) : x ∈ l :=
@@ -263,14 +255,11 @@ lemma prefix_of_append_eq_append_left {α : Type*} (X Y Z W : List α)
     (h : X ++ Y = Z ++ W) (hle : Z.length ≤ X.length) :
     Z <+: X := by
   have h_take := congrArg (List.take Z.length) h
-  rw [List.take_append_of_le_length hle] at h_take
-  have h_Z : (Z ++ W).take Z.length = Z := by simp
-  rw [h_Z] at h_take
-  exact h_take ▸ List.take_prefix Z.length X
+  grind
 
 /-- If a triple repetition $l ++ l ++ l$ occurs in an append $A ++ B$,
 then $l$ is an infix of $A$ or an infix of $B$. -/
-lemma repeatThree_append_cases {α : Type*} (l : List α) (hl : l ≠ [])
+lemma repeatThree_append_cases {α : Type*} (l : List α) (_hl : l ≠ [])
     (A B : List α) (s t : List α) (h : A ++ B = s ++ (l ++ l ++ l) ++ t) :
     l <:+: A ∨ l <:+: B := by
   by_cases hA : s.length + l.length ≤ A.length
@@ -285,20 +274,7 @@ lemma repeatThree_append_cases {α : Type*} (l : List α) (hl : l ≠ [])
     exact h_inf.trans h_pref.isInfix
   · right
     have h2 : B = (A ++ B).drop A.length := by simp
-    rw [h] at h2
-    have h_assoc : s ++ (l ++ l ++ l) ++ t = (s ++ l ++ l) ++ (l ++ t) := by
-      simp only [List.append_assoc]
-    rw [h_assoc] at h2
-    rw [List.drop_append] at h2
-    have h_le : A.length ≤ (s ++ l ++ l).length := by
-      have : 1 ≤ l.length := List.length_pos_iff.mpr hl
-      simp only [List.length_append]
-      omega
-    have h_sub : A.length - (s ++ l ++ l).length = 0 := by omega
-    rw [h_sub, List.drop_zero] at h2
-    use ((s ++ l ++ l).drop A.length), t
-    rw [h2]
-    simp only [List.append_assoc]
+    grind
 
 /-- If `repeatThree l` is an infix of $A ++ B$, then $l$ is an infix of $A$ or an infix of $B$. -/
 lemma repeatThree_isInfix_append {α : Type*} (l : List α) (hl : l ≠ [])

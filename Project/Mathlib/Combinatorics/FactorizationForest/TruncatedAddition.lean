@@ -35,11 +35,8 @@ lemma log2Ceil_one : log2Ceil 1 = 0 := Nat.clog_one_right 2
 /-- Recurrence relation for `log2Ceil` when `n ≥ 2`. -/
 lemma log2Ceil_of_two_le {n : ℕ} (hn : 2 ≤ n) :
     log2Ceil n = 1 + log2Ceil ((n + 1) / 2) := by
-  dsimp [log2Ceil]
-  rw [Nat.clog_of_two_le Nat.one_lt_two hn]
-  have h : (n + 2 - 1) / 2 = (n + 1) / 2 := by omega
-  rw [h]
-  omega
+  simp only [log2Ceil, Nat.clog_of_two_le Nat.one_lt_two hn]
+  grind
 
 end Log2Ceil
 
@@ -49,16 +46,18 @@ section BalancedTree
 lemma take_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
     l.take (l.length / 2) ≠ [] := by
   intro h
-  have hlen : (l.take (l.length / 2)).length = 0 := by rw [h, List.length_nil]
-  rw [List.length_take] at hlen
+  have hlen : (l.take (l.length / 2)).length = 0 := by
+    simp only [h, List.length_nil]
+  simp only [List.length_take] at hlen
   omega
 
 /-- Dropping half the elements of a list of length at least 2 is non-empty. -/
 lemma drop_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
     l.drop (l.length / 2) ≠ [] := by
   intro h
-  have hlen : (l.drop (l.length / 2)).length = 0 := by rw [h, List.length_nil]
-  rw [List.length_drop] at hlen
+  have hlen : (l.drop (l.length / 2)).length = 0 := by
+    simp only [h, List.length_nil]
+  simp only [List.length_drop] at hlen
   omega
 
 /-- Constructs a balanced binary factorization tree for a word `v`. -/
@@ -74,8 +73,10 @@ def balancedTree {A : Type*} (d : A) (v : List A) : FactorizationTree A :=
       (balancedTree d (v.drop (v.length / 2)))
 termination_by v.length
 decreasing_by
-  · rw [List.length_take]; omega
-  · rw [List.length_drop]; omega
+  · simp only [List.length_take]
+    omega
+  · simp only [List.length_drop]
+    omega
 
 /-- The yield of `balancedTree d v` is `v`. -/
 lemma balancedTree_val {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
@@ -96,12 +97,14 @@ lemma balancedTree_val {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
       have htake_ne := take_ne_nil hlen_ge
       have hdrop_ne := drop_ne_nil hlen_ge
       have h1_lt : (v.take (v.length / 2)).length < k := by
-        rw [← hlen, List.length_take]; omega
+        rw [← hlen, List.length_take]
+        omega
       have h2_lt : (v.drop (v.length / 2)).length < k := by
-        rw [← hlen, List.length_drop]; omega
+        rw [← hlen, List.length_drop]
+        omega
       have ih1 := ih (v.take (v.length / 2)).length h1_lt (v.take (v.length / 2)) htake_ne rfl
       have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
-      rw [ih1, ih2, List.take_append_drop]
+      simp only [ih1, ih2, List.take_append_drop]
 
 /-- The balanced tree is Ramsey for any evaluation map. -/
 lemma balancedTree_isRamsey {A S : Type*} [Semigroup S] (eval : List A → S) (d : A)
@@ -121,9 +124,11 @@ lemma balancedTree_isRamsey {A S : Type*} [Semigroup S] (eval : List A → S) (d
       have htake_ne := take_ne_nil hlen_ge
       have hdrop_ne := drop_ne_nil hlen_ge
       have h1_lt : (v.take (v.length / 2)).length < k := by
-        rw [← hlen, List.length_take]; omega
+        simp only [← hlen, List.length_take]
+        omega
       have h2_lt : (v.drop (v.length / 2)).length < k := by
-        rw [← hlen, List.length_drop]; omega
+        simp only [← hlen, List.length_drop]
+        omega
       have ih1 := ih (v.take (v.length / 2)).length h1_lt (v.take (v.length / 2)) htake_ne rfl
       have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
       exact FactorizationTree.binary_isRamsey eval ih1 ih2
@@ -151,15 +156,18 @@ lemma balancedTree_height_le {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
       have htake_ne := take_ne_nil hlen_ge
       have hdrop_ne := drop_ne_nil hlen_ge
       have h1_lt : (v.take (v.length / 2)).length < k := by
-        rw [← hlen, List.length_take]; omega
+        simp only [← hlen, List.length_take]
+        omega
       have h2_lt : (v.drop (v.length / 2)).length < k := by
-        rw [← hlen, List.length_drop]; omega
+        simp only [← hlen, List.length_drop]
+        omega
       have ih1 := ih (v.take (v.length / 2)).length h1_lt (v.take (v.length / 2)) htake_ne rfl
       have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
       have h1_len : (v.take (v.length / 2)).length = v.length / 2 := by
-        rw [List.length_take]; omega
+        simp only [List.length_take]
+        omega
       have h2_len : (v.drop (v.length / 2)).length = v.length - v.length / 2 := by
-        rw [List.length_drop]
+        simp only [List.length_drop]
       rw [h1_len] at ih1
       rw [h2_len] at ih2
       have h_drop_le : v.length - v.length / 2 ≤ (v.length + 1) / 2 := by omega
@@ -237,9 +245,7 @@ def evalTrunc (hn : 0 < n) (u : List (TruncatedAdd n)) : TruncatedAdd n :=
           omega
         omega,
    by
-    split_ifs
-    · exact le_rfl
-    · exact min_le_right _ _⟩
+    grind⟩
 
 /-- Value of `evalTrunc` on non-empty lists. -/
 lemma evalTrunc_val (hn : 0 < n) {u : List (TruncatedAdd n)} (hu : u ≠ []) :
@@ -262,12 +268,9 @@ lemma evalTrunc_of_length_ge (hn : 0 < n) (u : List (TruncatedAdd n))
     (hlen : n ≤ u.length) :
     evalTrunc hn u = top hn := by
   have hu : u ≠ [] := by
-    rintro rfl
-    dsimp [List.length] at hlen
-    omega
+    grind
   ext
-  rw [evalTrunc_val hn hu]
-  simp only [top_val]
+  simp only [evalTrunc_val hn hu, top_val]
   have hsum := length_le_sum_val u
   omega
 
@@ -305,7 +308,7 @@ noncomputable def equivFin (n : ℕ) (_hn : 0 < n) : TruncatedAdd n ≃ Fin n wh
 
 /-- The cardinality of `TruncatedAdd n` is `n`. -/
 lemma card_eq (n : ℕ) (hn : 0 < n) : Fintype.card (TruncatedAdd n) = n := by
-  rw [Fintype.card_congr (equivFin n hn)]
+  simp only [Fintype.card_congr (equivFin n hn)]
   exact Fintype.card_fin n
 
 /-- The `evalTrunc` function is a semigroup homomorphism from non-empty lists. -/
@@ -314,11 +317,8 @@ lemma evalTrunc_hmul (hn : 0 < n) (u v : List (TruncatedAdd n))
     evalTrunc hn (u ++ v) = evalTrunc hn u * evalTrunc hn v := by
   ext
   have h_ne : u ++ v ≠ [] := by simp [hu]
-  rw [evalTrunc_val hn h_ne,
-      mul_val,
-      evalTrunc_val hn hu,
-      evalTrunc_val hn hv]
-  simp [List.map_append, List.sum_append]
+  simp only [evalTrunc_val hn h_ne, mul_val, evalTrunc_val hn hu,
+    evalTrunc_val hn hv, List.map_append, List.sum_append]
   omega
 
 end TruncatedAdd
@@ -334,15 +334,14 @@ lemma listIsRamsey_iff {A S : Type*} [Semigroup S] (eval : List A → S) :
     ∀ (ts : List (FactorizationTree A)), listIsRamsey eval ts ↔ ∀ t ∈ ts, t.IsRamsey eval
   | [] => by simp [listIsRamsey]
   | t :: ts => by
-    rw [listIsRamsey_cons, listIsRamsey_iff eval ts]
-    simp
+    simp [listIsRamsey_cons, listIsRamsey_iff eval ts]
 
 /-- The yield of a list of trees equals the flattened list of yields. -/
 lemma listValue_eq_flatten {A : Type*} :
     ∀ (ts : List (FactorizationTree A)), listValue ts = (ts.map FactorizationTree.value).flatten
   | [] => rfl
   | t :: ts => by
-    rw [listValue_cons, List.map_cons, List.flatten_cons, listValue_eq_flatten ts]
+    simp only [listValue_cons, List.map_cons, List.flatten_cons, listValue_eq_flatten ts]
 
 /-- Partitioning a list into blocks of size `n` and concatenating yields the prefix. -/
 lemma flatten_map_range_take_drop {A : Type*} (u : List A) (n : ℕ) :
@@ -350,13 +349,9 @@ lemma flatten_map_range_take_drop {A : Type*} (u : List A) (n : ℕ) :
       u.take (q * n)
   | 0 => by simp
   | q + 1 => by
-    rw [List.range_succ, List.map_append, List.flatten_append]
-    have ih := flatten_map_range_take_drop u n q
-    rw [ih]
-    simp only [List.map_singleton, List.flatten_singleton]
-    have h_add : q * n + n = (q + 1) * n := by
-      rw [Nat.succ_mul]
-    rw [← h_add, ← List.take_add]
+    simp only [List.range_succ, List.map_append, List.flatten_append,
+      flatten_map_range_take_drop u n q, List.map_singleton, List.flatten_singleton,
+      Nat.succ_mul, List.take_add]
 
 /-- Every non-empty word in `TruncatedAdd n` admits a
 Ramsey tree of height at most `log2Ceil n + 2`. -/

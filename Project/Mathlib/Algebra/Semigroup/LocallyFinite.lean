@@ -279,9 +279,7 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
     obtain ⟨t, ht_val, ht_ramsey, ht_height⟩ :=
       factorization_forest_theorem eval_T hmul_T u hu
     have h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw) := by
-      intros w hw
-      dsimp [eval_T]
-      rw [dif_neg hw]
+      grind
     have ht_X : ∀ x ∈ t.value, x ∈ X := by
       rw [ht_val]
       exact huX
@@ -290,10 +288,7 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
       exact hu
     have h_in_height := tree_prod_in_X_seq ϕ X eval_T h_eval_eq t ht_ramsey ht_X ht_ne
     have h_in_3n := X_seq_mono ϕ X ht_height h_in_height
-    have h_val_eq : listProdNE t.value ht_ne = listProdNE u hu := by
-      exact listProdNE_eq _ _ _ _ ht_val
-    rw [h_val_eq] at h_in_3n
-    exact h_in_3n
+    grind
   · exact fun hs ↦ X_seq_subset_closure ϕ X (3 * nS T - 1) hs
 
 end AlgebraicPresentation

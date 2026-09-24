@@ -130,7 +130,6 @@ lemma list_drop_take_append {A : Type*} (u : List A) (i k j : ℕ) (hik : i ≤ 
   rw [h_drop]
   have list_take_drop_take (l : List A) (a b : ℕ) :
       l.take a ++ (l.drop a).take b = l.take (a + b) := by grind
-  have h_take := list_take_drop_take (u.drop i) (k - i) (j - k)
   grind
 
 /-- Slicing a single element from index `i` yields `[u[i]]`. -/
@@ -246,16 +245,7 @@ lemma split_to_tree_inner {n : ℕ} (m : ℕ) (_ : m < n)
             rw [hsk]
             by_cases h_zk : z = k
             · rw [h_zk, hsk]
-            · by_cases h_zj : z = j
-              · rw [h_zj, hsj]
-              · have h_kz : (k : ℕ) < (z : ℕ) := by
-                  have h_kz' : k ≤ z := by rwa [h_min] at hz1
-                  omega
-                have h_zj_lt : (z : ℕ) < (j : ℕ) := by
-                  have h_max : max k j = j := max_eq_right (le_of_lt hkj)
-                  have h_zj' : z ≤ j := by rwa [h_max] at hz2
-                  omega
-                exact h_between z (hik.trans h_kz) h_zj_lt⟩
+            · by_cases h_zj : z = j <;> grind⟩
         have h_color_eq :
           (wordLabeling eval hmul u).σ i k = (wordLabeling eval hmul u).σ k j :=
           h_ramsey.2 i k k j hik hkj h_rel_ik h_rel_kj h_rel_ik
@@ -285,20 +275,9 @@ lemma split_to_tree_inner {n : ℕ} (m : ℕ) (_ : m < n)
             fun t ht ↦ (h_inner_eval t ht).trans h_eval_kj_eq_ij⟩
         have h_height : ∀ t ∈ t_outer :: trees_inner, t.height ≤ 3 * m :=
           List.forall_mem_cons.2 ⟨ht_outer_height, h_inner_height⟩
-        have h_two_le :
-            (∃ x : Fin (u.length + 1), (i : ℕ) < (x : ℕ) ∧ (x : ℕ) < (j : ℕ) ∧ (s x : ℕ) = m) →
-            2 ≤ (t_outer :: trees_inner).length := by
-          cases trees_inner with
-          | nil => contradiction
-          | cons _ _ => simp
-        exact ⟨t_outer :: trees_inner, by simp, h_val_concat, h_trees_ramsey,
-               h_trees_eval_all, h_height, h_two_le⟩
+        grind
       · have h_less : ∀ x : Fin (u.length + 1),
-          (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m := by
-          intro x hix hxj
-          have h1 := h_between x hix hxj
-          have h2 : ¬ ((s x : ℕ) = m) := fun hc ↦ h_cut ⟨x, hix, hxj, hc⟩
-          omega
+          (i : ℕ) < (x : ℕ) → (x : ℕ) < (j : ℕ) → (s x : ℕ) < m := by grind
         obtain ⟨t_outer, ht_outer_val, ht_outer_ramsey, ht_outer_height⟩ := ih i j hij h_less
         have h_eval : ∀ t ∈ [t_outer], eval (t.value) = (wordLabeling eval hmul u).σ i j :=
           List.forall_mem_singleton.2 (ht_outer_val.symm ▸ rfl)
@@ -637,14 +616,7 @@ theorem factorization_forest_theorem {A S : Type*} [Semigroup S] [Fintype S]
         have heqi : (s i : ℕ) = m := hsi
         have heq2 : (s k_2 : ℕ) = m := hk2_prop
         have heqr : (s k_r : ℕ) = m := hskr
-        have h_rel_i2 : SplitRelation s i k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
-          have hmin : min i k_2 = i := min_eq_left (le_of_lt hik2)
-          have hmax : max i k_2 = k_2 := max_eq_right (le_of_lt hik2)
-          rw [hmin] at hx1 ⊢
-          rw [hmax] at hx2
-          change (s x : ℕ) ≤ (s i : ℕ)
-          rw [hsi]
-          exact h_bound_all x⟩
+        have h_rel_i2 : SplitRelation s i k_2 := ⟨Fin.ext (by omega), fun x hx1 hx2 => by grind⟩
         have h_rel_2r : SplitRelation s k_2 k_r := ⟨Fin.ext (by omega), fun x hx1 hx2 => by
           have hmin : min k_2 k_r = k_2 := min_eq_left (le_of_lt hk2r)
           have hmax : max k_2 k_r = k_r := max_eq_right (le_of_lt hk2r)
