@@ -5,8 +5,8 @@ Authors: Re'em Melamed-Katz
 -/
 import Mathlib.Data.Fintype.Card
 import Mathlib.Data.Finset.Max
-import Project.GreensRelations.Order
-import Project.SimonSplit.Basic
+import Project.Mathlib.Algebra.Semigroup.GreensRelations.Order
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Basic
 
 /-!
 # Combine Splits Construction
@@ -19,7 +19,9 @@ lemma `combineSplits_props` that assembles a global Ramsey split from interval s
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace SimonSplit
+namespace RamseySplit
+
+open GreensRelations
 
 variable {S : Type*} [Semigroup S] [Fintype S]
 
@@ -845,4 +847,4 @@ lemma combineSplits_props {α S : Type*}
         exact hx_eq ▸ hy_eq ▸ hu_eq ▸ hv_eq ▸
           (h_σ_Y i x_oi y_oi) ▸ (h_σ_Y i u_oi v_oi) ▸ h_ramsey
 
-end SimonSplit
+end RamseySplit

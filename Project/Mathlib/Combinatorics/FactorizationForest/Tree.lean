@@ -5,9 +5,9 @@ Authors: Re'em Melamed-Katz
 -/
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Finset.Max
-import Project.SimonSplit.Basic
-import Project.SimonSplit.Combine
-import Project.SimonSplit.Split
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Basic
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Split
 
 /-!
 # Simon's Factorization Forest Theorem (Tree Version)
@@ -21,7 +21,7 @@ a Ramsey split (`simon_word`).
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace SimonSplit
+open RamseySplit
 
 /-- An inductive type representing a factorization tree over an alphabet `A`. -/
 inductive FactorizationTree (A : Type*) where
@@ -703,5 +703,3 @@ theorem factorization_forest_theorem {A S : Type*} [Semigroup S] [Fintype S]
     exact ⟨t, ht_val, ht_ramsey, ht_height⟩
 
 end ForestTheorem
-
-end SimonSplit

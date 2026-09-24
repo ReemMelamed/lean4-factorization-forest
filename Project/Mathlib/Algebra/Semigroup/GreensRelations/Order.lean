@@ -3,7 +3,7 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.GreensRelations.Finite
+import Project.Mathlib.Algebra.Semigroup.GreensRelations.Finite
 
 /-!
 # Green's Relations Partial Orders
@@ -15,6 +15,8 @@ and `GreenDClass`.
 
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
+
+namespace GreensRelations
 
 variable {S : Type*} [Semigroup S]
 
@@ -127,3 +129,5 @@ noncomputable instance [Finite S] : PartialOrder (GreenDClass S) where
   le_antisymm x y hxy hyx := equivGreenJClass.injective (le_antisymm (α := GreenJClass S) hxy hyx)
 
 end GreenDClass
+
+end GreensRelations

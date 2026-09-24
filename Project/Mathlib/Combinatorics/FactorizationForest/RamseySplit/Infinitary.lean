@@ -7,34 +7,13 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Topology.Order
 import Mathlib.Topology.Compactness.Compact
 import Mathlib.Topology.Constructions
-import Project.SimonSplit.Split
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Split
 
 /-!
 # Infinitary Simon's Theorem over ℕ
 
-Formalization of the infinitary variant of Simon's Factorization Forest Theorem
-for the linear order ⟨ℕ, <⟩ (Colcombet 2008, Section 3.5, Theorem 3.9).
-
-## Main result
-
-`simon_split_infinitary_nat`: For any multiplicative labeling `σ : MultiplicativeLabeling S ℕ`
-with values in a finite semigroup `S`, there exists a Ramsey split `s : ℕ → Fin (nS S)`.
-
-## Proof sketch
-
-The proof uses compactness of the product space `ℕ → Fin (nS S)` (which is compact
-as a product of finite discrete spaces by Tychonoff's theorem):
-
-1. **Finite restrictions**: For each `n : ℕ`, restrict `σ` to `Fin (n+1)` and obtain
-   a Ramsey split `s_n : Fin (n+1) → Fin (nS S)` from Simon's split theorem
-   (already proved in `SimonSplit/Split.lean`).
-
-2. **Compactness**: The space `ℕ → Fin (nS S)` is compact (product of finite types).
-   The sequence `(s_n)` (extended trivially to all of ℕ) has a cluster point `s`.
-
-3. **Ramsey condition preserved**: For any finite set of indices `x < y < z`,
-   the Ramsey conditions hold for `s_n` when `n ≥ z`. By the cluster point
-   property, they hold for `s` as well.
+Formalization of the infinitary variant of
+Simon's Factorization Forest Theorem for the linear order ⟨ℕ, <⟩.
 
 ## References
 
@@ -43,7 +22,7 @@ as a product of finite discrete spaces by Tychonoff's theorem):
 
 open scoped Topology
 
-namespace SimonSplit
+namespace RamseySplit
 
 /-- If a split `s_N` on `Fin (N + 1)` agrees with a split `s` on `ℕ` up to `max x y`,
 then the split relation `SplitRelation s x y` is inherited by `s_N`. -/
@@ -105,7 +84,7 @@ lemma splitRelation_of_agree {n : ℕ} {N : ℕ} (s : Split ℕ n) (s_N : Split 
     rw [hw_eq, hmin_eq]
     exact hsr.2 w.val hw1_val hw2_val
 
-section SimonSplitInfinitary
+section RamseySplitInfinitary
 
 variable {S : Type*} [Semigroup S] [Fintype S]
 variable [Nonempty (Fin (nS S))]
@@ -120,6 +99,7 @@ def restrictLabeling (N : ℕ) : MultiplicativeLabeling S (Fin (N + 1)) where
 noncomputable def s_N (N : ℕ) : Split (Fin (N + 1)) (nS S) :=
   (simon_split (restrictLabeling σ N)).choose
 
+/-- The chosen split `s_N` is a Ramsey split for the restricted labeling. -/
 lemma isRamsey_s_N (N : ℕ) : IsRamsey (restrictLabeling σ N) (s_N σ N) :=
   (simon_split (restrictLabeling σ N)).choose_spec.2
 
@@ -131,6 +111,7 @@ noncomputable def f_N (N : ℕ) : ℕ → Fin (nS S) :=
     else
       Classical.choice inferInstance
 
+/-- The extension `f_N` agrees with `s_N` on indices within `[0, N]`. -/
 lemma f_N_eq {N k : ℕ} (hk : k ≤ N) :
     f_N σ N k = s_N σ N ⟨k, Nat.lt_succ_of_le hk⟩ :=
   dif_pos hk
@@ -158,12 +139,7 @@ lemma exists_coinciding_N (s : ℕ → Fin (nS S))
 
 /-- The infinitary Simon's split theorem for ℕ:
 for any multiplicative labeling `σ` over ℕ into a finite semigroup `S`,
-there exists a Ramsey split of size `nS S`.
-
-**Proof strategy**: Use compactness of `ℕ → Fin (nS S)` (Tychonoff) to extract
-a limit point from the sequence of finite Ramsey splits guaranteed by `simon_split`.
-The Ramsey condition is preserved at the limit since it involves only finitely many
-indices at a time. -/
+there exists a Ramsey split of size `nS S`. -/
 theorem simon_split_infinitary_nat :
     ∃ s : Split ℕ (nS S), IsRamsey σ s := by
   obtain ⟨s, hs⟩ := exists_clusterPt σ
@@ -214,6 +190,6 @@ theorem simon_split_infinitary_nat :
       (Fin.lt_def.mpr hxy) (Fin.lt_def.mpr huv) hsr_N_xy hsr_N_uv hsr_N_xu
     exact hram
 
-end SimonSplitInfinitary
+end RamseySplitInfinitary
 
-end SimonSplit
+end RamseySplit

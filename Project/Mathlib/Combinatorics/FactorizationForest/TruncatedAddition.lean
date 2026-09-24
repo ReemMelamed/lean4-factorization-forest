@@ -6,7 +6,7 @@ Authors: Re'em Melamed-Katz
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Nat.Log
-import Project.FactorizationTree.FactorizationTree
+import Project.Mathlib.Combinatorics.FactorizationForest.Tree
 
 /-!
 # Sub-linear Ramsey Factorization Trees: The Truncated Addition Semigroup
@@ -16,7 +16,7 @@ import Project.FactorizationTree.FactorizationTree
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace SimonSplit.Optimality
+namespace Optimality
 
 open FactorizationTree
 
@@ -271,6 +271,56 @@ lemma evalTrunc_of_length_ge (hn : 0 < n) (u : List (TruncatedAdd n))
   have hsum := length_le_sum_val u
   omega
 
+/-- The unique idempotent in `TruncatedAdd n` is `top n`. -/
+lemma idempotent_eq_top {n : ℕ} (hn : 0 < n)
+    (x : TruncatedAdd n) (hx : x * x = x) : x = top hn := by
+  ext
+  have h := congrArg TruncatedAdd.val hx
+  rw [mul_val] at h
+  simp only [top_val]
+  have hpos : 0 < x.val := x.pos
+  have hle  : x.val ≤ n     := x.le
+  omega
+
+/-- Left-multiplication by `top n` returns `top n` for any element. -/
+lemma top_mul_any {n : ℕ} (hn : 0 < n) (x : TruncatedAdd n) :
+    top hn * x = top hn := by
+  ext
+  simp only [mul_val, top_val]
+  have hpos : 0 < x.val := x.pos
+  omega
+
+/-- `TruncatedAdd n` has exactly `n` elements. -/
+noncomputable def equivFin (n : ℕ) (_hn : 0 < n) : TruncatedAdd n ≃ Fin n where
+  toFun x   := ⟨x.val - 1, by have := x.pos; have := x.le; omega⟩
+  invFun j  := ⟨j.val + 1, by omega, by omega⟩
+  left_inv  x := by
+    ext
+    dsimp
+    have := x.pos
+    omega
+  right_inv j := by
+    ext
+    dsimp
+
+/-- The cardinality of `TruncatedAdd n` is `n`. -/
+lemma card_eq (n : ℕ) (hn : 0 < n) : Fintype.card (TruncatedAdd n) = n := by
+  rw [Fintype.card_congr (equivFin n hn)]
+  exact Fintype.card_fin n
+
+/-- The `evalTrunc` function is a semigroup homomorphism from non-empty lists. -/
+lemma evalTrunc_hmul (hn : 0 < n) (u v : List (TruncatedAdd n))
+    (hu : u ≠ []) (hv : v ≠ []) :
+    evalTrunc hn (u ++ v) = evalTrunc hn u * evalTrunc hn v := by
+  ext
+  have h_ne : u ++ v ≠ [] := by simp [hu]
+  rw [evalTrunc_val hn h_ne,
+      mul_val,
+      evalTrunc_val hn hu,
+      evalTrunc_val hn hv]
+  simp [List.map_append, List.sum_append]
+  omega
+
 end TruncatedAdd
 
 end TruncatedAddSemigroup
@@ -474,4 +524,4 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
 
 end RamseyTreeConstruction
 
-end SimonSplit.Optimality
+end Optimality

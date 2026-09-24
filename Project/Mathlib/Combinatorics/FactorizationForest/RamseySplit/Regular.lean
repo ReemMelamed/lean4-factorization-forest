@@ -3,12 +3,12 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.SimonSplit.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
 
 /-!
 # Simon's Split Theorem — Regular `D`-Class Case
 
-Constructs the Simon split (`simon_split_regular_case`) for the case where the `D`-class
+Constructs the Simon split (`ramsey_split_regular_case`) for the case where the `D`-class
 is regular, using `H`-class coloring and idempotent selection.
 
 ## References
@@ -16,7 +16,9 @@ is regular, using `H`-class coloring and idempotent selection.
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace SimonSplit
+namespace RamseySplit
+
+open GreensRelations
 
 section RegularDClassCase
 
@@ -24,7 +26,7 @@ variable {S α : Type*} [Semigroup S] [LinearOrder α]
 
 /-- A context bundle packaging the common parameters for the Simon split construction
 over a regular `D`-class. -/
-structure SimonContext (S α : Type*) [Semigroup S] [LinearOrder α] where
+structure SplitContext (S α : Type*) [Semigroup S] [LinearOrder α] where
   σ : MultiplicativeLabeling S α
   D : Set S
   x₀ : S
@@ -36,7 +38,7 @@ open Classical in
 /-- Computes the target Green's `L`-class for the element `x` based on the Simon
 context `ctx`. This is the `L`-class of the product `σ(y, x)` for any `y < x`,
 or a canonical class derived from an idempotent if `x` is minimal. -/
-noncomputable abbrev lOf (ctx : SimonContext S α) (x : α) : Set S :=
+noncomputable abbrev lOf (ctx : SplitContext S α) (x : α) : Set S :=
   if h_min : IsMin x then
     if h_max : IsMax x then
       IsGreenL.eqvClass ctx.x₀
@@ -52,7 +54,7 @@ open Classical in
 /-- Computes the target Green's `R`-class for the element `x` based on the Simon
 context `ctx`. This is the `R`-class of the product `σ(x, y)` for any `y > x`,
 or a canonical class derived from an idempotent if `x` is maximal. -/
-noncomputable abbrev rOf (ctx : SimonContext S α) (x : α) : Set S :=
+noncomputable abbrev rOf (ctx : SplitContext S α) (x : α) : Set S :=
   if h_max : IsMax x then
     if h_min : IsMin x then
       have ha_D : ctx.x₀ ∈ ctx.D := by
@@ -69,7 +71,7 @@ noncomputable abbrev rOf (ctx : SimonContext S α) (x : α) : Set S :=
 
 /-- Computes the target Green's `H`-class for the element `x`, defined as the
 intersection of its assigned `L`-class and `R`-class. -/
-noncomputable abbrev hOf (ctx : SimonContext S α) (x : α) : Set S :=
+noncomputable abbrev hOf (ctx : SplitContext S α) (x : α) : Set S :=
   lOf ctx x ∩ rOf ctx x
 
 section WithFiniteS
@@ -78,7 +80,7 @@ variable [Finite S]
 
 /-- The assigned `L`-class depends only on elements strictly smaller than `x`
 (it does not depend on which particular element `y < x` we choose). -/
-lemma lOf_well_defined (ctx : SimonContext S α) (x y1 y2 : α)
+lemma lOf_well_defined (ctx : SplitContext S α) (x y1 y2 : α)
     (h_y1_lt_x : y1 < x) (h_y2_lt_x : y2 < x) :
     IsGreenL.eqvClass (ctx.σ.σ y1 x) = IsGreenL.eqvClass (ctx.σ.σ y2 x) := by
   wlog h_le : y1 ≤ y2 generalizing y1 y2 h_y1_lt_x h_y2_lt_x
@@ -94,7 +96,7 @@ lemma lOf_well_defined (ctx : SimonContext S α) (x y1 y2 : α)
 
 /-- The assigned `R`-class depends only on elements strictly greater than `x`
 (it does not depend on which particular element `y > x` we choose). -/
-lemma rOf_well_defined (ctx : SimonContext S α) (x y1 y2 : α)
+lemma rOf_well_defined (ctx : SplitContext S α) (x y1 y2 : α)
     (h_x_lt_y1 : x < y1) (h_x_lt_y2 : x < y2) :
     IsGreenR.eqvClass (ctx.σ.σ x y1) = IsGreenR.eqvClass (ctx.σ.σ x y2) := by
   wlog h_le : y1 ≤ y2 generalizing y1 y2 h_x_lt_y1 h_x_lt_y2
@@ -110,7 +112,7 @@ lemma rOf_well_defined (ctx : SimonContext S α) (x y1 y2 : α)
 
 open Classical in
 /-- An element's assigned `H`-class contains at least one idempotent element. -/
-lemma hOf_has_idempotent (ctx : SimonContext S α) (x : α) :
+lemma hOf_has_idempotent (ctx : SplitContext S α) (x : α) :
     ∃ e_id : S, e_id ∈ hOf ctx x ∧ e_id * e_id = e_id := by
   by_cases h_min : IsMin x
   · by_cases h_max : IsMax x
@@ -133,19 +135,19 @@ lemma hOf_has_idempotent (ctx : SimonContext S α) (x : α) :
       exact ⟨ex, by grind, he_idem⟩
 
 /-- Chooses an idempotent element belonging to the `H`-class assigned to `x`. -/
-noncomputable abbrev eId (ctx : SimonContext S α) (x : α) : S :=
+noncomputable abbrev eId (ctx : SplitContext S α) (x : α) : S :=
   Classical.choose (hOf_has_idempotent ctx x)
 
 /-- The chosen idempotent `eId ctx x` is indeed an element of `hOf ctx x`. -/
-lemma eId_mem (ctx : SimonContext S α) (x : α) : eId ctx x ∈ hOf ctx x :=
+lemma eId_mem (ctx : SplitContext S α) (x : α) : eId ctx x ∈ hOf ctx x :=
   (Classical.choose_spec (hOf_has_idempotent ctx x)).1
 
 /-- The chosen element `eId ctx x` is an idempotent. -/
-@[simp] lemma eId_idem (ctx : SimonContext S α) (x : α) : eId ctx x * eId ctx x = eId ctx x :=
+@[simp] lemma eId_idem (ctx : SplitContext S α) (x : α) : eId ctx x * eId ctx x = eId ctx x :=
   (Classical.choose_spec (hOf_has_idempotent ctx x)).2
 
 /-- The `H`-class of `z` is exactly the `H`-class of its chosen idempotent. -/
-lemma hOf_eq_class (ctx : SimonContext S α) (z : α) :
+lemma hOf_eq_class (ctx : SplitContext S α) (z : α) :
     hOf ctx z = IsGreenH.eqvClass (eId ctx z) := by
   ext w
   have he := eId_mem ctx z
@@ -161,7 +163,7 @@ open Classical in
 /-- Under the hypothesis that `mz < z` and `hOf ctx mz = hOf ctx z`, the
 product `σ(mz, z)` interacts with the chosen idempotent in a specific way:
 `eId ctx z * σ(mz, z) * eId ctx z = σ(mz, z)` and `σ(mz, z)` is `H`-related to `eId ctx z`. -/
-lemma sigma_props (ctx : SimonContext S α) (z mz : α) (h_mz : mz < z)
+lemma sigma_props (ctx : SplitContext S α) (z mz : α) (h_mz : mz < z)
     (hm_H : hOf ctx mz = hOf ctx z) :
     eId ctx z * ctx.σ.σ mz z * eId ctx z = ctx.σ.σ mz z ∧
     IsGreenH (ctx.σ.σ mz z) (eId ctx z) := by
@@ -181,7 +183,7 @@ lemma sigma_props (ctx : SimonContext S α) (z mz : α) (h_mz : mz < z)
 
 open Classical in
 /-- The chosen idempotent `eId ctx x` belongs to the `D`-class `ctx.D`. -/
-lemma eId_mem_D (ctx : SimonContext S α) (x : α) : eId ctx x ∈ ctx.D := by
+lemma eId_mem_D (ctx : SplitContext S α) (x : α) : eId ctx x ∈ ctx.D := by
   have he_L : eId ctx x ∈ lOf ctx x := (eId_mem ctx x).1
   by_cases h_min : IsMin x
   · by_cases h_max : IsMax x
@@ -196,7 +198,7 @@ lemma eId_mem_D (ctx : SimonContext S α) (x : α) : eId ctx x ∈ ctx.D := by
     exact IsGreenD.trans ⟨_, he_L, IsGreenR.refl _⟩ ha_D
 
 /-- Helper lemma for fColoring. -/
-lemma fColoring_helper_val_in (ctx : SimonContext S α) (x m : α)
+lemma fColoring_helper_val_in (ctx : SplitContext S α) (x m : α)
     (h_mx : m < x) (hm_H : hOf ctx m = hOf ctx x) :
     (eId ctx x * ctx.σ.σ m x * eId ctx x) ∈ ctx.D ∧
     ∃ e' ∈ ctx.D, e' * e' = e' ∧ IsGreenH (eId ctx x * ctx.σ.σ m x * eId ctx x) e' := by
@@ -214,7 +216,7 @@ variable [Fintype α]
 open Classical in
 /-- The coloring function mapping an element `x` to a subtype representing
 its value and properties in the `D`-class. -/
-noncomputable abbrev fColoring (ctx : SimonContext S α) (x : α) :
+noncomputable abbrev fColoring (ctx : SplitContext S α) (x : α) :
     { y : S // y ∈ ctx.D ∧ ∃ e ∈ ctx.D, e * e = e ∧ IsGreenH y e } :=
   let mClass := Finset.univ.filter (fun y ↦ hOf ctx y = hOf ctx x)
   have hm_nonempty : mClass.Nonempty := ⟨x, Finset.mem_filter.mpr ⟨Finset.mem_univ x, rfl⟩⟩
@@ -230,7 +232,7 @@ noncomputable abbrev fColoring (ctx : SimonContext S α) (x : α) :
     ⟨eId ctx x, h_e_in⟩
 
 /-- The element returned by `fColoring` belongs to the correct Green's `H`-class. -/
-lemma fColoring_isGreenH (ctx : SimonContext S α) (z : α) :
+lemma fColoring_isGreenH (ctx : SplitContext S α) (z : α) :
     IsGreenH (fColoring ctx z).val (eId ctx z) := by
   classical
   let mClass := Finset.univ.filter (fun w ↦ hOf ctx w = hOf ctx z)
@@ -248,7 +250,7 @@ section WithFintypeSNonemptyAlpha
 variable [Fintype S] [Nonempty α]
 
 /-- Normalized Ramsey split when all values of `σ` lie in a single regular `D`-class `D`. -/
-lemma simon_regular_d_case
+lemma ramsey_regular_d_case
     (σ : MultiplicativeLabeling S α)
     (D : Set S)
     (hD : ∃ x, D = IsGreenD.eqvClass x)
@@ -258,7 +260,7 @@ lemma simon_regular_d_case
     ∃ (s : Split α (nD D)), IsNormalized s ∧ IsRamsey σ s := by
   classical
   obtain ⟨x₀, hx₀⟩ := hD
-  let ctx : SimonContext S α := ⟨σ, D, x₀, hx₀, hReg, h_range⟩
+  let ctx : SplitContext S α := ⟨σ, D, x₀, hx₀, hReg, h_range⟩
   have h_card_G_D : Fintype.card { y : S // y ∈ D ∧ ∃ e ∈ D, e * e = e ∧ IsGreenH y e } = nD D :=
     by
     simp only [nD, if_pos hReg, Fintype.card_subtype]
@@ -486,7 +488,7 @@ lemma regularSplits_props {α S : Type*}
   · exact h_max_val
 
 /-- Constructs a normalized Ramsey split when the `D`-class of `a` is regular. -/
-lemma simon_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
+lemma ramsey_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
     (a : S) {α : Type*} [LinearOrder α] [Fintype α] [Nonempty α]
     (σ : MultiplicativeLabeling S α) (_h_img : labelingIn σ (jUp a))
     (h_reg : IsRegularDClass (IsGreenD.eqvClass a))
@@ -509,7 +511,7 @@ lemma simon_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
   let σ_Y (i : ℕ) : MultiplicativeLabeling S (OpenIntervalType xs i) :=
     ⟨fun x y ↦ σ.σ x.val y.val, fun x y z hx hy ↦ σ.prop x.val y.val z.val hx hy⟩
   obtain ⟨sX, hsX_norm, hsX_ramsey⟩ :=
-    simon_regular_d_case σ_X (IsGreenD.eqvClass a) ⟨a, rfl⟩ h_reg
+    ramsey_regular_d_case σ_X (IsGreenD.eqvClass a) ⟨a, rfl⟩ h_reg
     (fun x y hlt ↦ (buildXSeq_properties a σ _h_img x₀).2.1 x.val x.prop y.val y.prop hlt)
   choose sY hsY_ramsey hsY_strict using build_interval_splits_of_ih a σ _h_img x₀ xs
     (buildXSeq_properties a σ _h_img x₀).2.2.2 (buildXSeq_properties a σ _h_img x₀).2.2.1 ih
@@ -544,4 +546,4 @@ lemma simon_split_regular_case {S : Type*} [Semigroup S] [Fintype S]
 
 end SplitConstruction
 
-end SimonSplit
+end RamseySplit

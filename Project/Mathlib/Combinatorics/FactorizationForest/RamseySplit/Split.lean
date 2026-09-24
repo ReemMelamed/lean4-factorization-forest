@@ -3,8 +3,8 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.SimonSplit.Regular
-import Project.SimonSplit.Irregular
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Regular
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Irregular
 
 /-!
 # Simon's Split Theorem
@@ -17,9 +17,11 @@ and applies it to word labelings (`simon_word`).
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace SimonSplit
+namespace RamseySplit
 
-section SimonSplit
+open GreensRelations
+
+section SplitTheorem
 
 variable {S : Type*} [Semigroup S] [Fintype S]
 
@@ -41,8 +43,8 @@ lemma simon_split_induction_aux {S : Type*} [Semigroup S] [Fintype S]
         ∃ (s : Split (OpenIntervalType xs i) (nSElement b)), IsNormalized s ∧ IsRamsey σ_β s :=
       fun b _ xs i _ σ_β h_img_β ↦ ihn (nSElement b) (by omega) b le_rfl σ_β h_img_β
     by_cases h_reg : IsRegularDClass (IsGreenD.eqvClass a)
-    · exact simon_split_regular_case a σ h_img h_reg ih
-    · exact simon_split_irregular_case a σ h_img h_reg ih
+    · exact ramsey_split_regular_case a σ h_img h_reg ih
+    · exact ramsey_split_irregular_case a σ h_img h_reg ih
 
 /-- Simon's split induction step: for any element `a : S` and any
 multiplicative labeling `σ` into `jUp a`, there exists a normalized Ramsey
@@ -108,7 +110,7 @@ theorem simon_split {S α : Type*} [Semigroup S] [Fintype S]
       h_ramsey.2 x y u v hxy huv ((hsr_iff x y).mp hsr_xy)
         ((hsr_iff u v).mp hsr_uv) ((hsr_iff x u).mp hsr_xu)⟩
 
-end SimonSplit
+end SplitTheorem
 
 section SimonWord
 
@@ -124,4 +126,4 @@ theorem simon_word {A S : Type*} [Semigroup S] [Fintype S]
 
 end SimonWord
 
-end SimonSplit
+end RamseySplit

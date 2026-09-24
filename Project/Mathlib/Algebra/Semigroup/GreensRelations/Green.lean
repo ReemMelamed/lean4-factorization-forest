@@ -3,7 +3,7 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.GreensRelations.MulSeq
+import Project.Mathlib.Algebra.Semigroup.GreensRelations.MulSeq
 import Mathlib.Data.Fintype.Card
 
 /-!
@@ -16,6 +16,8 @@ Major structural theorems for Green's relations, including Green's Lemma and reg
 
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
+
+namespace GreensRelations
 
 variable {S : Type*} [Semigroup S]
 
@@ -143,3 +145,5 @@ theorem card_greenHClass_eq_of_isGreenD [Fintype S] {a b : S} (h : IsGreenD a b)
     (Fintype.card_congr (equivHClassOfIsGreenR hR))
 
 end BijectionsAndCardinalities
+
+end GreensRelations

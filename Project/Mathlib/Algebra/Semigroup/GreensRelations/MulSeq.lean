@@ -3,7 +3,8 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.GreensRelations.Basic
+import Project.Mathlib.Algebra.Semigroup.GreensRelations.Basic
+import Project.Mathlib.Algebra.Group.Opposite
 import Mathlib.Data.Fintype.Pigeonhole
 
 /-!
@@ -17,12 +18,9 @@ Tools for analyzing finite semigroups via iterated multiplication sequences (`le
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-variable {S : Type*} [Semigroup S]
+namespace GreensRelations
 
-/-- The opposite semigroup construction gives an equivalence between `S` and `Sᵐᵒᵖ`
-  that preserves Green's relations, so finiteness of `S` implies finiteness of `Sᵐᵒᵖ`. -/
-instance instFiniteMulOpposite [Finite S] : Finite Sᵐᵒᵖ :=
-  Finite.of_equiv S MulOpposite.opEquiv
+variable {S : Type*} [Semigroup S]
 
 namespace MulSeq
 
@@ -228,3 +226,5 @@ lemma mul_eq_self_of_isGreenH_idempotent {S : Type*} [Semigroup S] {a e : S}
    by rcases h.right.left with rfl | ⟨v, rfl⟩ <;> simp only [← mul_assoc, he]⟩
 
 end MulSeq
+
+end GreensRelations

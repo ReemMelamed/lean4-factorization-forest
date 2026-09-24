@@ -9,6 +9,7 @@ import Mathlib.Data.Setoid.Basic
 import Mathlib.Algebra.Group.Opposite
 import Mathlib.Data.Set.Basic
 import Mathlib.Data.Finite.Defs
+import Project.Mathlib.Algebra.Group.Opposite
 
 /-!
 # Green's Relations: Definitions and Basic Properties
@@ -20,6 +21,8 @@ their equivalence classes, quotients, and regularity.
 
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
+
+namespace GreensRelations
 
 variable {S : Type*} [Semigroup S]
 
@@ -66,22 +69,6 @@ abbrev IsGreenJ (a b : S) : Prop := IsGreenJRel a b ∧ IsGreenJRel b a
 section Duality
 
 open MulOpposite
-
--- TODO: Upstream to mathlib (Mathlib.Algebra.Group.Opposite).
-/-- Right divisibility in the opposite semigroup
-  is equivalent to left divisibility. -/
-lemma op_rightDvd_op_iff {a b : S} :
-    RightDvd (op a) (op b) ↔ a ∣ b :=
-  ⟨fun ⟨c, hc⟩ ↦ ⟨unop c, op_injective (by simp [hc])⟩,
-   fun ⟨c, hc⟩ ↦ ⟨op c, by simp [hc]⟩⟩
-
--- TODO: Upstream to mathlib (Mathlib.Algebra.Group.Opposite).
-/-- Left divisibility in the opposite semigroup
-  is equivalent to right divisibility. -/
-lemma op_dvd_op_iff {a b : S} :
-    op a ∣ op b ↔ RightDvd a b :=
-  ⟨fun ⟨c, hc⟩ ↦ ⟨unop c, op_injective (by simp [hc])⟩,
-   fun ⟨c, hc⟩ ↦ ⟨op c, by simp [hc]⟩⟩
 
 /-- Green's right divisibility is equivalent to
   left divisibility in the opposite semigroup. -/
@@ -478,3 +465,5 @@ instance [Inhabited S] : Inhabited (GreenDClass S) := ⟨mk default⟩
 end GreenDClass
 
 end QuotientAPI
+
+end GreensRelations

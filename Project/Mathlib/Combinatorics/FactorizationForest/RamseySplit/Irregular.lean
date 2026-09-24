@@ -3,12 +3,12 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.SimonSplit.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
 
 /-!
 # Simon's Split Theorem — Irregular `D`-Class Case
 
-Constructs the Simon split (`simon_split_irregular_case`) for the case where the `D`-class
+Constructs the Simon split (`ramsey_split_irregular_case`) for the case where the `D`-class
 is irregular, using the fact that the sequence length is at most 2.
 
 ## References
@@ -16,7 +16,9 @@ is irregular, using the fact that the sequence length is at most 2.
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace SimonSplit
+namespace RamseySplit
+
+open GreensRelations
 
 section LabelingProperties
 
@@ -141,7 +143,7 @@ lemma irregularSplits_props {α S : Type*}
     (h_max_val := h_max_val)
 
 /-- Constructs a normalized Ramsey split when the `D`-class of `a` is irregular. -/
-lemma simon_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
+lemma ramsey_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
     (a : S) {α : Type*} [LinearOrder α] [Fintype α] [Nonempty α]
     (σ : MultiplicativeLabeling S α) (_h_img : labelingIn σ (jUp a))
     (_h_not_reg : ¬ IsRegularDClass (IsGreenD.eqvClass a))
@@ -220,4 +222,4 @@ lemma simon_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
 
 end SplitConstruction
 
-end SimonSplit
+end RamseySplit

@@ -5,12 +5,12 @@ Authors: Re'em Melamed-Katz
 -/
 import Mathlib.Data.Fintype.Card
 import Mathlib.Data.Finset.Max
-import Project.GreensRelations.Order
+import Project.Mathlib.Algebra.Semigroup.GreensRelations.Order
 
 /-!
-# Simon's Split Theorem — Basic Definitions
+# Ramsey Splits — Basic Definitions
 
-Core structures and definitions for Simon's Split Theorem, including multiplicative
+Core structures and definitions for Ramsey splits, including multiplicative
 labelings, splits, Ramsey condition, and Green's relation invariants.
 
 ## References
@@ -18,7 +18,9 @@ labelings, splits, Ramsey condition, and Green's relation invariants.
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
 
-namespace SimonSplit
+namespace RamseySplit
+
+open GreensRelations
 
 section SplitDefinitions
 
@@ -228,4 +230,4 @@ lemma openInterval_unique {α : Type*} [LinearOrder α] (xs : List α)
 
 end GeneralUtility
 
-end SimonSplit
+end RamseySplit

@@ -3,7 +3,7 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.GreensRelations.Green
+import Project.Mathlib.Algebra.Semigroup.GreensRelations.Green
 
 /-!
 # Finite Semigroup Theorems for Green's Relations
@@ -14,6 +14,8 @@ Structural theorems for Green's relations on finite semigroups, including `D` = 
 
 * [T. Colcombet, *The Factorization Forest Theorem*][colcombet2008]
 -/
+
+namespace GreensRelations
 
 variable {S : Type*} [Semigroup S]
 
@@ -204,3 +206,5 @@ theorem isGreenH_eqvClass_dichotomy
     exact ⟨h_closed, isGreenH_eqvClass_isGroup_of_idempotent hH heH he_idem⟩
 
 end SubgroupsInHClasses
+
+end GreensRelations
