@@ -28,7 +28,6 @@ It also contains:
 
 universe u
 
--- TODO: Upstream to Mathlib.Algebra.Semigroup.Aperiodic
 /-- A semigroup is *aperiodic* if every subgroup of `S` is trivial:
 whenever a group `G` embeds into `S` as a subsemigroup, `G` must be a subsingleton. -/
 def IsAperiodic (S : Type u) [Semigroup S] : Prop :=
