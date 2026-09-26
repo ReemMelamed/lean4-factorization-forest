@@ -7,11 +7,11 @@ import Project.Mathlib.Algebra.Semigroup.GreensRelations.Order
 import Project.Mathlib.Algebra.Semigroup.Aperiodic
 import Project.Mathlib.Algebra.Semigroup.LocallyFinite
 import Project.Mathlib.Data.List.SemigroupProd
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Basic
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Regular
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Irregular
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Split
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Infinitary
+import Project.Mathlib.Combinatorics.FactorizationForest.Basic
+import Project.Mathlib.Combinatorics.FactorizationForest.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.Regular
+import Project.Mathlib.Combinatorics.FactorizationForest.Irregular
+import Project.Mathlib.Combinatorics.FactorizationForest.Split
+import Project.Mathlib.Combinatorics.FactorizationForest.Infinitary
 import Project.Mathlib.Combinatorics.FactorizationForest.Tree
 import Project.Mathlib.Combinatorics.FactorizationForest.TruncatedAddition

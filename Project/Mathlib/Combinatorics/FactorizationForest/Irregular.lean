@@ -3,7 +3,7 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.Combine
 
 /-!
 # Simon's Split Theorem — Irregular `D`-Class Case
@@ -142,9 +142,8 @@ lemma ramsey_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
   choose sY hsY_ramsey hsY_strict using h_sY_ex
   have hsY_strict' : ∀ (i : ℕ) [Nonempty (OpenIntervalType xs i)] (z : OpenIntervalType xs i),
       (sY i z).val < nSElement a - 1 := fun i _ z ↦ by
-    have h := hsY_strict i z
-    simp only [nD, ite_eq_right _h_not_reg] at h
-    omega
+    have := hsY_strict i z
+    rwa [nD, ite_eq_right _h_not_reg] at this
   have h_xs_len : xs.length ≤ 2 := by
     by_contra! h_len
     have hp := buildXSeq_properties a σ _h_img x₀
@@ -156,7 +155,7 @@ lemma ramsey_split_irregular_case {S : Type*} [Semigroup S] [Fintype S]
   exact ⟨irregularSplits a xs sY, irregularSplits_props a xs σ σ_Y sY hsY_ramsey
     (h_xs_mono := (buildXSeq_properties a σ _h_img x₀).2.2.2) (h_xs_len := h_xs_len)
     (h_min_head := by
-      change (buildXSeq a σ x₀).head? = _
+      dsimp [xs]
       rw [buildXSeq]
       split_ifs <;> rfl)
     (h_max_val := congrArg Fin.val

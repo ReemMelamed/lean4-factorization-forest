@@ -44,20 +44,16 @@ section BalancedTree
 
 /-- Taking half the elements of a list of length at least 2 is non-empty. -/
 lemma take_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
-    l.take (l.length / 2) ≠ [] := by
-  intro h
-  have hlen : (l.take (l.length / 2)).length = 0 := by
-    simp only [h, List.length_nil]
-  simp only [List.length_take] at hlen
+    l.take (l.length / 2) ≠ [] := fun h ↦ by
+  have := congrArg List.length h
+  simp only [List.length_take, List.length_nil] at this
   omega
 
 /-- Dropping half the elements of a list of length at least 2 is non-empty. -/
 lemma drop_ne_nil {A : Type*} {l : List A} (hl : 2 ≤ l.length) :
-    l.drop (l.length / 2) ≠ [] := by
-  intro h
-  have hlen : (l.drop (l.length / 2)).length = 0 := by
-    simp only [h, List.length_nil]
-  simp only [List.length_drop] at hlen
+    l.drop (l.length / 2) ≠ [] := fun h ↦ by
+  have := congrArg List.length h
+  simp only [List.length_drop, List.length_nil] at this
   omega
 
 /-- Constructs a balanced binary factorization tree for a word `v`. -/
@@ -91,22 +87,18 @@ lemma balancedTree_val {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
       | cons a rest =>
         cases rest with
         | nil => rfl
-        | cons b rest' =>
-          dsimp [List.length] at hle
-          omega
-    · dsimp [FactorizationTree.value]
-      have hlen_ge : 2 ≤ v.length := by omega
-      have htake_ne := take_ne_nil hlen_ge
-      have hdrop_ne := drop_ne_nil hlen_ge
+        | cons b rest' => grind
+    · have hlen_ge : 2 ≤ v.length := by omega
       have h1_lt : (v.take (v.length / 2)).length < k := by
         rw [← hlen, List.length_take]
         omega
       have h2_lt : (v.drop (v.length / 2)).length < k := by
         rw [← hlen, List.length_drop]
         omega
-      have ih1 := ih (v.take (v.length / 2)).length h1_lt (v.take (v.length / 2)) htake_ne rfl
-      have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
-      simp only [ih1, ih2, List.take_append_drop]
+      simp only [FactorizationTree.value,
+        ih _ h1_lt _ (take_ne_nil hlen_ge) rfl,
+        ih _ h2_lt _ (drop_ne_nil hlen_ge) rfl,
+        List.take_append_drop]
 
 /-- The balanced tree is Ramsey for any evaluation map. -/
 lemma balancedTree_isRamsey {A S : Type*} [Semigroup S] (eval : List A → S) (d : A)
@@ -121,21 +113,17 @@ lemma balancedTree_isRamsey {A S : Type*} [Semigroup S] (eval : List A → S) (d
       | cons a rest =>
         cases rest with
         | nil => exact FactorizationTree.leaf_isRamsey eval a
-        | cons b rest' =>
-          dsimp [List.length] at hle
-          omega
+        | cons b rest' => grind
     · have hlen_ge : 2 ≤ v.length := by omega
-      have htake_ne := take_ne_nil hlen_ge
-      have hdrop_ne := drop_ne_nil hlen_ge
       have h1_lt : (v.take (v.length / 2)).length < k := by
         simp only [← hlen, List.length_take]
         omega
       have h2_lt : (v.drop (v.length / 2)).length < k := by
         simp only [← hlen, List.length_drop]
         omega
-      have ih1 := ih (v.take (v.length / 2)).length h1_lt (v.take (v.length / 2)) htake_ne rfl
-      have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
-      exact FactorizationTree.binary_isRamsey eval ih1 ih2
+      exact FactorizationTree.binary_isRamsey eval
+        (ih _ h1_lt _ (take_ne_nil hlen_ge) rfl)
+        (ih _ h2_lt _ (drop_ne_nil hlen_ge) rfl)
 
 /-- The height of a balanced tree on `v` is at most `log2Ceil v.length`. -/
 lemma balancedTree_height_le {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
@@ -154,39 +142,27 @@ lemma balancedTree_height_le {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
           rw [← hlen]
           dsimp [List.length]
           rw [log2Ceil_one]
-        | cons b rest' =>
-          dsimp [List.length] at hle
-          omega
-    · dsimp [FactorizationTree.height]
-      have hlen_ge : 2 ≤ v.length := by omega
-      have htake_ne := take_ne_nil hlen_ge
-      have hdrop_ne := drop_ne_nil hlen_ge
+        | cons b rest' => grind
+    · have hlen_ge : 2 ≤ v.length := by omega
       have h1_lt : (v.take (v.length / 2)).length < k := by
         simp only [← hlen, List.length_take]
         omega
       have h2_lt : (v.drop (v.length / 2)).length < k := by
         simp only [← hlen, List.length_drop]
         omega
-      have ih1 := ih (v.take (v.length / 2)).length h1_lt (v.take (v.length / 2)) htake_ne rfl
-      have ih2 := ih (v.drop (v.length / 2)).length h2_lt (v.drop (v.length / 2)) hdrop_ne rfl
-      have h1_len : (v.take (v.length / 2)).length = v.length / 2 := by
+      have ih1 := ih _ h1_lt _ (take_ne_nil hlen_ge) rfl
+      have ih2 := ih _ h2_lt _ (drop_ne_nil hlen_ge) rfl
+      have h1_len : (v.take (v.length / 2)).length ≤ (v.length + 1) / 2 := by
         simp only [List.length_take]
         omega
-      have h2_len : (v.drop (v.length / 2)).length = v.length - v.length / 2 := by
+      have h2_len : (v.drop (v.length / 2)).length ≤ (v.length + 1) / 2 := by
         simp only [List.length_drop]
-      rw [h1_len] at ih1
-      rw [h2_len] at ih2
-      have h_drop_le : v.length - v.length / 2 ≤ (v.length + 1) / 2 := by omega
-      have h_take_le : v.length / 2 ≤ (v.length + 1) / 2 := by omega
-      have ih1' : (balancedTree d (v.take (v.length / 2))).height ≤ log2Ceil ((v.length + 1) / 2) :=
-        ih1.trans (log2Ceil_monotone h_take_le)
-      have ih2' : (balancedTree d (v.drop (v.length / 2))).height ≤ log2Ceil ((v.length + 1) / 2) :=
-        ih2.trans (log2Ceil_monotone h_drop_le)
+        omega
       have hmax : max (balancedTree d (v.take (v.length / 2))).height
           (balancedTree d (v.drop (v.length / 2))).height ≤ log2Ceil ((v.length + 1) / 2) :=
-        max_le ih1' ih2'
-      have h_log := log2Ceil_of_two_le hlen_ge
-      rw [← hlen, h_log]
+        max_le (ih1.trans (log2Ceil_monotone h1_len)) (ih2.trans (log2Ceil_monotone h2_len))
+      dsimp [FactorizationTree.height]
+      rw [← hlen, log2Ceil_of_two_le hlen_ge]
       omega
 
 end BalancedTree
@@ -207,15 +183,11 @@ variable {n : ℕ}
 
 noncomputable instance (n : ℕ) : Fintype (TruncatedAdd n) :=
   Fintype.ofInjective (fun x : TruncatedAdd n ↦ (⟨x.val, Nat.lt_succ_of_le x.le⟩ : Fin (n + 1)))
-    (fun a b h ↦ by
-      ext
-      exact Fin.ext_iff.mp h)
+    fun _ _ h ↦ TruncatedAdd.ext (Fin.ext_iff.mp h)
 
 instance : Mul (TruncatedAdd n) where
-  mul a b := ⟨min (a.val + b.val) n, by
-    have ha := a.pos
-    have hle := a.le
-    omega, min_le_right _ _⟩
+  mul a b := ⟨min (a.val + b.val) n,
+    a.pos.trans_le (le_min (Nat.le_add_right _ _) a.le), min_le_right _ _⟩
 
 /-- Product in `TruncatedAdd n` is given by truncated integer addition. -/
 lemma mul_val (a b : TruncatedAdd n) : (a * b).val = min (a.val + b.val) n := rfl
@@ -257,9 +229,8 @@ def evalTrunc (hn : 0 < n) (u : List (TruncatedAdd n)) : TruncatedAdd n :=
 
 /-- Value of `evalTrunc` on non-empty lists. -/
 lemma evalTrunc_val (hn : 0 < n) {u : List (TruncatedAdd n)} (hu : u ≠ []) :
-    (evalTrunc hn u).val = min (u.map TruncatedAdd.val).sum n := by
-  dsimp [evalTrunc]
-  rw [ite_eq_right hu]
+    (evalTrunc hn u).val = min (u.map TruncatedAdd.val).sum n :=
+  ite_eq_right hu
 
 /-- The length of a list in `TruncatedAdd n` is bounded by the sum of its values. -/
 lemma length_le_sum_val (u : List (TruncatedAdd n)) :
@@ -275,11 +246,10 @@ lemma length_le_sum_val (u : List (TruncatedAdd n)) :
 lemma evalTrunc_of_length_ge (hn : 0 < n) (u : List (TruncatedAdd n))
     (hlen : n ≤ u.length) :
     evalTrunc hn u = top hn := by
-  have hu : u ≠ [] := by
-    grind
+  have hu : u ≠ [] := by grind
+  have := length_le_sum_val u
   ext
-  simp only [evalTrunc_val hn hu, top_val]
-  have hsum := length_le_sum_val u
+  simp [evalTrunc_val hn hu, top_val]
   omega
 
 /-- The unique idempotent in `TruncatedAdd n` is `top n`. -/
@@ -289,8 +259,8 @@ lemma idempotent_eq_top {n : ℕ} (hn : 0 < n)
   have h := congrArg TruncatedAdd.val hx
   rw [mul_val] at h
   simp only [top_val]
-  have hpos : 0 < x.val := x.pos
-  have hle  : x.val ≤ n     := x.le
+  have := x.pos
+  have := x.le
   omega
 
 /-- Left-multiplication by `top n` returns `top n` for any element. -/
@@ -298,26 +268,19 @@ lemma top_mul_any {n : ℕ} (hn : 0 < n) (x : TruncatedAdd n) :
     top hn * x = top hn := by
   ext
   simp only [mul_val, top_val]
-  have hpos : 0 < x.val := x.pos
+  have := x.pos
   omega
 
 /-- `TruncatedAdd n` has exactly `n` elements. -/
 noncomputable def equivFin (n : ℕ) (_hn : 0 < n) : TruncatedAdd n ≃ Fin n where
   toFun x   := ⟨x.val - 1, (Nat.sub_lt x.pos Nat.zero_lt_one).trans_le x.le⟩
   invFun j  := ⟨j.val + 1, by omega, by omega⟩
-  left_inv  x := by
-    ext
-    dsimp
-    have := x.pos
-    omega
-  right_inv j := by
-    ext
-    dsimp
+  left_inv x := TruncatedAdd.ext (Nat.sub_add_cancel x.pos)
+  right_inv _ := Fin.ext (Nat.add_sub_cancel _ _)
 
 /-- The cardinality of `TruncatedAdd n` is `n`. -/
-lemma card_eq (n : ℕ) (hn : 0 < n) : Fintype.card (TruncatedAdd n) = n := by
-  simp only [Fintype.card_congr (equivFin n hn)]
-  exact Fintype.card_fin n
+lemma card_eq (n : ℕ) (hn : 0 < n) : Fintype.card (TruncatedAdd n) = n :=
+  (Fintype.card_congr (equivFin n hn)).trans (Fintype.card_fin n)
 
 /-- The `evalTrunc` function is a semigroup homomorphism from non-empty lists. -/
 lemma evalTrunc_hmul (hn : 0 < n) (u v : List (TruncatedAdd n))
@@ -372,22 +335,17 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
   let d : TruncatedAdd n := top hn
   let eval := evalTrunc hn
   by_cases hle : u.length ≤ n
-  · have ht_height : (balancedTree d u).height ≤ log2Ceil n + 2 := by
-      have h_h := balancedTree_height_le d u hu
-      have h_mono := log2Ceil_monotone hle
-      omega
-    exact ⟨balancedTree d u, balancedTree_val d u hu, balancedTree_isRamsey eval d u hu, ht_height⟩
+  · have h_h := (balancedTree_height_le d u hu).trans (log2Ceil_monotone hle)
+    exact ⟨balancedTree d u, balancedTree_val d u hu, balancedTree_isRamsey eval d u hu, by omega⟩
   · push Not at hle
     by_cases h2n : u.length < 2 * n
-    · have htake_ne : u.take n ≠ [] := by
-        intro h
-        have hlen := congrArg List.length h
-        rw [List.length_take, List.length_nil] at hlen
+    · have htake_ne : u.take n ≠ [] := fun h ↦ by
+        have := congrArg List.length h
+        simp only [List.length_take, List.length_nil] at this
         omega
-      have hdrop_ne : u.drop n ≠ [] := by
-        intro h
-        have hlen := congrArg List.length h
-        rw [List.length_drop, List.length_nil] at hlen
+      have hdrop_ne : u.drop n ≠ [] := fun h ↦ by
+        have := congrArg List.length h
+        simp only [List.length_drop, List.length_nil] at this
         omega
       let t1 := balancedTree d (u.take n)
       let t2 := balancedTree d (u.drop n)
@@ -402,16 +360,14 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
           (balancedTree_isRamsey eval d _ htake_ne)
           (balancedTree_isRamsey eval d _ hdrop_ne)
       have ht_height : t.height ≤ log2Ceil n + 2 := by
-        dsimp [t, FactorizationTree.height]
         have ht1 := balancedTree_height_le d (u.take n) htake_ne
         have ht2 := balancedTree_height_le d (u.drop n) hdrop_ne
         rw [List.length_take] at ht1
         rw [List.length_drop] at ht2
-        have h1 : min n u.length ≤ n := min_le_left _ _
-        have h2 : u.length - n ≤ n := by omega
-        have ht1' := ht1.trans (log2Ceil_monotone h1)
-        have ht2' := ht2.trans (log2Ceil_monotone h2)
+        have ht1' := ht1.trans (log2Ceil_monotone (min_le_left _ _))
+        have ht2' := ht2.trans (log2Ceil_monotone (show u.length - n ≤ n by omega))
         have : max t1.height t2.height ≤ log2Ceil n := max_le ht1' ht2'
+        dsimp [t, FactorizationTree.height]
         omega
       exact ⟨t, ht_val, ht_ramsey, ht_height⟩
     · push Not at h2n
@@ -420,17 +376,15 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
       have h_block_len : ∀ i < q, ((u.drop (i * n)).take n).length = n := by
         intro i hi
         rw [List.length_take, List.length_drop]
-        have h_le : i + 1 ≤ q := Nat.succ_le_of_lt hi
         have h_in : i * n + n ≤ q * n := by
-          have h_mul := Nat.mul_le_mul_right n h_le
+          have h_mul := Nat.mul_le_mul_right n (Nat.succ_le_of_lt hi)
           rw [Nat.succ_mul] at h_mul
           exact h_mul
         have hqn : q * n ≤ u.length := Nat.div_mul_le_self u.length n
         omega
-      have h_block_ne : ∀ i < q, (u.drop (i * n)).take n ≠ [] := by
-        intro i hi h
-        have hlen := congrArg List.length h
-        rw [h_block_len i hi, List.length_nil] at hlen
+      have h_block_ne : ∀ i < q, (u.drop (i * n)).take n ≠ [] := fun i hi h ↦ by
+        have := congrArg List.length h
+        rw [h_block_len i hi, List.length_nil] at this
         omega
       let trees : List (FactorizationTree (TruncatedAdd n)) :=
         (List.range q).map (fun i ↦ balancedTree d ((u.drop (i * n)).take n))
@@ -440,31 +394,20 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
       have h_trees_ramsey : listIsRamsey eval trees := by
         rw [listIsRamsey_iff]
         intro t ht
-        dsimp [trees] at ht
-        rw [List.mem_map] at ht
-        obtain ⟨i, hi, rfl⟩ := ht
-        have hi' : i < q := List.mem_range.mp hi
-        exact balancedTree_isRamsey eval d _ (h_block_ne i hi')
+        obtain ⟨i, hi, rfl⟩ := List.mem_map.mp ht
+        exact balancedTree_isRamsey eval d _ (h_block_ne i (List.mem_range.mp hi))
       have h_trees_eval : ∀ t ∈ trees, eval (FactorizationTree.value t) = top hn := by
         intro t ht
-        dsimp [trees] at ht
-        rw [List.mem_map] at ht
-        obtain ⟨i, hi, rfl⟩ := ht
-        have hi' : i < q := List.mem_range.mp hi
-        have hb_ne := h_block_ne i hi'
-        have hb_len := h_block_len i hi'
-        rw [balancedTree_val d _ hb_ne]
-        exact evalTrunc_of_length_ge hn _ hb_len.ge
+        obtain ⟨i, hi, rfl⟩ := List.mem_map.mp ht
+        have hi' := List.mem_range.mp hi
+        rw [balancedTree_val d _ (h_block_ne i hi')]
+        exact evalTrunc_of_length_ge hn _ (h_block_len i hi').ge
       have h_trees_height : ∀ t ∈ trees, t.height ≤ log2Ceil n := by
         intro t ht
-        dsimp [trees] at ht
-        rw [List.mem_map] at ht
-        obtain ⟨i, hi, rfl⟩ := ht
-        have hi' : i < q := List.mem_range.mp hi
-        have hb_ne := h_block_ne i hi'
-        have hb_len := h_block_len i hi'
-        have ht_h := balancedTree_height_le d _ hb_ne
-        rw [hb_len] at ht_h
+        obtain ⟨i, hi, rfl⟩ := List.mem_map.mp ht
+        have hi' := List.mem_range.mp hi
+        have ht_h := balancedTree_height_le d _ (h_block_ne i hi')
+        rw [h_block_len i hi'] at ht_h
         exact ht_h
       have h_idem_ramsey : (FactorizationTree.idempotent trees).IsRamsey eval := by
         apply FactorizationTree.idempotent_isRamsey eval
@@ -501,27 +444,24 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
         let t := FactorizationTree.binary (FactorizationTree.idempotent trees) trem
         have htrem_val := balancedTree_val d (u.drop (q * n)) hrem
         have htrem_ramsey := balancedTree_isRamsey eval d (u.drop (q * n)) hrem
-        have htrem_h := balancedTree_height_le d (u.drop (q * n)) hrem
         have hrem_len : (u.drop (q * n)).length ≤ n := by
           rw [List.length_drop]
-          have h_div := Nat.mod_add_div u.length n
-          have h_comm : q * n = n * (u.length / n) := Nat.mul_comm q n
-          have h_sub : u.length - q * n = u.length % n := by omega
-          rw [h_sub]
-          exact (Nat.mod_lt u.length hn).le
+          have := Nat.mod_add_div u.length n
+          have : q * n = n * (u.length / n) := Nat.mul_comm q n
+          have := Nat.mod_lt u.length hn
+          omega
         have htrem_h' : trem.height ≤ log2Ceil n :=
-          htrem_h.trans (log2Ceil_monotone hrem_len)
+          (balancedTree_height_le d (u.drop (q * n)) hrem).trans (log2Ceil_monotone hrem_len)
         have ht_val : t.value = u := by
           dsimp [t, FactorizationTree.value]
           rw [h_trees_val, htrem_val, List.take_append_drop]
         have ht_ramsey : t.IsRamsey eval :=
           FactorizationTree.binary_isRamsey eval h_idem_ramsey htrem_ramsey
         have ht_height : t.height ≤ log2Ceil n + 2 := by
-          have ht_eq : t.height =
-              1 + max (FactorizationTree.idempotent trees).height trem.height := rfl
-          rw [ht_eq]
-          have htrem : trem.height ≤ log2Ceil n := htrem_h'
-          have hidem : (FactorizationTree.idempotent trees).height ≤ 1 + log2Ceil n := h_idem_height
+          have : t.height = 1 + max (FactorizationTree.idempotent trees).height trem.height := rfl
+          rw [this]
+          have : trem.height ≤ log2Ceil n := htrem_h'
+          have : (FactorizationTree.idempotent trees).height ≤ 1 + log2Ceil n := h_idem_height
           omega
         exact ⟨t, ht_val, ht_ramsey, ht_height⟩
 

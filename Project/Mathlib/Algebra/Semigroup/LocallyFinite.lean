@@ -11,7 +11,7 @@ import Mathlib.Data.Set.Finite.Range
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Algebra.Group.Pointwise.Set.Finite
 import Mathlib.Order.CompleteLattice.Finset
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.Combine
 import Project.Mathlib.Combinatorics.FactorizationForest.Tree
 import Project.Mathlib.Data.List.SemigroupProd
 

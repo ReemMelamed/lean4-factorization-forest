@@ -5,9 +5,9 @@ Authors: Re'em Melamed-Katz
 -/
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Finset.Max
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Basic
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Split
+import Project.Mathlib.Combinatorics.FactorizationForest.Basic
+import Project.Mathlib.Combinatorics.FactorizationForest.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.Split
 
 /-!
 # Simon's Factorization Forest Theorem (Tree Version)

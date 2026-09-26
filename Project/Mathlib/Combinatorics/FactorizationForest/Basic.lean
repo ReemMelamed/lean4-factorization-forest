@@ -77,22 +77,21 @@ abbrev wordLabeling {A S : Type*} [Semigroup S]
   σ := fun i j => eval ((u.drop i.val).take (j.val - i.val))
   prop := by
     intros x y z hxy hyz
-    have h_ne1 : (u.drop x.val).take (y.val - x.val) ≠ [] := by
+    have h_ne : ∀ (a b : Fin (u.length + 1)), a < b →
+        (u.drop a.val).take (b.val - a.val) ≠ [] := by
+      intro a b hab
       simp [List.take_eq_nil_iff]
       omega
-    have h_ne2 : (u.drop y.val).take (z.val - y.val) ≠ [] := by
-      simp [List.take_eq_nil_iff]
+    have hd : u.drop y.val = (u.drop x.val).drop (y.val - x.val) := by
+      rw [List.drop_drop]
+      congr 1
       omega
     have h_cat : (u.drop x.val).take (y.val - x.val) ++ (u.drop y.val).take (z.val - y.val) =
         (u.drop x.val).take (z.val - x.val) := by
-      have hd : u.drop y.val = (u.drop x.val).drop (y.val - x.val) := by
-        rw [List.drop_drop]
-        congr 1
-        omega
       rw [hd, ← List.take_add]
       congr 1
       omega
-    rw [← hmul _ _ h_ne1 h_ne2, h_cat]
+    rw [← hmul _ _ (h_ne x y hxy) (h_ne y z hyz), h_cat]
 
 end WordDefinitions
 
@@ -143,14 +142,12 @@ lemma labeling_factor_le_J {α : Type*} [LinearOrder α]
     (σ : MultiplicativeLabeling S α) (u v w x : α)
     (huv : u ≤ v) (hvw : v < w) (hwx : w ≤ x) :
     GreenJClass.mk (σ.σ u x) ≤ GreenJClass.mk (σ.σ v w) := by
-  have h1 : GreenJClass.mk (σ.σ u x) ≤ GreenJClass.mk (σ.σ v x) := by
-    rcases huv.eq_or_lt with rfl | h
-    · exact le_rfl
-    · exact (σ.prop u v x h (hvw.trans_le hwx)).symm ▸ IsGreenJRel.mul_left _ rfl
-  have h2 : GreenJClass.mk (σ.σ v x) ≤ GreenJClass.mk (σ.σ v w) := by
-    rcases hwx.eq_or_lt with rfl | h
-    · exact le_rfl
-    · exact (σ.prop v w x hvw h).symm ▸ IsGreenJRel.mul_right _ rfl
+  have h1 : GreenJClass.mk (σ.σ u x) ≤ GreenJClass.mk (σ.σ v x) :=
+    huv.eq_or_lt.elim (fun | rfl => le_rfl) fun h ↦
+      (σ.prop u v x h (hvw.trans_le hwx)).symm ▸ IsGreenJRel.mul_left _ rfl
+  have h2 : GreenJClass.mk (σ.σ v x) ≤ GreenJClass.mk (σ.σ v w) :=
+    hwx.eq_or_lt.elim (fun | rfl => le_rfl) fun h ↦
+      (σ.prop v w x hvw h).symm ▸ IsGreenJRel.mul_right _ rfl
   exact h1.trans h2
 
 variable [Finite S]
@@ -159,10 +156,9 @@ variable [Finite S]
 lemma isGreenD_of_prefix (a : S) {α : Type*} [LinearOrder α]
     (σ : MultiplicativeLabeling S α) (h_img : labelingIn σ (jUp a))
     (u v w : α) (huv : u < v) (hvw : v ≤ w) (hD : IsGreenD (σ.σ u v) a) :
-    IsGreenD (σ.σ u w) a := by
-  rcases hvw.eq_or_lt with rfl | hvw_lt
-  · exact hD
-  · exact isGreenD_of_isGreenJ (GreenJClass.mk_eq_mk_iff.mp (le_antisymm
+    IsGreenD (σ.σ u w) a :=
+  hvw.eq_or_lt.elim (fun | rfl => hD) fun hvw_lt ↦
+    isGreenD_of_isGreenJ (GreenJClass.mk_eq_mk_iff.mp (le_antisymm
       (GreenJClass.mk_eq_mk_iff.mpr (isGreenJ_of_isGreenD hD) ▸
         labeling_factor_le_J σ u u v w le_rfl huv hvw)
       (h_img u w (huv.trans hvw_lt))))
@@ -206,9 +202,7 @@ lemma not_mem_of_openInterval {α : Type*} [LinearOrder α] {xs : List α}
     (h_in : ∃ (hi_lt : i < xs.length),
       xs.get ⟨i, hi_lt⟩ < z ∧ ∀ (hi_succ_lt : i + 1 < xs.length),
       z < xs.get ⟨i + 1, hi_succ_lt⟩) : z ∉ xs := by
-  intro hz_mem
-  obtain ⟨j, hz_eq⟩ := List.mem_iff_get.mp hz_mem
-  grind
+  grind [List.mem_iff_get]
 
 /-- Two open intervals defined by the same strictly increasing sequence are
 disjoint: if an element `x` lies in both interval `i` and interval `k`,
@@ -225,12 +219,7 @@ lemma openInterval_unique {α : Type*} [LinearOrder α] (xs : List α)
     (hgt_k : ∀ h_next_lt : k + 1 < xs.length,
       x < xs.get ⟨k + 1, h_next_lt⟩) :
     i = k := by
-  rcases lt_trichotomy i k with h | rfl | h
-  · exfalso
-    grind
-  · rfl
-  · exfalso
-    grind
+  rcases lt_trichotomy i k with h | rfl | h <;> first | rfl | cases (show False by grind)
 
 end GeneralUtility
 

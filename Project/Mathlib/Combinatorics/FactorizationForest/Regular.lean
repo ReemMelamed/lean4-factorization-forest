@@ -3,7 +3,7 @@ Copyright (c) 2026 Re'em Melamed-Katz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Re'em Melamed-Katz
 -/
-import Project.Mathlib.Combinatorics.FactorizationForest.RamseySplit.Combine
+import Project.Mathlib.Combinatorics.FactorizationForest.Combine
 
 /-!
 # Simon's Split Theorem — Regular `D`-Class Case
