@@ -91,15 +91,25 @@ theorem mul_mem_isGreenD_eqvClass_properties
   · rcases (isGreenR_sr_of_isGreenD_sr (ha.trans hab.symm)).left with ha_eq | ⟨u, hu⟩
     · rcases (isGreenL_sl_of_isGreenD_sl (hb.trans hab.symm)).left with hb_eq | ⟨v, hv⟩
       · have hab_eq : a = b := ha_eq.trans hb_eq.symm
-        exact ⟨a, ha, by nth_rw 2 [hab_eq]; rw [← ha_eq], IsGreenL.refl a,
-          hab_eq ▸ IsGreenR.refl a⟩
-      · have h_b_eq_va : b = v * a := by nth_rw 1 [hv]; rw [← ha_eq]
-        exact ⟨b, hb, by nth_rw 1 [h_b_eq_va]; rw [mul_assoc, ← hv],
-          ⟨Or.inr ⟨a, ha_eq⟩, Or.inr ⟨v, h_b_eq_va⟩⟩, IsGreenR.refl b⟩
+        have he_idem : a * a = a := by
+          nth_rw 2 [hab_eq]
+          rw [← ha_eq]
+        exact ⟨a, ha, he_idem, IsGreenL.refl a, hab_eq ▸ IsGreenR.refl a⟩
+      · have h_b_eq_va : b = v * a := by
+          nth_rw 1 [hv]
+          rw [← ha_eq]
+        have he_idem : b * b = b := by
+          nth_rw 1 [h_b_eq_va]
+          rw [mul_assoc, ← hv]
+        exact ⟨b, hb, he_idem, ⟨Or.inr ⟨a, ha_eq⟩, Or.inr ⟨v, h_b_eq_va⟩⟩, IsGreenR.refl b⟩
     · rcases (isGreenL_sl_of_isGreenD_sl (hb.trans hab.symm)).left with hb_eq | ⟨v, hv⟩
-      · have h_a_eq_bu : a = b * u := by nth_rw 1 [hu]; rw [← hb_eq]
-        exact ⟨a, ha, by nth_rw 2 [h_a_eq_bu]; rw [← mul_assoc, ← hb_eq, ← h_a_eq_bu],
-          IsGreenL.refl a, ⟨Or.inr ⟨b, hb_eq⟩, Or.inr ⟨u, h_a_eq_bu⟩⟩⟩
+      · have h_a_eq_bu : a = b * u := by
+          nth_rw 1 [hu]
+          rw [← hb_eq]
+        have he_idem : a * a = a := by
+          nth_rw 2 [h_a_eq_bu]
+          rw [← mul_assoc, ← hb_eq, ← h_a_eq_bu]
+        exact ⟨a, ha, he_idem, IsGreenL.refl a, ⟨Or.inr ⟨b, hb_eq⟩, Or.inr ⟨u, h_a_eq_bu⟩⟩⟩
       · have h_va_eq_bu : v * a = b * u := by rw [hu, ← mul_assoc, ← hv]
         have hLae : IsGreenL a (v * a) := ⟨Or.inr ⟨a, by grind⟩, Or.inr ⟨v, rfl⟩⟩
         exact ⟨v * a, IsGreenD.trans ⟨a, IsGreenL.symm hLae, IsGreenR.refl a⟩ ha, by grind,

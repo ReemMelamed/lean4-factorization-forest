@@ -193,7 +193,7 @@ lemma list_interval_covers {α : Type*} [LinearOrder α] (x : α) :
     by_cases h_tail : ∃ y ∈ tail, y < x
     · obtain ⟨i, hi, hlt, hgt⟩ :=
         list_interval_covers x tail (fun h => h_not_in (List.Mem.tail _ h)) h_tail
-      exact ⟨i + 1, by simp; omega, hlt, fun h => hgt (by simp at h; omega)⟩
+      exact ⟨i + 1, Nat.succ_lt_succ hi, hlt, fun h ↦ hgt (Nat.lt_of_succ_lt_succ h)⟩
     · grind
 
 /-- An element in an open interval `OpenIntervalType xs i` is never a member
@@ -225,8 +225,12 @@ lemma openInterval_unique {α : Type*} [LinearOrder α] (xs : List α)
     (hgt_k : ∀ h_next_lt : k + 1 < xs.length,
       x < xs.get ⟨k + 1, h_next_lt⟩) :
     i = k := by
-  rcases lt_trichotomy i k with h | rfl | h <;>
-    first | exfalso; grind | rfl
+  rcases lt_trichotomy i k with h | rfl | h
+  · exfalso
+    grind
+  · rfl
+  · exfalso
+    grind
 
 end GeneralUtility
 

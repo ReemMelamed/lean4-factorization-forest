@@ -81,25 +81,36 @@ theorem simon_split {S α : Type*} [Semigroup S] [Fintype S]
     dsimp [nS]
     have h_ne : (Finset.univ.image (fun (x : S) ↦ nSElement x)).Nonempty :=
       ⟨nSElement a, Finset.mem_image_of_mem _ (Finset.mem_univ a)⟩
-    rw [dif_pos h_ne]
+    rw [dite_eq_left h_ne]
     exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ a))
   let Δ := nS S - nSElement a
-  let s : Split α (nS S) := fun x ↦ ⟨(s_a x).val + Δ, by have := (s_a x).isLt; omega⟩
+  let s : Split α (nS S) := fun x ↦ ⟨(s_a x).val + Δ, by
+    have := (s_a x).isLt
+    omega⟩
   have hsr_iff : ∀ u v, SplitRelation s u v ↔ SplitRelation s_a u v := fun u v ↦ by
     simp only [SplitRelation, Fin.ext_iff, Fin.le_iff_val_le_val, s]
-    exact ⟨fun ⟨h1, h2⟩ ↦ ⟨by omega, fun z hz1 hz2 ↦ by have := h2 z hz1 hz2; omega⟩,
-      fun ⟨h1, h2⟩ ↦ ⟨by omega, fun z hz1 hz2 ↦ by have := h2 z hz1 hz2; omega⟩⟩
+    constructor
+    · rintro ⟨h1, h2⟩
+      refine ⟨by omega, fun z hz1 hz2 ↦ ?_⟩
+      have := h2 z hz1 hz2
+      omega
+    · rintro ⟨h1, h2⟩
+      refine ⟨by omega, fun z hz1 hz2 ↦ ?_⟩
+      have := h2 z hz1 hz2
+      omega
   exact ⟨s, by
       ext
       simp only [h_norm, s]
       have h_max_a : (Finset.max' Finset.univ Finset.univ_nonempty : Fin (nSElement a)).val
           = nSElement a - 1 :=
         congrArg Fin.val ((Finset.max'_eq_iff _ _
-          (⟨nSElement a - 1, by have := nSElement_pos a; omega⟩ : Fin (nSElement a))).mpr
+          (⟨nSElement a - 1, Nat.sub_lt (nSElement_pos a) Nat.zero_lt_one⟩ :
+            Fin (nSElement a))).mpr
           ⟨Finset.mem_univ _, fun w _ ↦ Fin.le_iff_val_le_val.mpr (Nat.le_pred_of_lt w.isLt)⟩)
+      have hnS_pos : 0 < nS S := @nS_pos S _ _ ⟨a⟩
       have h_max_S : (Finset.max' Finset.univ Finset.univ_nonempty : Fin (nS S)).val = nS S - 1 :=
         congrArg Fin.val ((Finset.max'_eq_iff _ _
-          (⟨nS S - 1, by have : 0 < nS S := Fin.pos_iff_nonempty.mpr inferInstance; omega⟩ :
+          (⟨nS S - 1, Nat.sub_lt hnS_pos Nat.zero_lt_one⟩ :
           Fin (nS S))).mpr ⟨Finset.mem_univ _, fun w _ ↦
           Fin.le_iff_val_le_val.mpr (Nat.le_pred_of_lt w.isLt)⟩)
       have : 0 < nSElement a := nSElement_pos a

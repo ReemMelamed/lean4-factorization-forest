@@ -54,7 +54,7 @@ noncomputable def f_N (N : ℕ) : ℕ → Fin (nS S) :=
 /-- The extension `f_N` agrees with `s_N` on indices within `[0, N]`. -/
 lemma f_N_eq {N k : ℕ} (hk : k ≤ N) :
     f_N σ N k = s_N σ N ⟨k, Nat.lt_succ_of_le hk⟩ :=
-  dif_pos hk
+  dite_eq_left hk
 
 /-- By compactness of `ℕ → Fin (nS S)`, the sequence `(f_N)` has a cluster point. -/
 lemma exists_clusterPt :
@@ -106,9 +106,7 @@ theorem simon_split_infinitary_nat :
       apply splitRelation_of_agree s (s_N σ N) ⟨a, by omega⟩ ⟨b, by omega⟩ _ h
       intro k hk
       apply h_agree
-      rcases le_max_iff.mp hk with hle | hle
-      · exact (Fin.le_iff_val_le_val.mp hle).trans ha
-      · exact (Fin.le_iff_val_le_val.mp hle).trans hb
+      rcases le_max_iff.mp hk with hle | hle <;> grind
     exact (isRamsey_s_N σ N).1 ⟨x, by omega⟩ ⟨y, by omega⟩ ⟨z, by omega⟩
       (Fin.lt_def.mpr hxy) (Fin.lt_def.mpr hyz)
       (H x y (by omega) (by omega) hsr_xy)
@@ -126,9 +124,7 @@ theorem simon_split_infinitary_nat :
       apply splitRelation_of_agree s (s_N σ N) ⟨a, by omega⟩ ⟨b, by omega⟩ _ h
       intro k hk
       apply h_agree
-      rcases le_max_iff.mp hk with hle | hle
-      · exact (Fin.le_iff_val_le_val.mp hle).trans ha
-      · exact (Fin.le_iff_val_le_val.mp hle).trans hb
+      rcases le_max_iff.mp hk with hle | hle <;> grind
     exact (isRamsey_s_N σ N).2 ⟨x, by omega⟩ ⟨y, by omega⟩ ⟨u, by omega⟩ ⟨v, by omega⟩
       (Fin.lt_def.mpr hxy) (Fin.lt_def.mpr huv)
       (H x y (by omega) (by omega) hsr_xy)

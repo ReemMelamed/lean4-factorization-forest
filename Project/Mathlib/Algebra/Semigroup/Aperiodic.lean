@@ -375,8 +375,10 @@ lemma infix_listValue_two {α : Type*} (cs : List (FactorizationTree α))
         have h_no_cs' : ∀ d ∈ cs', ¬ (value d <:+: u) := fun d hd =>
           h_no d (.tail c hd)
         rcases ih h_no_cs' h_inf_cs' with ⟨d, hd, hdu⟩ | ⟨d₁, hd₁, d₂, hd₂, hd12⟩
-        · left; exact ⟨d, .tail c hd, hdu⟩
-        · right; exact ⟨d₁, .tail c hd₁, d₂, .tail c hd₂, hd12⟩
+        · left
+          exact ⟨d, .tail c hd, hdu⟩
+        · right
+          exact ⟨d₁, .tail c hd₁, d₂, .tail c hd₂, hd12⟩
       · right
         simp only [List.length_append] at h1
         have h1_lt : (value c).length < s.length + u.length := by omega
@@ -397,7 +399,8 @@ lemma infix_listValue_two {α : Type*} (cs : List (FactorizationTree α))
             omega
           rw [this, List.take_zero, List.append_nil] at h_t
           have h_len_take : (s ++ u.take k).length ≤ (value c).length := by
-            simp only [List.length_append, List.length_take]; omega
+            simp only [List.length_append, List.length_take]
+            omega
           rw [List.take_of_length_le h_len_take] at h_t
           exact h_t
         have h_drop_cs' : c.value ++ listValue cs' = (s ++ u.take k) ++ (u.drop k ++ t) := by
@@ -528,7 +531,7 @@ lemma w_mem_le (n : ℕ) (hn : 0 < n) (k : ℕ) (hk : k < n)
     | tail _ h => contradiction
   | succ k' ih =>
     dsimp [w] at hx
-    rw [dif_pos hk] at hx
+    rw [dite_eq_left hk] at hx
     have hx' := mem_repeatTwentySeven hx
     rcases List.mem_append.mp hx' with h_rep | h_eq
     · have h_in_wk := mem_repeatTwentySeven h_rep
@@ -724,7 +727,7 @@ lemma grandchild_has_w_of_w_succ {n : ℕ} (hn : 0 < n) (k : ℕ) (hk : k + 1 < 
   let X := repeatTwentySeven (w n hn k) ++ [⟨k + 1, hk⟩]
   have hw_succ : w n hn (k + 1) = repeatTwentySeven X := by
     dsimp [w]
-    rw [dif_pos hk]
+    rw [dite_eq_left hk]
   rw [hw_succ] at h_inf
   have hX_ne : X ≠ [] := by simp [X]
   have h_len_repeatTwentySeven := repeatTwentySeven_length_ge X hX_ne
@@ -853,5 +856,3 @@ theorem aperiodic_bound_tight (n : ℕ) (hn : 2 ≤ n) :
 end Tightness
 
 end Aperiodic
-
-export Aperiodic (truncatedAdd_isAperiodic aperiodic_bound_tight)

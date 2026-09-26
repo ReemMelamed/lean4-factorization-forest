@@ -76,7 +76,7 @@ lemma nS_pos {S : Type*} [Semigroup S] [Fintype S] [Nonempty S] : 0 < nS S := by
   obtain ⟨x⟩ : Nonempty S := inferInstance
   have h_mem : nSElement x ∈ Finset.univ.image (nSElement : S → ℕ) :=
     Finset.mem_image_of_mem _ (Finset.mem_univ x)
-  rw [dif_pos ⟨_, h_mem⟩]
+  rw [dite_eq_left ⟨_, h_mem⟩]
   exact (nSElement_pos x).trans_le (Finset.le_max' _ _ h_mem)
 
 /-- `Fin (nS S)` is non-empty for any non-empty finite semigroup `S`. -/
@@ -182,7 +182,7 @@ lemma buildXSeq_properties (a : S) {α : Type*} [LinearOrder α] [Fintype α]
     have ih := buildXSeq_properties a σ h_img w'
     obtain ⟨ih_ge, ih_range, ih_gap, ih_mono⟩ := ih
     have h_xs : buildXSeq a σ w = w :: buildXSeq a σ w' := by
-      rw [h_eq, dif_pos h]
+      rw [h_eq, dite_eq_left h]
     constructor
     · grind
     constructor
@@ -245,7 +245,7 @@ lemma buildXSeq_properties (a : S) {α : Type*} [LinearOrder α] [Fintype α]
           have hj_tail : j' < (buildXSeq a σ w').length :=
             Nat.succ_lt_succ_iff.mp hj_lt
           exact ih_mono i' j' hi_tail hj_tail (Nat.succ_lt_succ_iff.mp hij)
-  · have h_xs : buildXSeq a σ w = [w] := by rw [h_eq, dif_neg h]
+  · have h_xs : buildXSeq a σ w = [w] := by rw [h_eq, dite_eq_right h]
     constructor
     · grind
     constructor
@@ -377,7 +377,9 @@ lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
       nSElement a = nD (IsGreenD.eqvClass a) + (Finset.univ.filter
       (fun (y : S) => GreenJClass.mk a < GreenJClass.mk y)).attach.sup
       (fun ⟨y, _hy⟩ => nSElement y) := by
-    conv => lhs; unfold nSElement
+    conv =>
+      lhs
+      unfold nSElement
   by_cases h_lt : y_min < y_max
   · let b := σ_Y.σ y_min y_max
     obtain ⟨hi_lt, h_x_lt_ymin, _⟩ := y_min.prop
@@ -418,11 +420,15 @@ lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
           (fun x => ⟨(s_b x).val, Nat.lt_trans (s_b x).isLt h_lt_a⟩) u v ↔
         SplitRelation s_b u v :=
       fun u v => ⟨
-        fun ⟨heq, hb⟩ => ⟨Fin.ext (by have h_val := congrArg Fin.val heq; exact h_val),
+        fun ⟨heq, hb⟩ => ⟨Fin.ext (by
+          have h_val := congrArg Fin.val heq
+          exact h_val),
           fun z hz_ge hz_le =>
             Fin.le_iff_val_le_val.mpr
               (Fin.le_iff_val_le_val.mp (hb z hz_ge hz_le))⟩,
-        fun ⟨heq, hb⟩ => ⟨Fin.ext (by have h_val := congrArg Fin.val heq; exact h_val),
+        fun ⟨heq, hb⟩ => ⟨Fin.ext (by
+          have h_val := congrArg Fin.val heq
+          exact h_val),
           fun z hz_ge hz_le =>
             Fin.le_iff_val_le_val.mpr
               (Fin.le_iff_val_le_val.mp (hb z hz_ge hz_le))⟩⟩
@@ -526,12 +532,12 @@ lemma combineSplits_interval_ramsey {α S : Type*}
       w_val.val = w →
       combineSplits a xs rankX sY w = @sY k ⟨w_val⟩ w_val :=
     fun w hw_not k w_val hw_eq => by
-      simp only [combineSplits, dif_neg hw_not]
+      simp only [combineSplits, dite_eq_right hw_not]
       have hw_ex : ∃ m, ∃ hm : m < xs.length,
           xs.get ⟨m, hm⟩ < w ∧
           ∀ h_next_lt, w < xs.get ⟨m + 1, h_next_lt⟩ :=
         ⟨k, hw_eq ▸ w_val.prop⟩
-      rw [dif_pos hw_ex]
+      rw [dite_eq_left hw_ex]
       have heq_idx : Classical.choose hw_ex = k := by
         obtain ⟨hk_lt, h_lt_w, h_gt_w⟩ := Classical.choose_spec hw_ex
         obtain ⟨hk_val_lt, h_val_lt, h_val_gt⟩ := w_val.prop
@@ -540,7 +546,7 @@ lemma combineSplits_interval_ramsey {α S : Type*}
           fun h_next_lt => hw_eq ▸ h_val_gt h_next_lt
         exact openInterval_unique xs h_mono w _ k hk_lt hk_val_lt
           h_lt_w h_gt_w h_val_lt_w h_val_gt_w
-      haveI h_nonempty : Nonempty (OpenIntervalType xs k) := ⟨w_val⟩
+      have h_nonempty : Nonempty (OpenIntervalType xs k) := ⟨w_val⟩
       have helper : ∀ k' (hk' : Nonempty _) (heq : k' = k) wk',
           wk'.val = w_val.val →
           @sY k' hk' wk' = @sY k ⟨w_val⟩ w_val := by
@@ -551,7 +557,7 @@ lemma combineSplits_interval_ramsey {α S : Type*}
     (h_r x hx_not_in i x_val rfl).symm ▸ @h_sY_bound i ⟨x_val⟩ x_val
   have hy_not_in : y ∉ xs := fun hy_in => by
     have hs_y_val : C ≤ (combineSplits a xs rankX sY y).val := by
-      simp only [combineSplits, dif_pos hy_in]
+      simp only [combineSplits, dite_eq_left hy_in]
       exact h_rankX_bound ⟨y, hy_in⟩
     have h_eq : (combineSplits a xs rankX sY x).val =
         (combineSplits a xs rankX sY y).val :=
@@ -569,7 +575,7 @@ lemma combineSplits_interval_ramsey {α S : Type*}
           rw [min_eq_left (le_of_lt hlt), max_eq_right (le_of_lt hlt)]
           exact ⟨le_of_lt (h_gt_x hi_succ_lt), not_lt.mp h_not_lt⟩
         have h_sz_val : C ≤ (combineSplits a xs rankX sY z).val := by
-          simp only [combineSplits, dif_pos hz_in]
+          simp only [combineSplits, dite_eq_left hz_in]
           exact h_rankX_bound ⟨z, hz_in⟩
         have h_le_val := Fin.le_iff_val_le_val.mp
           (hsr.right z hz_bound.1 hz_bound.2)
@@ -592,7 +598,7 @@ lemma combineSplits_interval_ramsey {α S : Type*}
           (le_trans h_w_le_x (le_of_lt h_lt_x)))))
   subst hij
   let y_val : OpenIntervalType xs i := ⟨y, hy_lt, h_lt_y, h_gt_y⟩
-  haveI : Nonempty (OpenIntervalType xs i) := ⟨x_val⟩
+  have : Nonempty (OpenIntervalType xs i) := ⟨x_val⟩
   exact ⟨i, x_val, y_val, rfl, rfl, by
     have h_rx : combineSplits a xs rankX sY x = sY i x_val :=
       h_r x hx_not_in i x_val rfl
@@ -689,7 +695,7 @@ lemma combineSplits_props {α S : Type*}
       intro z hz
       have h_val : (combineSplits a xs rankX sY z).val =
           (rankX ⟨z, hz⟩).val := by
-        simp only [combineSplits, dif_pos hz]
+        simp only [combineSplits, dite_eq_left hz]
       rw [h_val]
       exact h_rankX_ge z hz
     have mem_of_sr_mem : ∀ p q, p ∈ xs →
@@ -736,10 +742,12 @@ lemma combineSplits_props {α S : Type*}
         rw [← hy_val_eq] at hsr_Y_yz
         have hlt_xy_Y : x_val < y_val := by
           change x_val.val < y_val.val
-          rw [hx_eq, hy_eq]; exact hlt_xy
+          rw [hx_eq, hy_eq]
+          exact hlt_xy
         have hlt_yz_Y : y_val < z_val := by
           change y_val.val < z_val.val
-          rw [hy_eq, hz_eq]; exact hlt_yz
+          rw [hy_eq, hz_eq]
+          exact hlt_yz
         have h_ramsey :=
           (@hsY_ramsey i ⟨x_val⟩).1 x_val y_val z_val
             hlt_xy_Y hlt_yz_Y hsr_Y_xy hsr_Y_yz
@@ -774,13 +782,14 @@ lemma combineSplits_props {α S : Type*}
                 ∀ h_next_lt : k + 1 < xs.length,
                   z_oi.val < xs.get ⟨k + 1, h_next_lt⟩ :=
               ⟨i, z_oi.prop⟩
-            simp only [combineSplits, dif_neg hz_not_in, dif_pos hz_ex]
+            simp only [combineSplits, dite_eq_right hz_not_in, dite_eq_left hz_ex]
             have heq_idx : Classical.choose hz_ex = i := by
               obtain ⟨hk_lt, hlt_k, hgt_k⟩ :=
                 Classical.choose_spec hz_ex
               obtain ⟨hi_lt, hlt_i, hgt_i⟩ := z_oi.prop
               rcases lt_trichotomy (Classical.choose hz_ex) i with h | h | h
-              · exfalso; grind
+              · exfalso
+                grind
               · exact h
               · exfalso
                 have hi_succ_lt : i + 1 < xs.length := by omega
@@ -813,7 +822,7 @@ lemma combineSplits_props {α S : Type*}
           constructor
           · apply Fin.ext
             have h_eq := congrArg Fin.val hsr_xu.left
-            haveI : Nonempty (OpenIntervalType xs i) := ⟨x_oi⟩
+            have : Nonempty (OpenIntervalType xs i) := ⟨x_oi⟩
             exact (sY_val_eq u_oi).symm ▸
               (sY_val_eq x_oi).symm ▸ hu_eq ▸ hx_eq ▸ h_eq
           · intro z_oi hz_ge hz_le
@@ -825,7 +834,7 @@ lemma combineSplits_props {α S : Type*}
               Fin.le_iff_val_le_val.mp
                 (hsr_xu.right z_oi.val hz_ge_alpha hz_le_alpha)
             apply Fin.le_iff_val_le_val.mpr
-            haveI : Nonempty (OpenIntervalType xs i) := ⟨x_oi⟩
+            have : Nonempty (OpenIntervalType xs i) := ⟨x_oi⟩
             have hs_min_eq :
                 (combineSplits a xs rankX sY (min x u)).val =
                 (sY i (min x_oi u_oi)).val := by

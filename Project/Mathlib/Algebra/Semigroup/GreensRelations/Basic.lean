@@ -8,7 +8,7 @@ import Mathlib.Algebra.Group.Basic
 import Mathlib.Data.Setoid.Basic
 import Mathlib.Algebra.Group.Opposite
 import Mathlib.Data.Set.Basic
-import Mathlib.Data.Finite.Defs
+import Mathlib.Basic.Finite.Defs
 import Project.Mathlib.Algebra.Group.Opposite
 
 /-!
@@ -148,7 +148,7 @@ namespace IsGreenJRel
     (hbc : IsGreenJRel b c) : IsGreenJRel a c := by
   rcases hab, hbc with
     ⟨(h | ⟨_, h⟩ | ⟨_, h⟩ | ⟨_, _, h⟩), (h' | ⟨_, h'⟩ | ⟨_, h'⟩ | ⟨_, _, h'⟩)⟩ <;>
-  (simp [← mul_assoc, h' ▸ h]; grind [mul_assoc, IsGreenJRel])
+  simp [← mul_assoc, h' ▸ h] <;> grind [mul_assoc, IsGreenJRel]
 
 end IsGreenJRel
 
@@ -255,7 +255,9 @@ namespace IsGreenD
 
 /-- Green's `D`-relation is symmetric. -/
 @[symm] theorem symm {a b : S} : IsGreenD a b → IsGreenD b a
-  | ⟨_, hL, hR⟩ => let ⟨y, hyR, hyL⟩ := isGreenL_commutes_isGreenR hL hR; ⟨y, hyL.symm, hyR.symm⟩
+  | ⟨_, hL, hR⟩ =>
+    let ⟨y, hyR, hyL⟩ := isGreenL_commutes_isGreenR hL hR
+    ⟨y, hyL.symm, hyR.symm⟩
 
 /-- Green's `D`-relation is transitive. -/
 @[trans] theorem trans {a b c : S} : IsGreenD a b → IsGreenD b c → IsGreenD a c

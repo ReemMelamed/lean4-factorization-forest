@@ -91,7 +91,9 @@ lemma balancedTree_val {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
       | cons a rest =>
         cases rest with
         | nil => rfl
-        | cons b rest' => dsimp [List.length] at hle; omega
+        | cons b rest' =>
+          dsimp [List.length] at hle
+          omega
     · dsimp [FactorizationTree.value]
       have hlen_ge : 2 ≤ v.length := by omega
       have htake_ne := take_ne_nil hlen_ge
@@ -119,7 +121,9 @@ lemma balancedTree_isRamsey {A S : Type*} [Semigroup S] (eval : List A → S) (d
       | cons a rest =>
         cases rest with
         | nil => exact FactorizationTree.leaf_isRamsey eval a
-        | cons b rest' => dsimp [List.length] at hle; omega
+        | cons b rest' =>
+          dsimp [List.length] at hle
+          omega
     · have hlen_ge : 2 ≤ v.length := by omega
       have htake_ne := take_ne_nil hlen_ge
       have hdrop_ne := drop_ne_nil hlen_ge
@@ -150,7 +154,9 @@ lemma balancedTree_height_le {A : Type*} (d : A) (v : List A) (hv : v ≠ []) :
           rw [← hlen]
           dsimp [List.length]
           rw [log2Ceil_one]
-        | cons b rest' => dsimp [List.length] at hle; omega
+        | cons b rest' =>
+          dsimp [List.length] at hle
+          omega
     · dsimp [FactorizationTree.height]
       have hlen_ge : 2 ≤ v.length := by omega
       have htake_ne := take_ne_nil hlen_ge
@@ -201,7 +207,9 @@ variable {n : ℕ}
 
 noncomputable instance (n : ℕ) : Fintype (TruncatedAdd n) :=
   Fintype.ofInjective (fun x : TruncatedAdd n ↦ (⟨x.val, Nat.lt_succ_of_le x.le⟩ : Fin (n + 1)))
-    (fun a b h ↦ by ext; exact Fin.ext_iff.mp h)
+    (fun a b h ↦ by
+      ext
+      exact Fin.ext_iff.mp h)
 
 instance : Mul (TruncatedAdd n) where
   mul a b := ⟨min (a.val + b.val) n, by
@@ -251,7 +259,7 @@ def evalTrunc (hn : 0 < n) (u : List (TruncatedAdd n)) : TruncatedAdd n :=
 lemma evalTrunc_val (hn : 0 < n) {u : List (TruncatedAdd n)} (hu : u ≠ []) :
     (evalTrunc hn u).val = min (u.map TruncatedAdd.val).sum n := by
   dsimp [evalTrunc]
-  rw [if_neg hu]
+  rw [ite_eq_right hu]
 
 /-- The length of a list in `TruncatedAdd n` is bounded by the sum of its values. -/
 lemma length_le_sum_val (u : List (TruncatedAdd n)) :
@@ -295,7 +303,7 @@ lemma top_mul_any {n : ℕ} (hn : 0 < n) (x : TruncatedAdd n) :
 
 /-- `TruncatedAdd n` has exactly `n` elements. -/
 noncomputable def equivFin (n : ℕ) (_hn : 0 < n) : TruncatedAdd n ≃ Fin n where
-  toFun x   := ⟨x.val - 1, by have := x.pos; have := x.le; omega⟩
+  toFun x   := ⟨x.val - 1, (Nat.sub_lt x.pos Nat.zero_lt_one).trans_le x.le⟩
   invFun j  := ⟨j.val + 1, by omega, by omega⟩
   left_inv  x := by
     ext
@@ -460,7 +468,7 @@ theorem truncated_addition_tree_height (n : ℕ) (hn : 0 < n)
         exact ht_h
       have h_idem_ramsey : (FactorizationTree.idempotent trees).IsRamsey eval := by
         apply FactorizationTree.idempotent_isRamsey eval
-        · rw [h_trees_len]; exact hq2
+        · exact h_trees_len.symm ▸ hq2
         · exact h_trees_ramsey
         · exact top_mul_self hn
         · exact h_trees_eval

@@ -5,7 +5,7 @@ Authors: Re'em Melamed-Katz
 -/
 import Mathlib.Algebra.Divisibility.Basic
 import Mathlib.Algebra.Group.Opposite
-import Mathlib.Data.Finite.Defs
+import Mathlib.Basic.Finite.Defs
 
 /-!
 # Opposite Semigroup Divisibility and Finiteness Lemmas

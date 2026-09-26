@@ -89,23 +89,19 @@ mutual
   lemma tree_value_ne_nil (t : FactorizationTree S) (eval : List S → T)
       (ht : t.IsRamsey eval) : t.value ≠ [] := by
     cases t with
-    | leaf a =>
-      dsimp [FactorizationTree.value]
-      simp
+    | leaf a => simp [FactorizationTree.value]
     | binary l r =>
-      dsimp [FactorizationTree.value]
       intro h
-      rw [List.append_eq_nil_iff] at h
+      rw [FactorizationTree.value, List.append_eq_nil_iff] at h
       exact tree_value_ne_nil l eval ht.1 h.1
     | idempotent cs =>
-      have hlen := ht.1
+      obtain ⟨hlen, hcs, -⟩ := ht
       cases cs with
       | nil => contradiction
       | cons c _ =>
-        dsimp [FactorizationTree.value, FactorizationTree.listValue]
         intro h
-        rw [List.append_eq_nil_iff] at h
-        exact tree_value_ne_nil c eval ht.2.1.1 h.1
+        rw [FactorizationTree.value, FactorizationTree.listValue, List.append_eq_nil_iff] at h
+        exact tree_value_ne_nil c eval hcs.1 h.1
 
   /-- The yield of a list of Ramsey factorization trees is non-empty if the list is non-empty. -/
   lemma listTree_value_ne_nil (cs : List (FactorizationTree S)) (eval : List S → T)
@@ -113,10 +109,9 @@ mutual
       FactorizationTree.listValue cs ≠ [] := by
     cases cs with
     | nil => contradiction
-    | cons c rest =>
-      dsimp [FactorizationTree.listValue]
+    | cons c _ =>
       intro h
-      rw [List.append_eq_nil_iff] at h
+      rw [FactorizationTree.listValue, List.append_eq_nil_iff] at h
       exact tree_value_ne_nil c eval hcs.1 h.1
 end
 
@@ -130,39 +125,26 @@ mutual
       (ht_ne : t.value ≠ []) :
       listProdNE t.value ht_ne ∈ X_seq ϕ X t.height := by
     cases t with
-    | leaf a =>
-      dsimp [FactorizationTree.value] at hX ht_ne ⊢
-      dsimp [FactorizationTree.height, X_seq]
-      have ha : a ∈ X := hX a (by simp)
-      exact ha
+    | leaf a => exact hX a (by simp [FactorizationTree.value])
     | binary l r =>
-      have hl_ramsey := ht.1
-      have hr_ramsey := ht.2
-      have hl_ne := tree_value_ne_nil l eval hl_ramsey
-      have hr_ne := tree_value_ne_nil r eval hr_ramsey
-      have hl_X : ∀ x ∈ l.value, x ∈ X := fun x hx ↦
-        hX x (by simp [FactorizationTree.value, hx])
-      have hr_X : ∀ x ∈ r.value, x ∈ X := fun x hx ↦
-        hX x (by simp [FactorizationTree.value, hx])
-      have ih_l := tree_prod_in_X_seq ϕ X eval h_eval l hl_ramsey hl_X hl_ne
-      have ih_r := tree_prod_in_X_seq ϕ X eval h_eval r hr_ramsey hr_X hr_ne
-      have hl_le : l.height ≤ max l.height r.height := le_max_left _ _
-      have hr_le : r.height ≤ max l.height r.height := le_max_right _ _
-      have ih_l' := X_seq_mono ϕ X hl_le ih_l
-      have ih_r' := X_seq_mono ϕ X hr_le ih_r
-      have h_val_eq : (FactorizationTree.binary l r).value = l.value ++ r.value := rfl
-      have h_prod_eq : listProdNE (FactorizationTree.binary l r).value ht_ne =
+      have hl_ne := tree_value_ne_nil l eval ht.1
+      have hr_ne := tree_value_ne_nil r eval ht.2
+      have ih_l := X_seq_mono ϕ X (le_max_left l.height r.height)
+        (tree_prod_in_X_seq ϕ X eval h_eval l ht.1
+          (fun x hx ↦ hX x (by simp [FactorizationTree.value, hx])) hl_ne)
+      have ih_r := X_seq_mono ϕ X (le_max_right l.height r.height)
+        (tree_prod_in_X_seq ϕ X eval h_eval r ht.2
+          (fun x hx ↦ hX x (by simp [FactorizationTree.value, hx])) hr_ne)
+      have h_prod : listProdNE (l.binary r).value ht_ne =
           listProdNE l.value hl_ne * listProdNE r.value hr_ne := by
-        rw [listProdNE_eq _ _ _ (by simp [hl_ne, hr_ne]) h_val_eq]
+        rw [listProdNE_eq (l.binary r).value (l.value ++ r.value) ht_ne
+          (by simp [hl_ne, hr_ne]) rfl]
         exact listProdNE_concat l.value r.value hl_ne hr_ne
-      rw [h_prod_eq]
-      have h_in_mul : listProdNE l.value hl_ne * listProdNE r.value hr_ne ∈
-          X_seq ϕ X (max l.height r.height) * X_seq ϕ X (max l.height r.height) :=
-        ⟨_, ih_l', _, ih_r', rfl⟩
+      rw [h_prod]
       dsimp [FactorizationTree.height]
-      rw [Nat.add_comm 1 (max l.height r.height)]
+      rw [add_comm 1]
       dsimp [X_seq]
-      exact Or.inl (Or.inr h_in_mul)
+      exact Or.inl (Or.inr ⟨_, ih_l, _, ih_r, rfl⟩)
     | idempotent cs =>
       obtain ⟨hlen, hcs_ramsey, e, he_idem, he_eval⟩ := ht
       have hcs_ne : cs ≠ [] := by
@@ -170,9 +152,8 @@ mutual
         dsimp at hlen
         omega
       have ih := listTree_prod_in_closure ϕ X eval h_eval cs hcs_ramsey hcs_ne e he_eval hX
-      let H := FactorizationTree.listHeight cs
       dsimp [FactorizationTree.height]
-      rw [Nat.add_comm 1 H]
+      rw [add_comm 1]
       dsimp [X_seq]
       exact Or.inr (Set.mem_iUnion.mpr ⟨e, Set.mem_iUnion.mpr ⟨he_idem, ih⟩⟩)
 
@@ -185,76 +166,50 @@ mutual
       (he_eval : ∀ c ∈ cs, eval c.value = e)
       (hX : ∀ x ∈ FactorizationTree.listValue cs, x ∈ X) :
       listProdNE (FactorizationTree.listValue cs) (listTree_value_ne_nil cs eval hcs hne) ∈
-        (Subsemigroup.closure (X_seq ϕ X (FactorizationTree.listHeight cs) ∩ ϕ ⁻¹' {e}) :
-          Set S) := by
+        (Subsemigroup.closure
+          (X_seq ϕ X (FactorizationTree.listHeight cs) ∩ ϕ ⁻¹' {e}) : Set S) := by
     cases cs with
     | nil => contradiction
     | cons c rest =>
-      have hc_ramsey := hcs.1
-      have hrest_ramsey := hcs.2
-      have hc_ne := tree_value_ne_nil c eval hc_ramsey
-      have hc_X : ∀ x ∈ c.value, x ∈ X := fun x hx ↦
-        hX x (by simp [FactorizationTree.listValue, hx])
-      have ih_c := tree_prod_in_X_seq ϕ X eval h_eval c hc_ramsey hc_X hc_ne
-      have hc_eval : eval c.value = e := he_eval c (by simp)
+      have hc_ne := tree_value_ne_nil c eval hcs.1
+      have ih_c := X_seq_mono ϕ X (le_max_left c.height (FactorizationTree.listHeight rest))
+        (tree_prod_in_X_seq ϕ X eval h_eval c hcs.1
+          (fun x hx ↦ hX x (by simp [FactorizationTree.listValue, hx])) hc_ne)
       have hc_phi : ϕ (listProdNE c.value hc_ne) = e := by
-        have h1 := h_eval c.value hc_ne
-        rw [hc_eval] at h1
-        exact h1.symm
-      have hc_height_le : c.height ≤ FactorizationTree.listHeight (c :: rest) := by
-        dsimp [FactorizationTree.listHeight]
-        exact le_max_left _ _
-      have ih_c_H := X_seq_mono ϕ X hc_height_le ih_c
-      have hc_mem_inter : listProdNE c.value hc_ne ∈
-          X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e} :=
-        ⟨ih_c_H, hc_phi⟩
-      have hc_in_closure : listProdNE c.value hc_ne ∈
-          Subsemigroup.closure (X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e}) :=
-        Subsemigroup.subset_closure hc_mem_inter
-      by_cases hrest_eq : rest = []
-      · subst hrest_eq
-        have h_val_eq : FactorizationTree.listValue [c] = c.value := by
-          dsimp [FactorizationTree.listValue]
-          simp
-        have h_prod_eq : listProdNE (FactorizationTree.listValue [c])
-            (listTree_value_ne_nil [c] eval hcs (by simp)) = listProdNE c.value hc_ne :=
-          listProdNE_eq _ _ _ hc_ne h_val_eq
-        rw [h_prod_eq]
-        exact hc_in_closure
-      · have hrest_ne' : rest ≠ [] := hrest_eq
-        have hrest_val_ne := listTree_value_ne_nil rest eval hrest_ramsey hrest_ne'
-        have hrest_X : ∀ x ∈ FactorizationTree.listValue rest, x ∈ X :=
-          fun x hx ↦ hX x (by simp [FactorizationTree.listValue, hx])
-        have he_rest : ∀ t ∈ rest, eval t.value = e :=
-          fun t ht ↦ he_eval t (by simp [ht])
-        have ih_rest := listTree_prod_in_closure ϕ X eval h_eval rest hrest_ramsey hrest_ne' e
-          he_rest hrest_X
-        have hrest_height_le : FactorizationTree.listHeight rest ≤
-            FactorizationTree.listHeight (c :: rest) := by
-          dsimp [FactorizationTree.listHeight]
-          exact le_max_right _ _
-        have h_subset_inter : (X_seq ϕ X (FactorizationTree.listHeight rest) ∩ ϕ ⁻¹' {e}) ⊆
+        have := h_eval c.value hc_ne
+        rw [he_eval c (by simp)] at this
+        exact this.symm
+      have hc_in : listProdNE c.value hc_ne ∈
+          Subsemigroup.closure
             (X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e}) :=
-          Set.inter_subset_inter_left _ (X_seq_mono ϕ X hrest_height_le)
-        have h_subset_closure :
+        Subsemigroup.subset_closure ⟨ih_c, hc_phi⟩
+      by_cases hrest : rest = []
+      · subst hrest
+        rw [listProdNE_eq _ _ _ hc_ne (by simp [FactorizationTree.listValue])]
+        exact hc_in
+      · have hrest_val_ne := listTree_value_ne_nil rest eval hcs.2 hrest
+        have ih_rest := listTree_prod_in_closure ϕ X eval h_eval rest hcs.2 hrest e
+          (fun t ht ↦ he_eval t (by simp [ht]))
+          (fun x hx ↦ hX x (by simp [FactorizationTree.listValue, hx]))
+        have h_sub :
             (Subsemigroup.closure (X_seq ϕ X (FactorizationTree.listHeight rest) ∩ ϕ ⁻¹' {e}) :
               Set S) ⊆
             Subsemigroup.closure
               (X_seq ϕ X (FactorizationTree.listHeight (c :: rest)) ∩ ϕ ⁻¹' {e}) := by
           simp only [SetLike.coe_subset_coe, Subsemigroup.closure_le]
-          intro x hx
-          exact Subsemigroup.subset_closure (h_subset_inter hx)
-        have ih_rest_H := h_subset_closure ih_rest
-        have h_val_eq : FactorizationTree.listValue (c :: rest) =
-            c.value ++ FactorizationTree.listValue rest := rfl
-        have h_prod_eq : listProdNE (FactorizationTree.listValue (c :: rest))
-            (listTree_value_ne_nil (c :: rest) eval hcs hne) =
+          exact fun x hx ↦ Subsemigroup.subset_closure
+            ⟨X_seq_mono ϕ X (le_max_right _ _) hx.1, hx.2⟩
+        have h_prod :
+            listProdNE (FactorizationTree.listValue (c :: rest))
+              (listTree_value_ne_nil (c :: rest) eval hcs hne) =
             listProdNE c.value hc_ne *
               listProdNE (FactorizationTree.listValue rest) hrest_val_ne := by
-          rw [listProdNE_eq _ _ _ (by simp [hc_ne, hrest_val_ne]) h_val_eq]
+          rw [listProdNE_eq (FactorizationTree.listValue (c :: rest))
+            (c.value ++ FactorizationTree.listValue rest) _
+            (by simp [hc_ne, hrest_val_ne]) rfl]
           exact listProdNE_concat c.value (FactorizationTree.listValue rest) hc_ne hrest_val_ne
-        rw [h_prod_eq]
-        exact Subsemigroup.mul_mem _ hc_in_closure ih_rest_H
+        rw [h_prod]
+        exact Subsemigroup.mul_mem _ hc_in (h_sub ih_rest)
 end
 
 end TreeLemmas
@@ -273,19 +228,14 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
     have hmul_T : ∀ v w, v ≠ [] → w ≠ [] → eval_T (v ++ w) = eval_T v * eval_T w := by
       intros v w hv hw
       dsimp [eval_T]
-      rw [dif_neg (by simp [hv, hw]), dif_neg hv, dif_neg hw]
+      rw [dite_eq_right (by simp [hv, hw]), dite_eq_right hv, dite_eq_right hw]
       rw [listProdNE_concat v w hv hw]
       exact ϕ.map_mul (listProdNE v hv) (listProdNE w hw)
     obtain ⟨t, ht_val, ht_ramsey, ht_height⟩ :=
       factorization_forest_theorem eval_T hmul_T u hu
-    have h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw) := by
-      grind
-    have ht_X : ∀ x ∈ t.value, x ∈ X := by
-      rw [ht_val]
-      exact huX
-    have ht_ne : t.value ≠ [] := by
-      rw [ht_val]
-      exact hu
+    have h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw) := by grind
+    have ht_X : ∀ x ∈ t.value, x ∈ X := ht_val.symm ▸ huX
+    have ht_ne : t.value ≠ [] := ht_val.symm ▸ hu
     have h_in_height := tree_prod_in_X_seq ϕ X eval_T h_eval_eq t ht_ramsey ht_X ht_ne
     have h_in_3n := X_seq_mono ϕ X ht_height h_in_height
     grind
@@ -340,8 +290,7 @@ lemma finset_bUnion_mem_P (P : Set (Set S)) (h2 : Cond2 P) (h_empty : ∅ ∈ P)
     (⋃ a ∈ s, f a) ∈ P := by
   classical
   induction s using Finset.induction_on with
-  | empty =>
-    simp [h_empty]
+  | empty => simp [h_empty]
   | insert a s' ha ih =>
     simp only [Finset.mem_insert] at hf
     rw [Finset.set_biUnion_insert]
@@ -355,50 +304,35 @@ theorem closure_mem_set_family [Finite T] [Nonempty T] (ϕ : S →ₙ* T) (X : S
     (h3 : Cond3 P)
     (h4 : Cond4 ϕ P) :
     (Subsemigroup.closure X : Set S) ∈ P := by
-  haveI := Fintype.ofFinite T
+  have := Fintype.ofFinite T
+  have h_empty : ∅ ∈ P := h1' (empty_subset _) (h1 (Classical.arbitrary T))
   have h_Xn : ∀ n, X_seq ϕ X n ∈ P := by
     intro n
     induction n with
     | zero =>
-      dsimp [X_seq]
-      have h_eq : X = ⋃ a : T, {x ∈ X | ϕ x = a} := by
-        ext x
-        simp only [mem_iUnion, mem_sep_iff]
-        exact ⟨fun hx ↦ ⟨ϕ x, hx, rfl⟩, fun ⟨a, hx, _⟩ ↦ hx⟩
+      have h_eq : X = ⋃ a ∈ (Finset.univ : Finset T), {x ∈ X | ϕ x = a} := by
+        ext
+        simp
       rw [h_eq]
-      have h_empty : ∅ ∈ P := by
-        have a : T := Classical.arbitrary T
-        have h_sub : ∅ ⊆ {x ∈ X | ϕ x = a} := empty_subset _
-        exact h1' h_sub (h1 a)
-      have h_eq' :
-        (⋃ a : T, {x ∈ X | ϕ x = a}) = ⋃ a ∈ (Finset.univ : Finset T), {x ∈ X | ϕ x = a} := by
-        ext x; simp
-      rw [h_eq']
       exact finset_bUnion_mem_P P h2 h_empty Finset.univ _ (fun a _ ↦ h1 a)
     | succ n ih =>
-      dsimp [X_seq]
-      have h_empty : ∅ ∈ P := by
-        have : ∅ ⊆ X_seq ϕ X n := empty_subset _
-        exact h1' this ih
-      have h_eq' : (⋃ (e : T) (_ : e * e = e),
-        (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S)) =
-        ⋃ e ∈ (Finset.univ : Finset T), ⋃ (_ : e * e = e),
-        (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S) := by
-        ext x
-        simp
+      have h_empty_n : ∅ ∈ P := h1' (empty_subset _) ih
       have h_union : (⋃ (e : T) (_ : e * e = e),
-        (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S)) ∈ P := by
-        rw [h_eq']
-        apply finset_bUnion_mem_P P h2 h_empty Finset.univ _
+          (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S)) ∈ P := by
+        have : (⋃ (e : T) (_ : e * e = e),
+            (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S)) =
+            ⋃ e ∈ (Finset.univ : Finset T), ⋃ (_ : e * e = e),
+            (Subsemigroup.closure (X_seq ϕ X n ∩ ϕ ⁻¹' {e}) : Set S) := by
+          ext
+          simp
+        rw [this]
+        apply finset_bUnion_mem_P P h2 h_empty_n Finset.univ
         intro e _
         by_cases he : e * e = e
         · simp only [he, iUnion_true]
-          have h_inter : X_seq ϕ X n ∩ ϕ ⁻¹' {e} ∈ P :=
-            h1' inter_subset_left ih
-          have h_sub_e : X_seq ϕ X n ∩ ϕ ⁻¹' {e} ⊆ ϕ ⁻¹' {e} := inter_subset_right
-          exact h4 h_inter ⟨e, he, h_sub_e⟩
+          exact h4 (h1' inter_subset_left ih) ⟨e, he, inter_subset_right⟩
         · simp only [he, iUnion_false]
-          exact h_empty
+          exact h_empty_n
       exact h2 (h2 ih (h3 ih ih)) h_union
   rw [closure_eq_X_seq ϕ X]
   exact h_Xn (3 * nS T - 1)
@@ -421,109 +355,64 @@ theorem brown_lemma (f : S →ₙ* T)
     (h_fibers : ∀ (e : T) (he : e * e = e), IsLocallyFinite (fiberSubsemigroup f e he)) :
     IsLocallyFinite S := by
   intro X hX
-  by_cases hX_ne : X.Nonempty
-  · obtain ⟨x0, hx0⟩ := hX_ne
-    let S' := Subsemigroup.closure X
-    let T' := Subsemigroup.closure (f '' X)
-    have hT'_fin : (T' : Set T).Finite := hT (f '' X) (hX.image f)
-    haveI : Fintype T' := hT'_fin.fintype
-    have hT'_nonempty : Nonempty T' :=
-      ⟨⟨f x0, Subsemigroup.subset_closure (mem_image_of_mem f hx0)⟩⟩
-    haveI : Nonempty (Fin (nS T')) := instNonemptyFin_nS
-    let f' : S' →ₙ* T' := {
-      toFun := fun ⟨x_val, hx⟩ ↦ ⟨f x_val, by
+  obtain rfl | hX_ne := X.eq_empty_or_nonempty
+  · simp [Subsemigroup.closure_empty, finite_empty]
+  obtain ⟨x0, hx0⟩ := hX_ne
+  let S' := Subsemigroup.closure X
+  let T' := Subsemigroup.closure (f '' X)
+  have : Fintype T' := (hT (f '' X) (hX.image f)).fintype
+  have : Nonempty T' := ⟨⟨f x0, Subsemigroup.subset_closure (mem_image_of_mem f hx0)⟩⟩
+  have : Nonempty (Fin (nS T')) := instNonemptyFin_nS
+  let f' : S' →ₙ* T' := {
+    toFun := fun ⟨x, hx⟩ ↦ ⟨f x, by
+      induction hx using Subsemigroup.closure_induction with
+      | mem a ha => exact Subsemigroup.subset_closure (mem_image_of_mem f ha)
+      | mul a b _ _ iha ihb => exact f.map_mul a b ▸ Subsemigroup.mul_mem _ iha ihb⟩
+    map_mul' := fun x y ↦ Subtype.ext (f.map_mul x.1 y.1)
+  }
+  let P : Set (Set S') := { A | A.Finite }
+  have h1' : Cond1' P := fun A B hAB hB ↦ hB.subset hAB
+  let X_S' : Set S' := range (fun (x : X) ↦ ⟨x.1, Subsemigroup.subset_closure x.2⟩)
+  have h1'' : Cond1'' X_S' P := by
+    have : Fintype X := hX.fintype
+    exact finite_range _
+  have h1 : Cond1 f' X_S' P := cond1_of_cond1'_and_cond1'' f' _ P h1' h1''
+  have h2 : Cond2 P := fun A B hA hB ↦ hA.union hB
+  have h3 : Cond3 P := fun A B hA hB ↦ hA.mul hB
+  have h4 : Cond4 f' P := by
+    intro A hA ⟨e', he', hAe'⟩
+    have h_idem : e'.1 * e'.1 = e'.1 := Subtype.ext_iff.mp he'
+    have : Finite A := hA.to_subtype
+    let A_fiber : Set (fiberSubsemigroup f e'.1 h_idem) :=
+      range (fun (x : A) ↦ ⟨x.1.1, Subtype.ext_iff.mp (hAe' x.2)⟩)
+    have hA_fiber_fin : A_fiber.Finite := finite_range _
+    have h_closure_fin := h_fibers e'.1 h_idem A_fiber hA_fiber_fin
+    have h_sub_fiber : ∀ x ∈ Subsemigroup.closure A, f x.1 = e'.1 := by
+      intro x hx
+      induction hx using Subsemigroup.closure_induction with
+      | mem y hy => exact Subtype.ext_iff.mp (hAe' hy)
+      | mul y z _ _ ihy ihz =>
+        change f (y.1 * z.1) = e'.1
+        rw [f.map_mul, ihy, ihz, h_idem]
+    let g : ↥(Subsemigroup.closure A) → ↥(Subsemigroup.closure A_fiber) := fun ⟨x, hx⟩ ↦
+      ⟨⟨x.1, h_sub_fiber x hx⟩, by
         induction hx using Subsemigroup.closure_induction with
-        | mem a ha => exact Subsemigroup.subset_closure (mem_image_of_mem f ha)
-        | mul a b ha hb iha ihb =>
-          rw [f.map_mul]
-          exact Subsemigroup.mul_mem _ iha ihb⟩
-      map_mul' := fun x y ↦ Subtype.ext (f.map_mul x.1 y.1)
-    }
-    let P : Set (Set S') := { A | A.Finite }
-    have h1' : Cond1' P := fun A B hAB hB ↦ hB.subset hAB
-    let X_S' : Set S' := range (fun (x : X) ↦ (⟨x.1, Subsemigroup.subset_closure x.2⟩ : S'))
-    have h1'' : Cond1'' X_S' P := by
-      dsimp [Cond1'', P, X_S']
-      haveI : Fintype X := hX.fintype
-      exact Set.finite_range _
-    have h1 : Cond1 f' X_S' P :=
-      cond1_of_cond1'_and_cond1'' f' _ P h1' h1''
-    have h2 : Cond2 P := fun A B hA hB ↦ hA.union hB
-    have h3 : Cond3 P := fun A B hA hB ↦ Set.Finite.mul hA hB
-    have h4 : Cond4 f' P := by
-      intro A hA ⟨e', he', hAe'⟩
-      have hA_sub_fiber : ∀ x ∈ A, f x.1 = e'.1 := by
-        intro x hx
-        have : f' x = e' := hAe' hx
-        exact Subtype.ext_iff.mp this
-      have h_idem : e'.1 * e'.1 = e'.1 := Subtype.ext_iff.mp he'
-      have h_lf := h_fibers e'.1 h_idem
-      let A_fiber : Set (fiberSubsemigroup f e'.1 h_idem) :=
-        { a | ∃ x ∈ A, a.1 = x.1 }
-      have hA_fiber_fin : A_fiber.Finite := by
-        let g : A_fiber → A := fun ⟨a, ha⟩ ↦
-          have hx : ∃ x ∈ A, a.1 = x.1 := ha
-          ⟨Classical.choose hx, (Classical.choose_spec hx).1⟩
-        have hg_inj : Function.Injective g := by
-          intro ⟨a1, ha1⟩ ⟨a2, ha2⟩ hg
-          have h_eq : (g ⟨a1, ha1⟩).1.1 = (g ⟨a2, ha2⟩).1.1 := congrArg (fun x ↦ x.1.1) hg
-          have h1 : (g ⟨a1, ha1⟩).1.1 = (Classical.choose (ha1 : ∃ x ∈ A, a1.1 = x.1)).1 := rfl
-          have h2 : (g ⟨a2, ha2⟩).1.1 = (Classical.choose (ha2 : ∃ x ∈ A, a2.1 = x.1)).1 := rfl
-          have h3 : (Classical.choose (ha1 : ∃ x ∈ A, a1.1 = x.1)).1 = a1.1 :=
-            (Classical.choose_spec (ha1 : ∃ x ∈ A, a1.1 = x.1)).2.symm
-          have h4 : (Classical.choose (ha2 : ∃ x ∈ A, a2.1 = x.1)).1 = a2.1 :=
-            (Classical.choose_spec (ha2 : ∃ x ∈ A, a2.1 = x.1)).2.symm
-          have h_a1_a2 : a1.1 = a2.1 := by rw [← h3, ← h1, h_eq, h2, h4]
-          exact Subtype.ext (Subtype.ext h_a1_a2)
-        haveI : Finite A := hA.to_subtype
-        haveI : Finite A_fiber := Finite.of_injective g hg_inj
-        exact Set.toFinite A_fiber
-      have h_closure_fin := h_lf A_fiber hA_fiber_fin
-      have hA_sub_fiber_closure : ∀ x ∈ Subsemigroup.closure A, f x.1 = e'.1 := by
-        intro x hx
-        induction hx using Subsemigroup.closure_induction with
-        | mem y hy => exact hA_sub_fiber y hy
-        | mul y z hy hz ihy ihz =>
-          change f (y.1 * z.1) = e'.1
-          rw [f.map_mul, ihy, ihz, h_idem]
-      let g : ↥(Subsemigroup.closure A) → ↥(Subsemigroup.closure A_fiber) :=
-        fun ⟨x, hx⟩ ↦
-          let a_val : fiberSubsemigroup f e'.1 h_idem := ⟨x.1, hA_sub_fiber_closure x hx⟩
-          have ha_mem : a_val ∈ Subsemigroup.closure A_fiber := by
-            induction hx using Subsemigroup.closure_induction with
-            | mem y hy =>
-              apply Subsemigroup.subset_closure
-              exact ⟨y, hy, rfl⟩
-            | mul y z hy hz ihy ihz =>
-              exact Subsemigroup.mul_mem _ ihy ihz
-          ⟨a_val, ha_mem⟩
-      have hg_inj : Function.Injective g := by
-        intro ⟨x1, hx1⟩ ⟨x2, hx2⟩ hg
-        have h_eq : (g ⟨x1, hx1⟩).1.1 = (g ⟨x2, hx2⟩).1.1 := congrArg (fun x ↦ x.1.1) hg
-        exact Subtype.ext (Subtype.ext h_eq)
-      haveI : Finite ↥(Subsemigroup.closure A_fiber) := h_closure_fin.to_subtype
-      haveI : Finite ↥(Subsemigroup.closure A) := Finite.of_injective g hg_inj
-      exact Set.toFinite _
-    have h_closure_P := closure_mem_set_family f' _ P h1' h1 h2 h3 h4
-    have h_S'_fin : Finite S' := by
-      have h_univ : (Subsemigroup.closure X_S' : Set S') = Set.univ := by
-        ext ⟨s, hs⟩
-        simp only [Set.mem_univ, iff_true]
-        induction hs using Subsemigroup.closure_induction with
-        | mem x hx =>
-          exact Subsemigroup.subset_closure ⟨⟨x, hx⟩, rfl⟩
-        | mul x y hx hy ihx ihy =>
-          exact Subsemigroup.mul_mem _ ihx ihy
-      have h_univ_P : Set.univ ∈ P := h_univ ▸ h_closure_P
-      haveI : Finite ↥(Set.univ : Set S') := h_univ_P.to_subtype
-      let u_f : S' → ↥(Set.univ : Set S') := fun x ↦ ⟨x, trivial⟩
-      have hu_f : Function.Injective u_f := fun x y h ↦ Subtype.ext_iff.mp h
-      exact Finite.of_injective u_f hu_f
+        | mem y hy => exact Subsemigroup.subset_closure ⟨⟨y, hy⟩, rfl⟩
+        | mul y z _ _ ihy ihz => exact Subsemigroup.mul_mem _ ihy ihz⟩
+    have g_inj : Function.Injective g :=
+      fun ⟨x1, _⟩ ⟨x2, _⟩ h ↦ Subtype.ext (Subtype.ext (congrArg (fun a ↦ a.1.1) h))
+    have : Finite ↥(Subsemigroup.closure A_fiber) := h_closure_fin.to_subtype
+    have : Finite ↥(Subsemigroup.closure A) := Finite.of_injective g g_inj
     exact Set.toFinite _
-  · have hX_empty : X = ∅ := not_nonempty_iff_eq_empty.mp hX_ne
-    rw [hX_empty]
-    simp only [Subsemigroup.closure_empty]
-    exact finite_empty
+  have h_closure_P := closure_mem_set_family f' _ P h1' h1 h2 h3 h4
+  have h_univ : (Subsemigroup.closure X_S' : Set S') = Set.univ := by
+    ext ⟨s, hs⟩
+    simp only [Set.mem_univ, iff_true]
+    induction hs using Subsemigroup.closure_induction with
+    | mem x hx => exact Subsemigroup.subset_closure ⟨⟨x, hx⟩, rfl⟩
+    | mul x y _ _ ihx ihy => exact Subsemigroup.mul_mem _ ihx ihy
+  have : Finite S' := Set.finite_univ_iff.mp (h_univ ▸ h_closure_P)
+  exact Set.toFinite _
 
 end BrownLemmaTheorem
 
