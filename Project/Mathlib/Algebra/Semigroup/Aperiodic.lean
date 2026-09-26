@@ -407,17 +407,6 @@ lemma infix_listValue_two {α : Type*} (cs : List (FactorizationTree α))
               exact h_pref.isInfix.trans h_suf.isInfix
             exact (h_no c' (.tail c (.head cs'')) h_inf_u).elim
 
-/-- Every child in a Ramsey list of trees is itself a Ramsey tree. -/
-lemma isRamsey_of_mem_listIsRamsey {α S : Type*} [Semigroup S] {eval : List α → S}
-    {cs : List (FactorizationTree α)} (h : listIsRamsey eval cs)
-    {c : FactorizationTree α} (hc : c ∈ cs) : c.IsRamsey eval := by
-  induction cs with
-  | nil => contradiction
-  | cons head tail ih =>
-    dsimp [listIsRamsey] at h
-    cases hc with
-    | head => exact h.1
-    | tail _ hmem => exact ih h.2 hmem
 
 /-- A tree that is not a leaf has height at least 1. -/
 lemma height_pos_of_not_leaf {α : Type*} (t : FactorizationTree α)
@@ -520,17 +509,6 @@ lemma repeatThree_w_mem_lt (n : ℕ) (hn : 0 < n) (k : ℕ) (hk : k + 1 < n)
     (x : MaxSemigroup n) (hx : x ∈ repeatThree (w n hn k)) : x < ⟨k + 1, hk⟩ :=
   w_mem_lt n hn k hk x (mem_repeatThree hx)
 
-/-- Any element in the yield of a list of trees belongs to the yield of some tree in the list. -/
-lemma mem_listValue {α : Type*} {cs : List (FactorizationTree α)} {x : α}
-    (hx : x ∈ listValue cs) : ∃ t ∈ cs, x ∈ t.value := by
-  induction cs with
-  | nil => contradiction
-  | cons c cs' ih =>
-    dsimp [listValue] at hx
-    rcases List.mem_append.mp hx with h1 | h2
-    · exact ⟨c, .head _, h1⟩
-    · obtain ⟨t, ht, hxt⟩ := ih h2
-      exact ⟨t, .tail _ ht, hxt⟩
 
 /-- The 9-fold repetition of a non-empty list has length at least 9. -/
 lemma repeatNine_length_ge {α : Type*} (l : List α) (hl : l ≠ []) : 9 ≤ (repeatNine l).length := by

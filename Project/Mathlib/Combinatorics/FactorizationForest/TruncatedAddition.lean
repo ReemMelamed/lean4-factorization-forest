@@ -295,12 +295,6 @@ section RamseyTreeConstruction
 
 open TruncatedAdd
 
-/-- A list of trees is Ramsey if and only if each individual tree is Ramsey. -/
-lemma listIsRamsey_iff {A S : Type*} [Semigroup S] (eval : List A → S) :
-    ∀ (ts : List (FactorizationTree A)), listIsRamsey eval ts ↔ ∀ t ∈ ts, t.IsRamsey eval
-  | [] => by simp [listIsRamsey]
-  | t :: ts => by
-    simp [listIsRamsey_cons, listIsRamsey_iff eval ts]
 
 /-- The yield of a list of trees equals the flattened list of yields. -/
 lemma listValue_eq_flatten {A : Type*} :
