@@ -165,9 +165,8 @@ namespace IsGreenL
   ⟨IsGreenLeftDvd.trans hab.left hbc.left, IsGreenLeftDvd.trans hbc.right hab.right⟩
 
 /-- Green's `L`-relation defines a setoid on `S`. -/
-protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S where
-  r := IsGreenL
-  iseqv := { refl := refl, symm := symm, trans := trans }
+protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S :=
+  ⟨IsGreenL, { refl := refl, symm := symm, trans := trans }⟩
 
 /-- Green's `L`-relation is preserved by right multiplication. -/
 theorem mul_right (c : S) {a b : S} (h : IsGreenL a b) : IsGreenL (a * c) (b * c) := by
@@ -194,15 +193,13 @@ namespace IsGreenR
   ⟨IsGreenRightDvd.trans hab.left hbc.left, IsGreenRightDvd.trans hbc.right hab.right⟩
 
 /-- Green's `R`-relation defines a setoid on `S`. -/
-protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S where
-  r := IsGreenR
-  iseqv := { refl := refl, symm := symm, trans := trans }
+protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S :=
+  ⟨IsGreenR, { refl := refl, symm := symm, trans := trans }⟩
 
 open MulOpposite in
 /-- Green's `R`-relation is preserved by left multiplication. -/
-theorem mul_left (c : S) {a b : S} (h : IsGreenR a b) : IsGreenR (c * a) (c * b) := by
-  rw [isGreenR_iff_isGreenL_op] at h ⊢
-  exact IsGreenL.mul_right (op c) h
+theorem mul_left (c : S) {a b : S} (h : IsGreenR a b) : IsGreenR (c * a) (c * b) :=
+  isGreenR_iff_isGreenL_op.mpr (IsGreenL.mul_right (op c) (isGreenR_iff_isGreenL_op.mp h))
 
 /-- Left cancellation property for elements related by Green's `R`-relation. -/
 theorem cancellation {a x u v : S} (hx : IsGreenR x a) (h_cancel : v * u * a = a) :
@@ -225,9 +222,8 @@ namespace IsGreenH
   ⟨hab.left.trans hbc.left, hab.right.trans hbc.right⟩
 
 /-- Green's `H`-relation defines a setoid on `S`. -/
-protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S where
-  r := IsGreenH
-  iseqv := { refl := refl, symm := symm, trans := trans }
+protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S :=
+  ⟨IsGreenH, { refl := refl, symm := symm, trans := trans }⟩
 
 open MulOpposite in
 /-- Green's `H`-relation is self-dual under the opposite semigroup. -/
@@ -266,9 +262,8 @@ namespace IsGreenD
     ⟨z, hL1.trans hL3.symm, hR3.symm.trans hR2⟩
 
 /-- Green's `D`-relation defines a setoid on `S`. -/
-protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S where
-  r := IsGreenD
-  iseqv := { refl := refl, symm := symm, trans := trans }
+protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S :=
+  ⟨IsGreenD, { refl := refl, symm := symm, trans := trans }⟩
 
 open MulOpposite in
 /-- Green's `D`-relation is self-dual under the opposite semigroup. -/
@@ -296,9 +291,8 @@ namespace IsGreenJ
   ⟨hab.left.trans hbc.left, hbc.right.trans hab.right⟩
 
 /-- Green's `J`-relation defines a setoid on `S`. -/
-protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S where
-  r := IsGreenJ
-  iseqv := { refl := refl, symm := symm, trans := trans }
+protected abbrev setoid (S : Type*) [Semigroup S] : Setoid S :=
+  ⟨IsGreenJ, { refl := refl, symm := symm, trans := trans }⟩
 
 end IsGreenJ
 
@@ -327,17 +321,15 @@ abbrev eqvClass (x : S) : Set S := { y | IsGreenH y x }
 
 /-- The `H`-class of `x` is the intersection of its `L`-class and `R`-class. -/
 lemma eqvClass_eq_inter (x : S) :
-    eqvClass x = IsGreenL.eqvClass x ∩ IsGreenR.eqvClass x := by
-  ext y
-  rfl
+    eqvClass x = IsGreenL.eqvClass x ∩ IsGreenR.eqvClass x := rfl
 
 open MulOpposite in
 /-- An equivalence between the `H`-class of `a` and the `H`-class of `op a`. -/
 abbrev equivHClassOp (a : S) : eqvClass a ≃ eqvClass (op a) where
-  toFun := fun ⟨x, hx⟩ ↦ ⟨op x, isGreenH_iff_isGreenH_op.mp hx⟩
-  invFun := fun ⟨y, hy⟩ ↦ ⟨unop y, isGreenH_iff_isGreenH_op.mpr (by rwa [op_unop])⟩
-  left_inv := fun ⟨x, _⟩ ↦ Subtype.ext (unop_op x)
-  right_inv := fun ⟨y, _⟩ ↦ Subtype.ext (op_unop y)
+  toFun | ⟨x, hx⟩ => ⟨op x, isGreenH_iff_isGreenH_op.mp hx⟩
+  invFun | ⟨y, hy⟩ => ⟨unop y, isGreenH_iff_isGreenH_op.mpr (by rwa [op_unop])⟩
+  left_inv | ⟨x, _⟩ => Subtype.ext (unop_op x)
+  right_inv | ⟨y, _⟩ => Subtype.ext (op_unop y)
 
 end IsGreenH
 
@@ -378,9 +370,8 @@ lemma mk_surjective : Function.Surjective (mk : S → GreenLClass S) :=
   @Quotient.exists_rep _ (IsGreenL.setoid S)
 
 /-- Two elements have the same Green's `L`-class if and only if they are `L`-related. -/
-lemma mk_eq_mk_iff {a b : S} : mk a = mk b ↔ IsGreenL a b := by
-  dsimp [mk, IsGreenL.setoid]
-  exact Quotient.eq
+lemma mk_eq_mk_iff {a b : S} : mk a = mk b ↔ IsGreenL a b :=
+  @Quotient.eq _ (IsGreenL.setoid S) _ _
 
 instance [Inhabited S] : Inhabited (GreenLClass S) := ⟨mk default⟩
 

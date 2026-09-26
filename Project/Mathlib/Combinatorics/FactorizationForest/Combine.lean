@@ -94,16 +94,13 @@ noncomputable abbrev buildXSeq (a : S) {α : Type*} [LinearOrder α] [Fintype α
     [x]
 termination_by (Finset.univ.filter (fun z => x < z)).card
 decreasing_by
-  have h_mem := Finset.min'_mem _ h
-  obtain ⟨_, h_x_lt_y, _⟩ := Finset.mem_filter.mp h_mem
-  have h_le : Finset.univ.filter (fun z => y < z) ⊆
-      Finset.univ.filter (fun z => x < z) :=
-    fun _ hz => Finset.mem_filter.mpr ⟨(Finset.mem_filter.mp hz).1,
-      lt_trans h_x_lt_y (Finset.mem_filter.mp hz).2⟩
-  have h_ne : Finset.univ.filter (fun z => y < z) ≠
-      Finset.univ.filter (fun z => x < z) :=
-    fun heq => lt_irrefl y (Finset.mem_filter.mp
-      (heq.symm ▸ Finset.mem_filter.mpr ⟨Finset.mem_univ y, h_x_lt_y⟩ : y ∈ _)).2
+  have h_lt : x < y := (Finset.mem_filter.mp (Finset.min'_mem _ h)).2.1
+  have h_le : Finset.univ.filter (y < ·) ⊆ Finset.univ.filter (x < ·) :=
+    fun _ hz ↦ Finset.mem_filter.mpr
+      ⟨(Finset.mem_filter.mp hz).1, h_lt.trans (Finset.mem_filter.mp hz).2⟩
+  have h_ne : Finset.univ.filter (y < ·) ≠ Finset.univ.filter (x < ·) :=
+    fun heq ↦ lt_irrefl y (Finset.mem_filter.mp
+      (heq.symm ▸ Finset.mem_filter.mpr ⟨Finset.mem_univ y, h_lt⟩ : y ∈ _)).2
   exact Finset.card_lt_card (lt_of_le_of_ne h_le h_ne)
 
 /-- The elements built by `buildXSeq` cover the interval `[x₀, ∞)`: any
@@ -250,17 +247,13 @@ lemma buildXSeq_properties (a : S) {α : Type*} [LinearOrder α] [Fintype α]
 termination_by (Finset.univ.filter (fun z => w < z)).card
 decreasing_by
   classical
-  have hw_lt : w < Finset.min' _ h :=
-    (Finset.mem_filter.mp (Finset.min'_mem _ h)).2.1
-  have h_le : Finset.univ.filter (fun z => (Finset.min' _ h) < z) ⊆
-      Finset.univ.filter (fun z => w < z) :=
-    fun _ hz => Finset.mem_filter.mpr ⟨(Finset.mem_filter.mp hz).1,
-      lt_trans hw_lt (Finset.mem_filter.mp hz).2⟩
-  have h_ne : Finset.univ.filter (fun z => (Finset.min' _ h) < z) ≠
-      Finset.univ.filter (fun z => w < z) :=
-    fun heq => lt_irrefl _ (Finset.mem_filter.mp
-      (heq.symm ▸ Finset.mem_filter.mpr
-        ⟨Finset.mem_univ _, hw_lt⟩ : (Finset.min' _ h) ∈ _)).2
+  have hw_lt : w < Finset.min' _ h := (Finset.mem_filter.mp (Finset.min'_mem _ h)).2.1
+  have h_le : Finset.univ.filter (Finset.min' _ h < ·) ⊆ Finset.univ.filter (w < ·) :=
+    fun _ hz ↦ Finset.mem_filter.mpr
+      ⟨(Finset.mem_filter.mp hz).1, hw_lt.trans (Finset.mem_filter.mp hz).2⟩
+  have h_ne : Finset.univ.filter (Finset.min' _ h < ·) ≠ Finset.univ.filter (w < ·) :=
+    fun heq ↦ lt_irrefl _ (Finset.mem_filter.mp
+      (heq.symm ▸ Finset.mem_filter.mpr ⟨Finset.mem_univ _, hw_lt⟩ : _ ∈ _)).2
   exact Finset.card_lt_card (lt_of_le_of_ne h_le h_ne)
 
 /-- If two elements `p` and `q` (both not in `xs`) are split-related under a
@@ -392,11 +385,9 @@ lemma build_interval_splits_of_ih {S : Type*} [Semigroup S] [Fintype S]
     obtain ⟨s_b, _, hs_b_ramsey⟩ := ih b h_lt_a xs i σ_Y h_img_b
     let s_lift : Split (OpenIntervalType xs i) (nSElement a) :=
       fun x => ⟨(s_b x).val, Nat.lt_trans (s_b x).isLt h_lt_a⟩
-    have hsr_iff : ∀ u v, SplitRelation s_lift u v ↔ SplitRelation s_b u v := fun u v ↦
-      ⟨fun ⟨h1, h2⟩ ↦ ⟨Fin.ext (congrArg (α := Fin (nSElement a)) Fin.val h1),
-        fun z hz1 hz2 ↦ Fin.le_iff_val_le_val.mpr (Fin.le_iff_val_le_val.mp (h2 z hz1 hz2))⟩,
-       fun ⟨h1, h2⟩ ↦ ⟨Fin.ext (congrArg (α := Fin (nSElement b)) Fin.val h1),
-        fun z hz1 hz2 ↦ Fin.le_iff_val_le_val.mpr (Fin.le_iff_val_le_val.mp (h2 z hz1 hz2))⟩⟩
+    have hsr_iff : ∀ u v, SplitRelation s_lift u v ↔ SplitRelation s_b u v :=
+      fun u v ↦ SplitRelation.comp_strictMono s_b (fun x ↦ ⟨x.val, Nat.lt_trans x.isLt h_lt_a⟩)
+        (fun _ _ hij ↦ hij) u v
     have hs_lift_ramsey : IsRamsey σ_Y s_lift :=
       ⟨fun u v w huv hvw h1 h2 ↦
         hs_b_ramsey.1 u v w huv hvw ((hsr_iff u v).mp h1) ((hsr_iff v w).mp h2),
@@ -566,6 +557,50 @@ lemma combineSplits_interval_ramsey {α S : Type*}
           congrArg Fin.val h_rz.symm ▸ h_bound_val
       )⟩
   ⟩
+
+/-- A context bundle packaging the parameters and hypotheses for combining interval splits. -/
+structure CombineContext (S α : Type*)
+    [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S] where
+  a : S
+  xs : List α
+  C : ℕ
+  σ : MultiplicativeLabeling S α
+  σ_Y : ∀ (i : ℕ), MultiplicativeLabeling S (OpenIntervalType xs i)
+  rankX : {x // x ∈ xs} → Fin (nSElement a)
+  sY : ∀ (i : ℕ) [Nonempty (OpenIntervalType xs i)], Split (OpenIntervalType xs i) (nSElement a)
+  hsY_ramsey : ∀ (i : ℕ) [Nonempty (OpenIntervalType xs i)], IsRamsey (σ_Y i) (sY i)
+  h_σ_Y : ∀ i x y, (σ_Y i).σ x y = σ.σ x.val y.val
+  h_cov : ∀ x, x ∉ xs →
+    ∃ (i : ℕ) (hi_lt : i < xs.length),
+      xs.get ⟨i, hi_lt⟩ < x ∧
+      ∀ (h_next_lt : i + 1 < xs.length), x < xs.get ⟨i + 1, h_next_lt⟩
+  hsY_strict : ∀ (i : ℕ) [Nonempty (OpenIntervalType xs i)]
+    (z : OpenIntervalType xs i), (sY i z).val < C
+  h_rankX_ge : ∀ x (hx : x ∈ xs), C ≤ (rankX ⟨x, hx⟩).val
+  h_xs_mono : ∀ (i j : ℕ) (hi_lt : i < xs.length) (hj_lt : j < xs.length), i < j →
+    xs.get ⟨i, hi_lt⟩ < xs.get ⟨j, hj_lt⟩
+  h_interval_ramsey : ∀ x y, x ∉ xs → x < y →
+    SplitRelation (combineSplits a xs rankX sY) x y →
+    ∃ (i : ℕ) (x_val y_val : OpenIntervalType xs i),
+      x_val.val = x ∧ y_val.val = y ∧
+      SplitRelation (@sY i ⟨x_val⟩) x_val y_val
+  h_X_ramsey_1 : ∀ x y z, x ∈ xs → y ∈ xs → z ∈ xs →
+    x < y → y < z →
+    SplitRelation (combineSplits a xs rankX sY) x y →
+    SplitRelation (combineSplits a xs rankX sY) y z →
+    σ.σ x y * σ.σ x y = σ.σ x y
+  h_X_ramsey_2 : ∀ x y u v,
+    x ∈ xs → y ∈ xs → u ∈ xs → v ∈ xs →
+    x < y → u < v →
+    SplitRelation (combineSplits a xs rankX sY) x y →
+    SplitRelation (combineSplits a xs rankX sY) u v →
+    SplitRelation (combineSplits a xs rankX sY) x u →
+    σ.σ x y = σ.σ u v
+  h_min_norm : (combineSplits a xs rankX sY
+    (Finset.min' (Finset.univ : Finset α) Finset.univ_nonempty)).val =
+    nSElement a - 1
+  h_max_val : (Finset.max' (Finset.univ : Finset (Fin (nSElement a)))
+    Finset.univ_nonempty).val = nSElement a - 1
 
 /-- The combined split satisfies normalization and the Ramsey property. -/
 lemma combineSplits_props {α S : Type*}
@@ -752,5 +787,15 @@ lemma combineSplits_props {α S : Type*}
           hsr_Y_xy hsr_Y_uv hsr_Y_xu
         exact hx_eq ▸ hy_eq ▸ hu_eq ▸ hv_eq ▸
           (h_σ_Y i x_oi y_oi) ▸ (h_σ_Y i u_oi v_oi) ▸ h_ramsey
+
+/-- The bundled version of `combineSplits_props`. -/
+lemma CombineContext.props {S α : Type*}
+    [LinearOrder α] [Fintype α] [Nonempty α] [Semigroup S] [Fintype S]
+    (ctx : CombineContext S α) :
+    IsNormalized (combineSplits ctx.a ctx.xs ctx.rankX ctx.sY) ∧
+    IsRamsey ctx.σ (combineSplits ctx.a ctx.xs ctx.rankX ctx.sY) :=
+  combineSplits_props ctx.a ctx.xs ctx.C ctx.σ ctx.σ_Y ctx.rankX ctx.sY
+    ctx.hsY_ramsey ctx.h_σ_Y ctx.h_cov ctx.hsY_strict ctx.h_rankX_ge ctx.h_xs_mono
+    ctx.h_interval_ramsey ctx.h_X_ramsey_1 ctx.h_X_ramsey_2 ctx.h_min_norm ctx.h_max_val
 
 end RamseySplit

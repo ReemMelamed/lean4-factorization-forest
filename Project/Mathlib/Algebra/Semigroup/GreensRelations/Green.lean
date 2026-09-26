@@ -27,9 +27,9 @@ section MonotonicityAndCommutativity
 theorem isGreenD_commutes_L_R {a b : S} :
     (∃ c, IsGreenL a c ∧ IsGreenR c b) ↔ (∃ c', IsGreenR a c' ∧ IsGreenL c' b) :=
   ⟨fun ⟨_, hL, hR⟩ ↦ isGreenL_commutes_isGreenR hL hR,
-   fun ⟨_, hR, hL⟩ ↦ by
-     obtain ⟨z, hRz, hLz⟩ := isGreenL_commutes_isGreenR hL.symm hR.symm
-     exact ⟨z, hLz.symm, hRz.symm⟩⟩
+   fun ⟨_, hR, hL⟩ ↦
+     let ⟨z, hRz, hLz⟩ := isGreenL_commutes_isGreenR hL.symm hR.symm
+     ⟨z, hLz.symm, hRz.symm⟩⟩
 
 end MonotonicityAndCommutativity
 
@@ -72,14 +72,8 @@ theorem isRegularDClass_iff_forall_LClass_has_idempotent
     exact MulSeq.exists_idempotent_in_greenL_of_regular (hReg x hx)
   · intro H x hx
     obtain ⟨e, he, he_idem⟩ := H (IsGreenL.eqvClass x) ⟨x, hx, rfl⟩
-    obtain ⟨u, hu⟩ : ∃ u, e = u * x := by
-      rcases he.left with h | ⟨u, hu⟩
-      · exact ⟨e, by exact h ▸ he_idem.symm⟩
-      · exact ⟨u, hu⟩
-    obtain ⟨v, hv⟩ : ∃ v, x = v * e := by
-      rcases he.right with h | ⟨v, hv⟩
-      · exact ⟨e, by exact h ▸ he_idem.symm⟩
-      · exact ⟨v, hv⟩
+    obtain ⟨u, hu⟩ : ∃ u, e = u * x := he.left.elim (fun h ↦ ⟨e, h ▸ he_idem.symm⟩) id
+    obtain ⟨v, hv⟩ : ∃ v, x = v * e := he.right.elim (fun h ↦ ⟨e, h ▸ he_idem.symm⟩) id
     exact ⟨u, by rw [mul_assoc, ← hu, hv, mul_assoc, he_idem]⟩
 
 /-- A `D`-class is regular if and only if every `R`-class inside it contains an idempotent. -/
@@ -92,14 +86,8 @@ theorem isRegularDClass_iff_forall_RClass_has_idempotent
     exact MulSeq.exists_idempotent_in_greenR_of_regular (hReg x hx)
   · intro H x hx
     obtain ⟨e, he, he_idem⟩ := H (IsGreenR.eqvClass x) ⟨x, hx, rfl⟩
-    obtain ⟨u, hu⟩ : ∃ u, e = x * u := by
-      rcases he.left with h | ⟨u, hu⟩
-      · exact ⟨e, by exact h ▸ he_idem.symm⟩
-      · exact ⟨u, hu⟩
-    obtain ⟨v, hv⟩ : ∃ v, x = e * v := by
-      rcases he.right with h | ⟨v, hv⟩
-      · exact ⟨e, by exact h ▸ he_idem.symm⟩
-      · exact ⟨v, hv⟩
+    obtain ⟨u, hu⟩ : ∃ u, e = x * u := he.left.elim (fun h ↦ ⟨e, h ▸ he_idem.symm⟩) id
+    obtain ⟨v, hv⟩ : ∃ v, x = e * v := he.right.elim (fun h ↦ ⟨e, h ▸ he_idem.symm⟩) id
     exact ⟨u, by rw [← hu, hv, ← mul_assoc, he_idem]⟩
 
 end RegularDClassesCharacterizations
@@ -138,11 +126,11 @@ noncomputable def equivHClassOfIsGreenR {a b : S} (h : IsGreenR a b) :
 
 open Classical in
 /-- Any two `H`-classes within the same `D`-class have the same cardinality. -/
-theorem card_greenHClass_eq_of_isGreenD [Fintype S] {a b : S} (h : IsGreenD a b) :
-    Fintype.card (IsGreenH.eqvClass a) = Fintype.card (IsGreenH.eqvClass b) :=
-  let ⟨_, hL, hR⟩ := h
-  Eq.trans (Fintype.card_congr (equivHClassOfIsGreenL hL))
-    (Fintype.card_congr (equivHClassOfIsGreenR hR))
+theorem card_greenHClass_eq_of_isGreenD [Fintype S] {a b : S} :
+    IsGreenD a b → Fintype.card (IsGreenH.eqvClass a) = Fintype.card (IsGreenH.eqvClass b)
+  | ⟨_, hL, hR⟩ =>
+    (Fintype.card_congr (equivHClassOfIsGreenL hL)).trans
+      (Fintype.card_congr (equivHClassOfIsGreenR hR))
 
 end BijectionsAndCardinalities
 

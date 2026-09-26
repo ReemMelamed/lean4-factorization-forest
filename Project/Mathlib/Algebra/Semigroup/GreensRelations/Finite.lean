@@ -60,13 +60,10 @@ theorem isGreenL_sl_of_isGreenD_sl [Finite S] {a b : S} (h : IsGreenD b (a * b))
   constructor
   · rcases h with ⟨z', hL_bz', hR_z'ab⟩
     obtain ⟨z, hR_bz, hL_zab⟩ := isGreenL_commutes_isGreenR hL_bz' hR_z'ab
-    obtain ⟨c, rfl⟩ : ∃ c, z = c * b := by
-      rcases hL_zab.left with rfl | ⟨w, hw⟩
-      · exact ⟨a, rfl⟩
-      · exact ⟨w * a, by rw [hw, mul_assoc]⟩
-    rcases hR_bz.left with h_eq | ⟨d, hd⟩
-    · exact (IsGreenL.trans (h_eq ▸ IsGreenL.refl _) hL_zab).left
-    · exact (IsGreenL.trans (MulSeq.greenL_of_eq_mul_mul hd) hL_zab).left
+    obtain ⟨c, rfl⟩ : ∃ c, z = c * b := hL_zab.left.elim (fun rfl ↦ ⟨a, rfl⟩)
+      (fun ⟨w, hw⟩ ↦ ⟨w * a, by rw [hw, mul_assoc]⟩)
+    exact hR_bz.left.elim (fun h_eq ↦ (IsGreenL.trans (h_eq ▸ IsGreenL.refl _) hL_zab).left)
+      (fun ⟨d, hd⟩ ↦ (IsGreenL.trans (MulSeq.greenL_of_eq_mul_mul hd) hL_zab).left)
   · exact Or.inr ⟨a, rfl⟩
 
 open MulOpposite in
@@ -91,21 +88,15 @@ theorem mul_mem_isGreenD_eqvClass_properties
   · rcases (isGreenR_sr_of_isGreenD_sr (ha.trans hab.symm)).left with ha_eq | ⟨u, hu⟩
     · rcases (isGreenL_sl_of_isGreenD_sl (hb.trans hab.symm)).left with hb_eq | ⟨v, hv⟩
       · have hab_eq : a = b := ha_eq.trans hb_eq.symm
-        have he_idem : a * a = a := by
-          nth_rw 2 [hab_eq]
-          rw [← ha_eq]
+        have he_idem : a * a = a := hab_eq.symm ▸ ha_eq.symm
         exact ⟨a, ha, he_idem, IsGreenL.refl a, hab_eq ▸ IsGreenR.refl a⟩
-      · have h_b_eq_va : b = v * a := by
-          nth_rw 1 [hv]
-          rw [← ha_eq]
+      · have h_b_eq_va : b = v * a := ha_eq ▸ hv
         have he_idem : b * b = b := by
           nth_rw 1 [h_b_eq_va]
           rw [mul_assoc, ← hv]
         exact ⟨b, hb, he_idem, ⟨Or.inr ⟨a, ha_eq⟩, Or.inr ⟨v, h_b_eq_va⟩⟩, IsGreenR.refl b⟩
     · rcases (isGreenL_sl_of_isGreenD_sl (hb.trans hab.symm)).left with hb_eq | ⟨v, hv⟩
-      · have h_a_eq_bu : a = b * u := by
-          nth_rw 1 [hu]
-          rw [← hb_eq]
+      · have h_a_eq_bu : a = b * u := hb_eq ▸ hu
         have he_idem : a * a = a := by
           nth_rw 2 [h_a_eq_bu]
           rw [← mul_assoc, ← hb_eq, ← h_a_eq_bu]
@@ -125,8 +116,7 @@ theorem isRegularDClass_iff_exists_mul_mem
     obtain ⟨e, heD, he_idem⟩ := (isRegularDClass_iff_exists_idempotent D hD).mp hReg
     exact ⟨e, heD, e, heD, by rwa [he_idem]⟩
   · rintro ⟨a, ha, b, hb, hab⟩
-    obtain ⟨_, h_exists⟩ := mul_mem_isGreenD_eqvClass_properties hD a b ha hb hab
-    rcases h_exists with ⟨e, heD, he_idem, _⟩
+    obtain ⟨_, e, heD, he_idem, _⟩ := mul_mem_isGreenD_eqvClass_properties hD a b ha hb hab
     exact (isRegularDClass_iff_exists_idempotent D hD).mpr ⟨e, heD, he_idem⟩
 
 end GreenDAndJ
@@ -207,13 +197,10 @@ theorem isGreenH_eqvClass_isGroup_of_idempotent
 theorem isGreenH_eqvClass_dichotomy
     [Finite S] (H : Set S) (hH : ∃ a, H = IsGreenH.eqvClass a) :
     (∀ x y, x ∈ H → y ∈ H → x * y ∉ H) ∨
-    ((∀ x y, x ∈ H → y ∈ H → x * y ∈ H) ∧ IsGroup H) := by
-  rcases isGreenH_eqvClass_disjoint_or_exists_idempotent H hH with
-    h_disj | ⟨e, heH, he_idem, h_closed⟩
-  · left
-    exact h_disj
-  · right
-    exact ⟨h_closed, isGreenH_eqvClass_isGroup_of_idempotent hH heH he_idem⟩
+    ((∀ x y, x ∈ H → y ∈ H → x * y ∈ H) ∧ IsGroup H) :=
+  (isGreenH_eqvClass_disjoint_or_exists_idempotent H hH).elim .inl
+    (fun ⟨_, heH, he_idem, h_closed⟩ ↦
+      .inr ⟨h_closed, isGreenH_eqvClass_isGroup_of_idempotent hH heH he_idem⟩)
 
 end SubgroupsInHClasses
 

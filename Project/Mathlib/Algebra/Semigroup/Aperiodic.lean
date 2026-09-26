@@ -42,24 +42,12 @@ section TruncatedAddition
 
 /-- The truncated addition semigroup `TruncatedAdd n` is aperiodic (group-free). -/
 lemma truncatedAdd_isAperiodic (n : ℕ) (hn : 0 < n) : IsAperiodic (TruncatedAdd n) := by
-  unfold IsAperiodic
   intro G _ f hf_mul hf_inj
-  constructor
-  intro a b
-  have h_f1_idem : f 1 * f 1 = f 1 := by
-    have h : f (1 * 1) = f 1 * f 1 := hf_mul 1 1
-    rw [one_mul] at h
-    exact h.symm
+  refine ⟨fun a b ↦ ?_⟩
   have h_f1_top : f 1 = TruncatedAdd.top hn :=
-    TruncatedAdd.idempotent_eq_top hn (f 1) h_f1_idem
-  have h_all_top : ∀ g : G, f g = TruncatedAdd.top hn := fun g => by
-    have h : f 1 * f g = f g := by
-      have := hf_mul 1 g
-      rw [one_mul] at this
-      exact this.symm
-    rw [h_f1_top] at h
-    rw [TruncatedAdd.top_mul_any hn (f g)] at h
-    exact h.symm
+    TruncatedAdd.idempotent_eq_top hn (f 1) (by rw [← hf_mul, one_mul])
+  have h_all_top (g : G) : f g = TruncatedAdd.top hn := by
+    rw [← one_mul g, hf_mul, h_f1_top, TruncatedAdd.top_mul_any]
   exact hf_inj ((h_all_top a).trans (h_all_top b).symm)
 
 end TruncatedAddition
@@ -86,20 +74,14 @@ lemma maxSemigroup_card (n : ℕ) : Fintype.card (MaxSemigroup n) = n :=
 /-- The max semigroup on `Fin n` is aperiodic (group-free). -/
 lemma maxSemigroup_isAperiodic (n : ℕ) : IsAperiodic (MaxSemigroup n) := by
   intro G _ f hf_mul hf_inj
-  constructor
-  intro a b
-  have h_le_one : ∀ g : G, f 1 ≤ f g := fun g => by
-    have h : f g = f g * f 1 := by rw [← hf_mul, mul_one]
-    change f g = max (f g) (f 1) at h
-    have : f 1 ≤ max (f g) (f 1) := le_max_right (f g) (f 1)
-    rwa [← h] at this
-  have h_one_le : ∀ g : G, f g ≤ f 1 := fun g => by
-    have h : f 1 = f g * f g⁻¹ := by rw [← hf_mul, mul_inv_cancel]
-    change f 1 = max (f g) (f g⁻¹) at h
-    have : f g ≤ max (f g) (f g⁻¹) := le_max_left (f g) (f g⁻¹)
-    rwa [← h] at this
-  have h_eq_one : ∀ g : G, f g = f 1 := fun g =>
-    le_antisymm (h_one_le g) (h_le_one g)
+  refine ⟨fun a b ↦ ?_⟩
+  have h_le_one (g : G) : f 1 ≤ f g := by
+    have : f 1 ≤ f g * f 1 := le_max_right (f g) (f 1)
+    rwa [← hf_mul, mul_one] at this
+  have h_one_le (g : G) : f g ≤ f 1 := by
+    have : f g ≤ f g * f g⁻¹ := le_max_left (f g) (f g⁻¹)
+    rwa [← hf_mul, mul_inv_cancel] at this
+  have h_eq_one (g : G) : f g = f 1 := le_antisymm (h_one_le g) (h_le_one g)
   exact hf_inj ((h_eq_one a).trans (h_eq_one b).symm)
 
 /-- The bottom element of `MaxSemigroup n`. -/
@@ -110,9 +92,8 @@ def evalMax (n : ℕ) (hn : 0 < n) (u : List (MaxSemigroup n)) : MaxSemigroup n 
   u.foldl max (botEl n hn)
 
 /-- The bottom element is less than or equal to any element in `MaxSemigroup n`. -/
-lemma botEl_le (n : ℕ) (hn : 0 < n) (x : MaxSemigroup n) : botEl n hn ≤ x := by
-  change 0 ≤ x.val
-  omega
+lemma botEl_le (n : ℕ) (hn : 0 < n) (x : MaxSemigroup n) : botEl n hn ≤ x :=
+  Nat.zero_le x.val
 
 /-- Taking the maximum with `botEl` on the left is the identity. -/
 lemma max_botEl_left (n : ℕ) (hn : 0 < n) (x : MaxSemigroup n) :
@@ -138,8 +119,7 @@ lemma foldl_max_eq_max (n : ℕ) (hn : 0 < n) (u : List (MaxSemigroup n)) (z : M
 /-- The evaluation map `evalMax` distributes over list concatenation. -/
 lemma evalMax_append (n : ℕ) (hn : 0 < n) (u v : List (MaxSemigroup n)) :
     evalMax n hn (u ++ v) = evalMax n hn u * evalMax n hn v := by
-  change (u ++ v).foldl max (botEl n hn) = max (evalMax n hn u) (evalMax n hn v)
-  rw [List.foldl_append]
+  rw [evalMax, List.foldl_append]
   exact foldl_max_eq_max n hn v (evalMax n hn u)
 
 /-- Any element in a list is bounded by the maximum evaluation of the list. -/
@@ -238,8 +218,7 @@ lemma repeatTwentySeven_ne_nil {α : Type*} {l : List α} (hl : l ≠ []) : repe
 
 /-- Membership in `repeatThree l` implies membership in `l`. -/
 lemma mem_repeatThree {α : Type*} {l : List α} {x : α} (hx : x ∈ repeatThree l) : x ∈ l := by
-  dsimp [repeatThree] at hx
-  grind
+  grind [repeatThree]
 
 /-- Membership in `repeatNine l` implies membership in `l`. -/
 lemma mem_repeatNine {α : Type*} {l : List α} {x : α} (hx : x ∈ repeatNine l) : x ∈ l :=
@@ -278,10 +257,8 @@ lemma repeatThree_append_cases {α : Type*} (l : List α) (_hl : l ≠ [])
 
 /-- If `repeatThree l` is an infix of $A ++ B$, then $l$ is an infix of $A$ or an infix of $B$. -/
 lemma repeatThree_isInfix_append {α : Type*} (l : List α) (hl : l ≠ [])
-    (A B : List α) (h : repeatThree l <:+: A ++ B) :
-    l <:+: A ∨ l <:+: B := by
-  obtain ⟨s, t, hst⟩ := h
-  exact repeatThree_append_cases l hl A B s t hst.symm
+    (A B : List α) : repeatThree l <:+: A ++ B → l <:+: A ∨ l <:+: B
+  | ⟨s, t, hst⟩ => repeatThree_append_cases l hl A B s t hst.symm
 
 /-- If `repeatNine l` is an infix of $A ++ B$, then `repeatThree l` is an infix of $A$ or $B$. -/
 lemma repeatNine_isInfix_append {α : Type*} (l : List α) (hl : l ≠ [])
@@ -298,17 +275,13 @@ lemma repeatTwentySeven_isInfix_append {α : Type*} (l : List α) (hl : l ≠ []
 
 /-- `repeatThree l` is an infix of `repeatNine l`. -/
 lemma repeatThree_isInfix_repeatNine {α : Type*} (l : List α) :
-    repeatThree l <:+: repeatNine l := by
-  refine ⟨[], repeatThree l ++ repeatThree l, ?_⟩
-  dsimp [repeatNine, repeatThree]
-  simp only [List.append_assoc]
+    repeatThree l <:+: repeatNine l :=
+  ⟨[], repeatThree l ++ repeatThree l, by simp [repeatNine, repeatThree]⟩
 
 /-- `repeatNine l` is an infix of `repeatTwentySeven l`. -/
 lemma repeatNine_isInfix_repeatTwentySeven {α : Type*} (l : List α) :
-    repeatNine l <:+: repeatTwentySeven l := by
-  refine ⟨[], repeatNine l ++ repeatNine l, ?_⟩
-  dsimp [repeatTwentySeven, repeatThree]
-  simp only [List.append_assoc]
+    repeatNine l <:+: repeatTwentySeven l :=
+  ⟨[], repeatNine l ++ repeatNine l, by simp [repeatTwentySeven, repeatThree]⟩
 
 /-- `repeatThree l` is an infix of `repeatTwentySeven l`. -/
 lemma repeatThree_isInfix_repeatTwentySeven {α : Type*} (l : List α) :
@@ -316,10 +289,8 @@ lemma repeatThree_isInfix_repeatTwentySeven {α : Type*} (l : List α) :
   (repeatThree_isInfix_repeatNine l).trans (repeatNine_isInfix_repeatTwentySeven l)
 
 /-- A list `l` is an infix of its triple repetition `repeatThree l`. -/
-lemma infix_repeatThree_of_self {α : Type*} (l : List α) : l <:+: repeatThree l := by
-  refine ⟨[], l ++ l, ?_⟩
-  dsimp [repeatThree]
-  simp only [List.append_assoc]
+lemma infix_repeatThree_of_self {α : Type*} (l : List α) : l <:+: repeatThree l :=
+  ⟨[], l ++ l, by simp [repeatThree]⟩
 
 /-- A list `l` is an infix of its nine-fold repetition `repeatNine l`. -/
 lemma infix_repeatNine_of_self {α : Type*} (l : List α) : l <:+: repeatNine l :=
@@ -450,16 +421,8 @@ lemma isRamsey_of_mem_listIsRamsey {α S : Type*} [Semigroup S] {eval : List α 
 
 /-- A tree that is not a leaf has height at least 1. -/
 lemma height_pos_of_not_leaf {α : Type*} (t : FactorizationTree α)
-    (h : ∀ a, t ≠ FactorizationTree.leaf a) :
-    1 ≤ t.height := by
-  cases t with
-  | leaf a => exact (h a rfl).elim
-  | binary l r =>
-    dsimp [FactorizationTree.height]
-    omega
-  | idempotent cs =>
-    dsimp [FactorizationTree.height]
-    omega
+    (h : ∀ a, t ≠ FactorizationTree.leaf a) : 1 ≤ t.height := by
+  cases t <;> first | exact (h _ rfl).elim | exact Nat.le_add_right 1 _
 
 /-- The height of any tree in a list is bounded by `listHeight`. -/
 lemma mem_listHeight_le {α : Type*} {c : FactorizationTree α} {cs : List (FactorizationTree α)}
@@ -468,33 +431,27 @@ lemma mem_listHeight_le {α : Type*} {c : FactorizationTree α} {cs : List (Fact
   | nil => contradiction
   | cons head tail ih =>
     cases hc with
-    | head =>
-      dsimp [FactorizationTree.listHeight]
-      exact le_max_left _ _
-    | tail _ hmem =>
-      dsimp [FactorizationTree.listHeight]
-      exact (ih hmem).trans (le_max_right _ _)
+    | head => exact le_max_left _ _
+    | tail _ hmem => exact (ih hmem).trans (le_max_right _ _)
 
 /-- The height of an idempotent tree is strictly greater than the height of each of its children. -/
 lemma height_ge_child_of_idempotent {α : Type*} {cs : List (FactorizationTree α)}
     {c : FactorizationTree α} (hc : c ∈ cs) :
     c.height + 1 ≤ (FactorizationTree.idempotent cs).height := by
-  dsimp [FactorizationTree.height]
   have := mem_listHeight_le hc
+  dsimp [FactorizationTree.height]
   omega
 
 /-- The height of a binary tree is strictly greater than the height of its left subtree. -/
 lemma height_ge_child_of_binary_left {α : Type*} (l r : FactorizationTree α) :
     l.height + 1 ≤ (FactorizationTree.binary l r).height := by
   dsimp [FactorizationTree.height]
-  have := le_max_left l.height r.height
   omega
 
 /-- The height of a binary tree is strictly greater than the height of its right subtree. -/
 lemma height_ge_child_of_binary_right {α : Type*} (l r : FactorizationTree α) :
     r.height + 1 ≤ (FactorizationTree.binary l r).height := by
   dsimp [FactorizationTree.height]
-  have := le_max_right l.height r.height
   omega
 
 /-- Inductive sequence of hard words $w_k$: constructed inductively by
@@ -577,17 +534,15 @@ lemma mem_listValue {α : Type*} {cs : List (FactorizationTree α)} {x : α}
 
 /-- The 9-fold repetition of a non-empty list has length at least 9. -/
 lemma repeatNine_length_ge {α : Type*} (l : List α) (hl : l ≠ []) : 9 ≤ (repeatNine l).length := by
-  have : 1 ≤ l.length := List.length_pos_iff.mpr hl
-  dsimp [repeatNine, repeatThree]
-  simp only [List.length_append]
+  have := List.length_pos_iff.mpr hl
+  simp only [repeatNine, repeatThree, List.length_append]
   omega
 
 /-- The 27-fold repetition of a non-empty list has length at least 27. -/
 lemma repeatTwentySeven_length_ge {α : Type*} (l : List α) (hl : l ≠ []) :
     27 ≤ (repeatTwentySeven l).length := by
-  have : 1 ≤ l.length := List.length_pos_iff.mpr hl
-  dsimp [repeatTwentySeven, repeatNine, repeatThree]
-  simp only [List.length_append]
+  have := List.length_pos_iff.mpr hl
+  simp only [repeatTwentySeven, repeatNine, repeatThree, List.length_append]
   omega
 
 /-- If a 9-fold repetition occurs in a tree,
@@ -848,9 +803,7 @@ theorem aperiodic_bound_tight (n : ℕ) (hn : 2 ≤ n) :
     w_ne_nil n hn' (n - 1),
     ?_⟩
   intro t ht_val ht_ramsey
-  have h_inf : w n hn' (n - 1) <:+: t.value := by
-    rw [ht_val]
-  have h_bound := height_ge_of_w_infix hn' (n - 1) (by omega) t ht_ramsey h_inf
+  have := height_ge_of_w_infix hn' (n - 1) (by omega) t ht_ramsey (ht_val ▸ List.infix_refl _)
   omega
 
 end Tightness

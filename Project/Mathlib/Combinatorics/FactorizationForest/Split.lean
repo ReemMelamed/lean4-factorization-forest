@@ -78,13 +78,9 @@ theorem simon_split {S α : Type*} [Semigroup S] [Fintype S]
   let s : Split α (nS S) := fun x ↦ ⟨(s_a x).val + Δ, by
     have := (s_a x).isLt
     omega⟩
-  have hsr_iff : ∀ u v, SplitRelation s u v ↔ SplitRelation s_a u v := fun u v ↦ by
-    simp only [SplitRelation, Fin.ext_iff, Fin.le_iff_val_le_val, s]
-    constructor <;> rintro ⟨h1, h2⟩ <;> refine ⟨by omega, fun z hz1 hz2 ↦ ?_⟩
-    · have := h2 z hz1 hz2
-      omega
-    · have := h2 z hz1 hz2
-      omega
+  have hsr_iff : ∀ u v, SplitRelation s u v ↔ SplitRelation s_a u v :=
+    fun u v ↦ SplitRelation.comp_strictMono s_a (fun x ↦ ⟨x.val + Δ, by omega⟩)
+      (fun _ _ hij ↦ by simpa using hij) u v
   exact ⟨s, by
       ext
       simp only [h_norm, s]

@@ -48,6 +48,12 @@ equal to that of the minimum of `x` and `y`. -/
 abbrev SplitRelation (s : Split α h) (x y : α) : Prop :=
   s x = s y ∧ ∀ z, min x y ≤ z → z ≤ max x y → s z ≤ s (min x y)
 
+/-- A strictly monotone transformation of ranks preserves `SplitRelation`. -/
+lemma SplitRelation.comp_strictMono {h₁ h₂ : ℕ} (s : Split α h₁) (f : Fin h₁ → Fin h₂)
+    (hf : StrictMono f) (x y : α) :
+    SplitRelation (f ∘ s) x y ↔ SplitRelation s x y := by
+  simp only [SplitRelation, Function.comp_apply, hf.injective.eq_iff, hf.le_iff_le]
+
 /-- A split function is normalized if the minimal element of `α` receives the
 maximal possible rank `Finset.max' Finset.univ`. This normalization ensures
 the split is compatible with the inductive structure of the proof. -/

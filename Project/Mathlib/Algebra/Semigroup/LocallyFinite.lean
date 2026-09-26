@@ -61,7 +61,7 @@ lemma X_seq_mono (ϕ : S →ₙ* T) (X : Set S) {m n : ℕ} (h : m ≤ n) :
     X_seq ϕ X m ⊆ X_seq ϕ X n := by
   induction h with
   | refl => exact subset_rfl
-  | step hk ih => exact ih.trans (X_seq_succ_self ϕ X _)
+  | step _ ih => exact ih.trans (X_seq_succ_self ϕ X _)
 
 /-- Xₙ ⊆ ⟨X⟩_S for all n. -/
 lemma X_seq_subset_closure (ϕ : S →ₙ* T) (X : Set S) (n : ℕ) :
@@ -92,27 +92,19 @@ mutual
     | leaf a => simp [FactorizationTree.value]
     | binary l r =>
       intro h
-      rw [FactorizationTree.value, List.append_eq_nil_iff] at h
-      exact tree_value_ne_nil l eval ht.1 h.1
+      exact tree_value_ne_nil l eval ht.1 (List.append_eq_nil_iff.mp h).1
     | idempotent cs =>
       obtain ⟨hlen, hcs, -⟩ := ht
-      cases cs with
-      | nil => contradiction
-      | cons c _ =>
-        intro h
-        rw [FactorizationTree.value, FactorizationTree.listValue, List.append_eq_nil_iff] at h
-        exact tree_value_ne_nil c eval hcs.1 h.1
+      exact listTree_value_ne_nil cs eval hcs (fun h ↦ by cases h ▸ hlen)
 
   /-- The yield of a list of Ramsey factorization trees is non-empty if the list is non-empty. -/
   lemma listTree_value_ne_nil (cs : List (FactorizationTree S)) (eval : List S → T)
       (hcs : FactorizationTree.listIsRamsey eval cs) (hne : cs ≠ []) :
       FactorizationTree.listValue cs ≠ [] := by
-    cases cs with
-    | nil => contradiction
-    | cons c _ =>
-      intro h
-      rw [FactorizationTree.listValue, List.append_eq_nil_iff] at h
-      exact tree_value_ne_nil c eval hcs.1 h.1
+    rcases cs with _ | ⟨c, _⟩
+    · contradiction
+    · intro h
+      exact tree_value_ne_nil c eval hcs.1 (List.append_eq_nil_iff.mp h).1
 end
 
 mutual
@@ -228,16 +220,14 @@ theorem closure_eq_X_seq [Fintype T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S)
     have hmul_T : ∀ v w, v ≠ [] → w ≠ [] → eval_T (v ++ w) = eval_T v * eval_T w := by
       intros v w hv hw
       dsimp [eval_T]
-      rw [dite_eq_right (by simp [hv, hw]), dite_eq_right hv, dite_eq_right hw]
-      rw [listProdNE_concat v w hv hw]
-      exact ϕ.map_mul (listProdNE v hv) (listProdNE w hw)
+      rw [dite_eq_right (by simp [hv, hw]), dite_eq_right hv, dite_eq_right hw,
+        listProdNE_concat v w hv hw, ϕ.map_mul]
     obtain ⟨t, ht_val, ht_ramsey, ht_height⟩ :=
       factorization_forest_theorem eval_T hmul_T u hu
-    have h_eval_eq : ∀ w hw, eval_T w = ϕ (listProdNE w hw) := by grind
     have ht_X : ∀ x ∈ t.value, x ∈ X := ht_val.symm ▸ huX
     have ht_ne : t.value ≠ [] := ht_val.symm ▸ hu
-    have h_in_height := tree_prod_in_X_seq ϕ X eval_T h_eval_eq t ht_ramsey ht_X ht_ne
-    have h_in_3n := X_seq_mono ϕ X ht_height h_in_height
+    have h_in_3n := X_seq_mono ϕ X ht_height
+      (tree_prod_in_X_seq ϕ X eval_T (by grind) t ht_ramsey ht_X ht_ne)
     grind
   · exact fun hs ↦ X_seq_subset_closure ϕ X (3 * nS T - 1) hs
 
@@ -257,8 +247,7 @@ def Cond1' (P : Set (Set S)) : Prop :=
 
 /-- Condition (1''):
 X ∈ P. -/
-def Cond1'' (X : Set S) (P : Set (Set S)) : Prop :=
-  X ∈ P
+def Cond1'' (X : Set S) (P : Set (Set S)) : Prop := X ∈ P
 
 /-- Condition (2):
 For all A, B ∈ P, A ∪ B ∈ P. -/
@@ -292,9 +281,8 @@ lemma finset_bUnion_mem_P (P : Set (Set S)) (h2 : Cond2 P) (h_empty : ∅ ∈ P)
   induction s using Finset.induction_on with
   | empty => simp [h_empty]
   | insert a s' ha ih =>
-    simp only [Finset.mem_insert] at hf
     rw [Finset.set_biUnion_insert]
-    exact h2 (hf _ (Or.inl rfl)) (ih (fun b hb ↦ hf b (Or.inr hb)))
+    exact h2 (hf a (Finset.mem_insert_self a s')) (ih fun b hb ↦ hf b (Finset.mem_insert_of_mem hb))
 
 /-- Set-Family Fixed Point Theorem: if `P` satisfies conditions (1)-(4), then `⟨X⟩_S ∈ P`. -/
 theorem closure_mem_set_family [Finite T] [Nonempty T] (ϕ : S →ₙ* T) (X : Set S) (P : Set (Set S))
@@ -392,8 +380,7 @@ theorem brown_lemma (f : S →ₙ* T)
       induction hx using Subsemigroup.closure_induction with
       | mem y hy => exact Subtype.ext_iff.mp (hAe' hy)
       | mul y z _ _ ihy ihz =>
-        change f (y.1 * z.1) = e'.1
-        rw [f.map_mul, ihy, ihz, h_idem]
+        rw [show f (y * z).1 = f y.1 * f z.1 from f.map_mul _ _, ihy, ihz, h_idem]
     let g : ↥(Subsemigroup.closure A) → ↥(Subsemigroup.closure A_fiber) := fun ⟨x, hx⟩ ↦
       ⟨⟨x.1, h_sub_fiber x hx⟩, by
         induction hx using Subsemigroup.closure_induction with

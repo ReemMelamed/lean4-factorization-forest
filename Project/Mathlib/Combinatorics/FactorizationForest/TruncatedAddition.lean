@@ -206,9 +206,7 @@ lemma top_val (hn : 0 < n) : (top hn).val = n := rfl
 
 /-- The top element is an idempotent: `top * top = top`. -/
 lemma top_mul_self (hn : 0 < n) : top hn * top hn = top hn := by
-  ext
-  simp only [mul_val, top_val]
-  omega
+  ext; simp [mul_val, top_val]
 
 /-- Evaluator mapping lists of elements to their truncated sum in `TruncatedAdd n`. -/
 def evalTrunc (hn : 0 < n) (u : List (TruncatedAdd n)) : TruncatedAdd n :=
@@ -266,10 +264,7 @@ lemma idempotent_eq_top {n : ℕ} (hn : 0 < n)
 /-- Left-multiplication by `top n` returns `top n` for any element. -/
 lemma top_mul_any {n : ℕ} (hn : 0 < n) (x : TruncatedAdd n) :
     top hn * x = top hn := by
-  ext
-  simp only [mul_val, top_val]
-  have := x.pos
-  omega
+  ext; simp [mul_val, top_val]
 
 /-- `TruncatedAdd n` has exactly `n` elements. -/
 noncomputable def equivFin (n : ℕ) (_hn : 0 < n) : TruncatedAdd n ≃ Fin n where

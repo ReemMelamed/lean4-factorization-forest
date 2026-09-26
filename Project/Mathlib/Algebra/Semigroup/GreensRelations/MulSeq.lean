@@ -53,20 +53,16 @@ lemma leftMulSeq_pull_c (c : S) (n : ℕ) (x : S) :
 lemma leftMulSeq_pigeonhole [Finite S] (c a : S) :
     ∃ i j : ℕ, i < j ∧ leftMulSeq c a i = leftMulSeq c a j := by
   obtain ⟨i, j, h_neq, heq⟩ := Finite.exists_ne_map_eq_of_infinite (leftMulSeq c a)
-  rcases lt_trichotomy i j with h_lt | h_eq | h_gt
+  rcases lt_or_gt_of_ne h_neq with h_lt | h_gt
   · exact ⟨i, j, h_lt, heq⟩
-  · nomatch (h_neq h_eq)
   · exact ⟨j, i, h_gt, heq.symm⟩
 
 /-- Any element in a `leftMulSeq` starting from `a` is a left multiple of `a`. -/
-lemma leftMulSeq_isGreenLeftDvd (c a : S) (m : ℕ) :
-    IsGreenLeftDvd (leftMulSeq c a m) a := by
-  induction m with
-  | zero => exact Or.inl rfl
-  | succ m ih =>
-    rcases ih with h | ⟨w, hw⟩
-    · exact Or.inr ⟨c, by rw [leftMulSeq, h]⟩
-    · exact Or.inr ⟨c * w, by rw [leftMulSeq, hw, mul_assoc]⟩
+lemma leftMulSeq_isGreenLeftDvd (c a : S) : (m : ℕ) → IsGreenLeftDvd (leftMulSeq c a m) a
+  | 0 => .inl rfl
+  | m + 1 => (leftMulSeq_isGreenLeftDvd c a m).elim
+    (fun h ↦ .inr ⟨c, by rw [leftMulSeq, h]⟩)
+    (fun ⟨w, hw⟩ ↦ .inr ⟨c * w, by rw [leftMulSeq, hw, mul_assoc]⟩)
 
 /-- Left and right multiplication sequences commute. -/
 lemma leftMulSeq_rightMulSeq_comm (c x d : S) (i k : ℕ) :
@@ -106,8 +102,7 @@ lemma eq_leftMulSeq_of_eq_mul_mul [Finite S] {b c d : S} (h : b = c * b * d) :
 /-- If `b = c * b * d`, then `b` is `L`-related to `c * b`. -/
 lemma greenL_of_eq_mul_mul [Finite S] {b c d : S} (h : b = c * b * d) : IsGreenL b (c * b) := by
   obtain ⟨k, hk_pos, hk_eq⟩ := eq_leftMulSeq_of_eq_mul_mul h
-  obtain ⟨m, rfl⟩ : ∃ m, k = m + 1 :=
-    Nat.exists_eq_succ_of_ne_zero (ne_of_gt hk_pos)
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hk_pos.ne'
   constructor
   · conv_lhs => rw [hk_eq, leftMulSeq_pull_c]
     exact leftMulSeq_isGreenLeftDvd c (c * b) m
@@ -192,8 +187,7 @@ lemma exists_idempotent_in_greenL_of_regular {S : Type*} [Semigroup S] {a : S}
     (hReg : IsGreenRegular a) : ∃ e ∈ IsGreenL.eqvClass a, e * e = e := by
   obtain ⟨s, hs⟩ := hReg
   exact ⟨s * a, ⟨Or.inr ⟨s, rfl⟩, Or.inr ⟨a, by rw [← mul_assoc, hs]⟩⟩, by
-    simp only [mul_assoc]
-    rw [← mul_assoc a, hs]⟩
+    rw [mul_assoc, ← mul_assoc a, hs]⟩
 
 open MulOpposite in
 /-- A regular element `a` has an idempotent in its `R`-class. -/

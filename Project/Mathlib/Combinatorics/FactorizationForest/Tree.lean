@@ -114,6 +114,29 @@ lemma listIsRamsey_cons (eval : List A → S) (t : FactorizationTree A)
     (ts : List (FactorizationTree A)) :
     listIsRamsey eval (t :: ts) ↔ (t.IsRamsey eval ∧ listIsRamsey eval ts) := Iff.rfl
 
+/-- Characterization of `listIsRamsey` via universal quantification over tree elements. -/
+lemma listIsRamsey_iff (eval : List A → S) :
+    ∀ (ts : List (FactorizationTree A)), listIsRamsey eval ts ↔ ∀ t ∈ ts, t.IsRamsey eval
+  | [] => by simp [listIsRamsey]
+  | t :: ts => by simp [listIsRamsey_cons, listIsRamsey_iff eval ts]
+
+/-- Any element of a Ramsey list of trees is itself Ramsey. -/
+lemma isRamsey_of_mem_listIsRamsey {eval : List A → S} {cs : List (FactorizationTree A)}
+    (h : listIsRamsey eval cs) {c : FactorizationTree A} (hc : c ∈ cs) : c.IsRamsey eval :=
+  (listIsRamsey_iff eval cs).mp h c hc
+
+/-- Any letter in the concatenation of tree yields comes from some tree in the list. -/
+lemma mem_listValue {cs : List (FactorizationTree A)} {x : A}
+    (h : x ∈ listValue cs) : ∃ c ∈ cs, x ∈ c.value := by
+  induction cs with
+  | nil => contradiction
+  | cons head tail ih =>
+    rw [listValue_cons, List.mem_append] at h
+    rcases h with h | h
+    · exact ⟨head, .head _, h⟩
+    · obtain ⟨c, hc, hxc⟩ := ih h
+      exact ⟨c, List.mem_cons_of_mem _ hc, hxc⟩
+
 end TreeDefinitions
 
 end FactorizationTree

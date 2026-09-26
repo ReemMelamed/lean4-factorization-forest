@@ -36,15 +36,11 @@ instance : LE (GreenLClass S) where
 
 /-- The partial order on `L`-classes. -/
 instance : PartialOrder (GreenLClass S) where
-  le_refl := by
-    rintro ⟨a⟩
-    exact IsGreenLeftDvd.refl a
-  le_trans := by
-    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ hab hbc
-    exact IsGreenLeftDvd.trans hab hbc
-  le_antisymm := by
-    rintro ⟨a⟩ ⟨b⟩ hab hba
-    exact mk_eq_mk_iff.mpr ⟨hab, hba⟩
+  le_refl := Quot.ind IsGreenLeftDvd.refl
+  le_trans := Quot.ind fun a ↦ Quot.ind fun b ↦ Quot.ind fun c hab hbc ↦
+    IsGreenLeftDvd.trans hab hbc
+  le_antisymm := Quot.ind fun a ↦ Quot.ind fun b hab hba ↦
+    mk_eq_mk_iff.mpr ⟨hab, hba⟩
 
 end GreenLClass
 
@@ -64,15 +60,11 @@ instance : LE (GreenRClass S) where
 
 /-- The partial order on `R`-classes. -/
 instance : PartialOrder (GreenRClass S) where
-  le_refl := by
-    rintro ⟨a⟩
-    exact IsGreenRightDvd.refl a
-  le_trans := by
-    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ hab hbc
-    exact IsGreenRightDvd.trans hab hbc
-  le_antisymm := by
-    rintro ⟨a⟩ ⟨b⟩ hab hba
-    exact mk_eq_mk_iff.mpr ⟨hab, hba⟩
+  le_refl := Quot.ind IsGreenRightDvd.refl
+  le_trans := Quot.ind fun a ↦ Quot.ind fun b ↦ Quot.ind fun c hab hbc ↦
+    IsGreenRightDvd.trans hab hbc
+  le_antisymm := Quot.ind fun a ↦ Quot.ind fun b hab hba ↦
+    mk_eq_mk_iff.mpr ⟨hab, hba⟩
 
 end GreenRClass
 
@@ -92,15 +84,11 @@ instance : LE (GreenJClass S) where
 
 /-- The partial order on `J`-classes. -/
 instance : PartialOrder (GreenJClass S) where
-  le_refl := by
-    rintro ⟨a⟩
-    exact IsGreenJRel.refl a
-  le_trans := by
-    rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ hab hbc
-    exact IsGreenJRel.trans hab hbc
-  le_antisymm := by
-    rintro ⟨a⟩ ⟨b⟩ hab hba
-    exact mk_eq_mk_iff.mpr ⟨hab, hba⟩
+  le_refl := Quot.ind IsGreenJRel.refl
+  le_trans := Quot.ind fun a ↦ Quot.ind fun b ↦ Quot.ind fun c hab hbc ↦
+    IsGreenJRel.trans hab hbc
+  le_antisymm := Quot.ind fun a ↦ Quot.ind fun b hab hba ↦
+    mk_eq_mk_iff.mpr ⟨hab, hba⟩
 
 end GreenJClass
 
@@ -111,12 +99,8 @@ between `GreenDClass S` and `GreenJClass S`. -/
 noncomputable def equivGreenJClass [Finite S] : GreenDClass S ≃ GreenJClass S where
   toFun := Quotient.map id (fun _ _ h => isGreenJ_of_isGreenD h)
   invFun := Quotient.map id (fun _ _ h => isGreenD_of_isGreenJ h)
-  left_inv := by
-    rintro ⟨a⟩
-    rfl
-  right_inv := by
-    rintro ⟨a⟩
-    rfl
+  left_inv := Quot.ind fun _ ↦ rfl
+  right_inv := Quot.ind fun _ ↦ rfl
 
 /-- Green's `D`-relation induces an order on `D`-classes in a finite semigroup via `D` = `J`. -/
 noncomputable instance [Finite S] : LE (GreenDClass S) where
